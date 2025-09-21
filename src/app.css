@@ -1,0 +1,348 @@
+.root {
+  /* ---- Base Colors ---- */
+  -color-dark: #0d0e12;
+  -color-light: #f8f8f2;
+
+  -color-base-0: #d4d4d7;
+  -color-base-1: #bfbfc3;
+  -color-base-2: #94959b;
+  -color-base-3: #7e7f86;
+  -color-base-4: #696a72;
+  -color-base-5: #53555e;
+  -color-base-6: #3d3f4a;
+  -color-base-7: #282a36;
+  -color-base-8: #181920;
+  -color-base-9: #0d0e12;
+
+  /* ---- Accent ---- */
+  -color-accent-0: #e5dfff;
+  -color-accent-1: #d5ccff;
+  -color-accent-2: #c5b9ff;
+  -color-accent-3: #b5a6ff;
+  -color-accent-4: #a593ff;
+  -color-accent-5: #9580ff;
+  -color-accent-6: #7f6dd9;
+  -color-accent-7: #685ab3;
+  -color-accent-8: #52468c;
+  -color-accent-9: #3c3366;
+
+  /* ---- Success ---- */
+  -color-success-0: #e2ffdf;
+  -color-success-1: #d0ffcc;
+  -color-success-2: #bfffb9;
+  -color-success-3: #adffa6;
+  -color-success-4: #9cff93;
+  -color-success-5: #8aff80;
+  -color-success-6: #75d96d;
+  -color-success-7: #61b35a;
+  -color-success-8: #4c8c46;
+  -color-success-9: #376633;
+
+  /* ---- Warning ---- */
+  -color-warning-0: #fff2df;
+  -color-warning-1: #ffeacc;
+  -color-warning-2: #ffe2b9;
+  -color-warning-3: #ffdaa6;
+  -color-warning-4: #ffd293;
+  -color-warning-5: #ffca80;
+  -color-warning-6: #d9ac6d;
+  -color-warning-7: #b38d5a;
+  -color-warning-8: #8c6f46;
+  -color-warning-9: #665133;
+
+  /* ---- Danger ---- */
+  -color-danger-0: #ffe5df;
+  -color-danger-1: #ffd5cc;
+  -color-danger-2: #ffc5b9;
+  -color-danger-3: #ffb5a6;
+  -color-danger-4: #ffa593;
+  -color-danger-5: #ff9580;
+  -color-danger-6: #d97f6d;
+  -color-danger-7: #b3685a;
+  -color-danger-8: #8c5246;
+  -color-danger-9: #663c33;
+
+  /* ---- Text & Background ---- */
+  -color-fg-default: #f8f8f2;
+  -color-fg-muted: #bfbfc3;
+  -color-fg-subtle: #7e7f86;
+  -color-fg-emphasis: #0d0e12;
+
+  -color-bg-default: #282a36;
+  -color-bg-overlay: #282a36;
+  -color-bg-subtle: #3d3f4a;
+  -color-bg-inset: #181920;
+
+  /* ---- Borders & Shadows ---- */
+  -color-border-default: #685ab3;
+  -color-border-muted: #52468c;
+  -color-border-subtle: #3c3366;
+  -color-shadow-default: #0d0e12;
+
+  /* ---- General FX ---- */
+  -fx-background-color: -color-bg-default;
+  -fx-font-size: 14px;
+  -fx-background-radius: inherit;
+  -fx-background-insets: inherit;
+  -fx-padding: inherit;
+}
+
+.text {
+  -fx-font-smoothing-type: lcd;
+  -fx-bounds-type: logical_vertical_center;
+  -fx-fill: -color-fg-default;
+}
+
+/* Varianti di colore */
+.text.accent   { -fx-fill: -color-accent-fg; }
+.text.success  { -fx-fill: -color-success-fg; }
+.text.warning  { -fx-fill: -color-warning-fg; }
+.text.danger   { -fx-fill: -color-danger-fg; }
+.text-muted    { -fx-fill: -color-fg-muted; }
+.text-subtle   { -fx-fill: -color-fg-subtle; }
+.text-on-emphasis { -fx-fill: -color-fg-emphasis; }
+}
+
+.button {
+  -fx-background-color: -color-border-default, -color-bg-subtle;
+  -fx-background-insets: 0, 1px;
+  -fx-background-radius: 6px, 5px;
+  -fx-text-fill: -color-fg-default;
+  -fx-padding: 8px 12px;
+  -fx-alignment: CENTER;
+}
+
+/* Hover */
+.button:hover {
+  -fx-background-color: -color-border-default, -color-base-5;
+  -fx-text-fill: -color-fg-default;
+}
+
+/* Focus */
+.button:focused {
+  -fx-background-color: #7f6dd9; /* colore reale */
+  -fx-text-fill: -color-fg-emphasis;
+}
+
+
+
+/* Pressed */
+.button:armed, .button:focused:armed {
+  -fx-background-color: transparent, -color-bg-subtle;
+  -fx-text-fill: -color-fg-default;
+}
+
+:root {
+  /* ---- Base Colors ---- */
+  -color-dark: #0d0e12;
+  -color-light: #f8f8f2;
+
+  -color-base-0: #d4d4d7;
+  -color-base-1: #bfbfc3;
+  -color-base-2: #94959b;
+  -color-base-3: #7e7f86;
+  -color-base-4: #696a72;
+  -color-base-5: #53555e;
+  -color-base-6: #3d3f4a;
+  -color-base-7: #282a36;
+  -color-base-8: #181920;
+  -color-base-9: #0d0e12;
+
+  /* ---- Accent ---- */
+  -color-accent-0: #e5dfff;
+  -color-accent-1: #d5ccff;
+  -color-accent-2: #c5b9ff;
+  -color-accent-3: #b5a6ff;
+  -color-accent-4: #a593ff;
+  -color-accent-5: #9580ff;
+  -color-accent-6: #7f6dd9;
+  -color-accent-7: #685ab3;
+  -color-accent-8: #52468c;
+  -color-accent-9: #3c3366;
+
+  /* Accent Emphasis (aggiunta per i pulsanti focus) */
+  -color-accent-emphasis: #7f6dd9;
+
+  /* ---- Success ---- */
+  -color-success-0: #e2ffdf;
+  -color-success-1: #d0ffcc;
+  -color-success-2: #bfffb9;
+  -color-success-3: #adffa6;
+  -color-success-4: #9cff93;
+  -color-success-5: #8aff80;
+  -color-success-6: #75d96d;
+  -color-success-7: #61b35a;
+  -color-success-8: #4c8c46;
+  -color-success-9: #376633;
+
+  /* ---- Warning ---- */
+  -color-warning-0: #fff2df;
+  -color-warning-1: #ffeacc;
+  -color-warning-2: #ffe2b9;
+  -color-warning-3: #ffdaa6;
+  -color-warning-4: #ffd293;
+  -color-warning-5: #ffca80;
+  -color-warning-6: #d9ac6d;
+  -color-warning-7: #b38d5a;
+  -color-warning-8: #8c6f46;
+  -color-warning-9: #665133;
+
+  /* ---- Danger ---- */
+  -color-danger-0: #ffe5df;
+  -color-danger-1: #ffd5cc;
+  -color-danger-2: #ffc5b9;
+  -color-danger-3: #ffb5a6;
+  -color-danger-4: #ffa593;
+  -color-danger-5: #ff9580;
+  -color-danger-6: #d97f6d;
+  -color-danger-7: #b3685a;
+  -color-danger-8: #8c5246;
+  -color-danger-9: #663c33;
+
+  /* ---- Text & Background ---- */
+  -color-fg-default: #f8f8f2;
+  -color-fg-muted: #bfbfc3;
+  -color-fg-subtle: #7e7f86;
+  -color-fg-emphasis: #0d0e12;
+
+  -color-bg-default: #282a36;
+  -color-bg-overlay: #282a36;
+  -color-bg-subtle: #3d3f4a;
+  -color-bg-inset: #181920;
+
+  /* ---- Borders & Shadows ---- */
+  -color-border-default: #685ab3;
+  -color-border-muted: #52468c;
+  -color-border-subtle: #3c3366;
+  -color-shadow-default: #0d0e12;
+}
+
+/* ---- Base Text ---- */
+.text {
+  -fx-font-smoothing-type: lcd;
+  -fx-bounds-type: logical_vertical_center;
+  -fx-fill: -color-fg-default;
+}
+
+/* Varianti di colore per testo */
+.text.accent { -fx-fill: -color-accent-6; }
+.text.success { -fx-fill: -color-success-6; }
+.text.warning { -fx-fill: -color-warning-6; }
+.text.danger { -fx-fill: -color-danger-6; }
+.text-muted { -fx-fill: -color-fg-muted; }
+.text-subtle { -fx-fill: -color-fg-subtle; }
+.text-on-emphasis { -fx-fill: -color-fg-emphasis; }
+
+/* ---- Button ---- */
+.button {
+  -fx-background-color: -color-border-default, -color-bg-subtle;
+  -fx-background-insets: 0, 1px;
+  -fx-background-radius: 6px, 5px;
+  -fx-text-fill: -color-fg-default;
+  -fx-padding: 8px 12px;
+  -fx-alignment: CENTER;
+}
+
+/* Hover */
+.button:hover {
+  -fx-background-color: -color-border-default, -color-base-5;
+}
+
+/* ---- Spinner ---- */
+.spinner {
+  -fx-background-color: -color-bg-subtle, -color-bg-inset;
+  -fx-background-radius: 6px;
+  -fx-padding: 4px;
+}
+
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+  -fx-background-color: -color-border-default, -color-bg-subtle;
+  -fx-background-insets: 0, 1px;
+  -fx-background-radius: 4px, 3px;
+}
+
+.spinner .increment-arrow-button:hover,
+.spinner .decrement-arrow-button:hover {
+  -fx-background-color: -color-accent-6, -color-bg-subtle;
+}
+
+.spinner .increment-arrow-button:pressed,
+.spinner .decrement-arrow-button:pressed {
+  -fx-background-color: -color-accent-7, -color-bg-subtle;
+}
+
+
+
+/* ---- CheckBox & RadioButton ---- */
+.check-box, .radio-button {
+  -fx-text-fill: -color-fg-default;
+}
+
+.check-box .box, .radio-button .radio {
+  -fx-border-color: -color-border-muted;
+  -fx-background-color: -color-bg-subtle;
+}
+
+.check-box:selected .box, .radio-button:selected .radio {
+  -fx-background-color: -color-accent-6;
+  -fx-border-color: -color-accent-6;
+}
+
+/* ---- ComboBox (menu a tendina) ---- */
+.combo-box {
+  -fx-background-color: -color-bg-subtle;
+  -fx-background-radius: 6px;
+  -fx-padding: 4px 6px;
+  -fx-border-color: -color-border-muted;
+  -fx-border-radius: 6px;
+  -fx-text-fill: -color-fg-default;
+}
+
+/* Focus sul ComboBox */
+.combo-box:focused {
+  -fx-border-color: -color-accent-6;
+  -fx-background-color: -color-bg-subtle;
+}
+
+/* Freccia del ComboBox */
+.combo-box .arrow-button {
+  -fx-background-color: -color-border-default, -color-bg-subtle;
+  -fx-background-insets: 0, 1px;
+  -fx-background-radius: 4px, 3px;
+}
+
+.combo-box .arrow-button:hover {
+  -fx-background-color: -color-accent-6, -color-bg-subtle;
+}
+
+.combo-box .arrow-button:pressed {
+  -fx-background-color: -color-accent-7, -color-bg-subtle;
+}
+
+/* Popup delle voci */
+.combo-box-popup .list-view {
+  -fx-background-color: -color-bg-subtle;
+  -fx-background-radius: 6px;
+  -fx-border-color: -color-border-muted;
+  -fx-border-radius: 6px;
+}
+
+/* Voci della lista */
+.combo-box-popup .list-cell {
+  -fx-text-fill: -color-fg-default;
+  -fx-padding: 6px 8px;
+  -fx-background-color: -color-bg-subtle;
+}
+
+/* Hover sulle voci */
+.combo-box-popup .list-cell:hover {
+  -fx-background-color: -color-accent-0;
+}
+
+/* Voce selezionata */
+.combo-box-popup .list-cell:selected {
+  -fx-background-color: -color-accent-6;
+  -fx-text-fill: -color-fg-emphasis;
+}
+

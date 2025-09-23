@@ -1,15 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21">
+	<classpathentry including="**/*.java" kind="src" output="target/classes" path="src">
 		<attributes>
-			<attribute name="module" value="true"/>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaFX21"/>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry exported="true" kind="lib" path="C:/Users/Manu/Downloads/postgresql-42.7.7.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Manu/Downloads/jfreechart-1.5.6.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Manu/Downloads/org.jfree.chart.fx-2.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Manu/Downloads/fxgraphics2d-1.8.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="lib" path="lib/javafx/javafx.base.jar"/>
+	<classpathentry kind="lib" path="lib/javafx/javafx.controls.jar"/>
+	<classpathentry kind="lib" path="lib/javafx/javafx.graphics.jar"/>
+	<classpathentry kind="lib" path="lib/javafx/javafx.fxml.jar"/>
+	<classpathentry kind="lib" path="lib/javafx/javafx.media.jar"/>
+	<classpathentry kind="lib" path="lib/javafx/javafx.swing.jar"/>
+	<classpathentry kind="lib" path="lib/javafx/javafx.web.jar"/>
+	<classpathentry kind="lib" path="lib/javafx/javafx-swt.jar"/>
+	<classpathentry kind="lib" path="lib/javafx/jfx.incubator.input.jar"/>
+	<classpathentry kind="lib" path="lib/javafx/jfx.incubator.richtext.jar"/>
+	<classpathentry kind="lib" path="lib/javafx/jdk.jsobject.jar"/>
+	<classpathentry kind="lib" path="lib/jakarta.persistence-api-3.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/postgresql-42.7.7.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>

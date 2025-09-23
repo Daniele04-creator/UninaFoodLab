@@ -1,33 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry including="**/*.java" kind="src" output="target/classes" path="src">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21">
 		<attributes>
-			<attribute name="optional" value="true"/>
-			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/javafx/javafx.base.jar"/>
-	<classpathentry kind="lib" path="lib/javafx/javafx.controls.jar"/>
-	<classpathentry kind="lib" path="lib/javafx/javafx.graphics.jar"/>
-	<classpathentry kind="lib" path="lib/javafx/javafx.fxml.jar"/>
-	<classpathentry kind="lib" path="lib/javafx/javafx.media.jar"/>
-	<classpathentry kind="lib" path="lib/javafx/javafx.swing.jar"/>
-	<classpathentry kind="lib" path="lib/javafx/javafx.web.jar"/>
-	<classpathentry kind="lib" path="lib/javafx/javafx-swt.jar"/>
-	<classpathentry kind="lib" path="lib/javafx/jfx.incubator.input.jar"/>
-	<classpathentry kind="lib" path="lib/javafx/jfx.incubator.richtext.jar"/>
-	<classpathentry kind="lib" path="lib/javafx/jdk.jsobject.jar"/>
-	<classpathentry kind="lib" path="lib/jakarta.persistence-api-3.1.0.jar"/>
-	<classpathentry kind="lib" path="lib/postgresql-42.7.7.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
-		<attributes>
-			<attribute name="maven.pomderived" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="output" path="target/classes"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="C:/Users/ACER/Downloads/fxgraphics2d-1.8.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ACER/Downloads/org.jfree.chart.fx-2.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ACER/Downloads/jfreechart-1.5.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ACER/Downloads/postgresql-42.7.7 (1).jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JAVAFX21"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.geometry.Pos?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="it.unina.foodlab.ui.CorsiPanelController"
+            stylesheets="@/app.css" prefWidth="1000" prefHeight="640">
+
+    <!-- ============== SIDEBAR SINISTRA ============== -->
+    <left>
+        <VBox spacing="8" styleClass="sidebar" BorderPane.alignment="CENTER">
+            <children>
+                <Label text="Menu" styleClass="h3" />
+                <Separator />
+                <Button fx:id="btnReport" text="Report mensile" maxWidth="Infinity"/>
+                <Button fx:id="btnRefresh" text="Aggiorna" maxWidth="Infinity"/>
+                <Button fx:id="btnClear" text="Pulisci filtri" maxWidth="Infinity"/>
+            </children>
+            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+        </VBox>
+    </left>
+
+    <!-- ============== TOP BAR ============== -->
+    <top>
+        <HBox spacing="10" alignment="CENTER_LEFT" BorderPane.alignment="CENTER">
+            <children>
+                <Label text="Corsi" styleClass="h2"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Argomento:"/>
+                <ComboBox fx:id="cbArgFiltro" minWidth="160"/>
+                <TextField fx:id="txtSearch" promptText="Cerca per argomento, frequenza, chef…" prefWidth="260"/>
+            </children>
+            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+        </HBox>
+    </top>
+
+    <!-- ============== TABELLA CENTRALE ============== -->
+    <center>
+        <TableView fx:id="table" columnResizePolicy="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN">
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="80" style="-fx-alignment: CENTER;"/>
+                <TableColumn fx:id="colArg" text="Argomento" prefWidth="220" style="-fx-alignment: CENTER;"/>
+                <TableColumn fx:id="colFreq" text="Frequenza" prefWidth="120" style="-fx-alignment: CENTER;"/>
+                <TableColumn fx:id="colInizio" text="Inizio" prefWidth="110" style="-fx-alignment: CENTER;"/>
+                <TableColumn fx:id="colFine" text="Fine" prefWidth="110" style="-fx-alignment: CENTER;"/>
+                <TableColumn fx:id="colChef" text="Chef" prefWidth="200" style="-fx-alignment: CENTER;"/>
+            </columns>
+            <placeholder>
+                <Label text="Nessun corso trovato."/>
+            </placeholder>
+        </TableView>
+    </center>
+
+    <!-- ============== BOTTOM BAR CRUD ============== -->
+    <bottom>
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <children>
+                <Button fx:id="btnNew" text="Nuovo"/>
+                <Button fx:id="btnEdit" text="Modifica" disable="true"/>
+                <Button fx:id="btnAssocRicette" text="Associa ricette" disable="true"/>
+                <Button fx:id="btnDelete" text="Elimina" disable="true"/>
+            </children>
+            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+        </HBox>
+    </bottom>
+</BorderPane>

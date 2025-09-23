@@ -4,13 +4,13 @@ import it.unina.foodlab.dao.ChefDao;
 import it.unina.foodlab.dao.CorsoDao;
 import it.unina.foodlab.dao.SessioneDao;
 import it.unina.foodlab.model.Chef;
-import it.unina.foodlab.ui.CorsiPanel;
 import it.unina.foodlab.util.AppSession;
 import javafx.animation.FadeTransition;
 import javafx.animation.SequentialTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -35,7 +35,6 @@ public class LoginController {
 
     @FXML
     private void initialize() {
-        // password visibile/nascosta sincronizzate
         passwordVisibleField.textProperty().bindBidirectional(passwordField.textProperty());
         updatePasswordVisibility(false, false);
 
@@ -76,6 +75,7 @@ public class LoginController {
                 stage.show();
             }
         } catch (RuntimeException ex) {
+            ex.printStackTrace(); // per vedere la causa in console
             String message = ex.getMessage() == null ? "Login fallito" : ex.getMessage();
             showError(message);
             shake(card);
@@ -132,6 +132,10 @@ public class LoginController {
         loginButton.setText(busy ? "Verifica..." : "Login");
     }
 
+    /**
+     * Autentica e carica la vista Corsi da FXML,
+     * poi passa i DAO al CorsiPanelController.
+     */
     private LoginResult authenticate(String username, String password) {
         try {
             ChefDao chefDao = new ChefDao();
@@ -147,7 +151,28 @@ public class LoginController {
             CorsoDao corsoDao = new CorsoDao(cfChef);
             SessioneDao sessioneDao = new SessioneDao(cfChef);
 
-            CorsiPanel root = new CorsiPanel(corsoDao, sessioneDao);
+            // Carica l'FXML della vista corsi e recupera il controller
+            java.net.URL fxml = getClass().getResource("/it/unina/foodlab/ui/corsi.fxml");
+            if (fxml == null) {
+                throw new RuntimeException("FXML non trovato sul classpath: /it/unina/foodlab/ui/corsi.fxml");
+            }
+            FXMLLoader ldr = new FXMLLoader(fxml);
+            Parent root;
+            try {
+                root = ldr.load();
+            } catch (Exception loadEx) {
+                loadEx.printStackTrace();
+                Throwable cause = loadEx;
+                while (cause.getCause() != null) cause = cause.getCause();
+                throw new RuntimeException("Errore caricando corsi.fxml: " + cause.getMessage(), loadEx);
+            }
+
+            CorsiPanelController controller = ldr.getController();
+            if (controller == null) {
+                throw new RuntimeException("Controller nullo. Verifica fx:controller in corsi.fxml");
+            }
+            controller.setDaos(corsoDao, sessioneDao);
+
             String displayName = chef.getNome() != null
                     ? (chef.getNome() + " " + (chef.getCognome() == null ? "" : chef.getCognome())).trim()
                     : cfChef;

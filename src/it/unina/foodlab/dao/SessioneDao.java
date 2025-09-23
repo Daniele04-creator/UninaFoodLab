@@ -459,12 +459,27 @@ public class SessioneDao {
     // ========================= RESCHEDULING (facoltativo) =========================
 
     public void rescheduleByCourse(Corso corso) throws Exception {
-        if (corso == null || corso.getIdCorso() <= 0) throw new IllegalArgumentException("Corso mancante");
+        if (corso == null || corso.getIdCorso() <= 0) {
+            throw new IllegalArgumentException("Corso mancante");
+        }
+        if (corso.getDataInizio() == null) {
+            throw new IllegalArgumentException("Data inizio mancante");
+        }
+        if (corso.getNumSessioni() <= 0) {
+            throw new IllegalArgumentException("Numero sessioni non valido");
+        }
+
         ensureCourseOwned(corso.getIdCorso());
 
-        List<LocalDate> dates = it.unina.foodlab.util.Scheduling.generate(
-                corso.getDataInizio(), corso.getFrequenza(), corso.getNumSessioni()
+        // Genera le nuove date senza dipendere da UI o vecchia Scheduling
+        List<LocalDate> dates = generateDates(
+                corso.getDataInizio(),
+                corso.getFrequenza(),
+                corso.getNumSessioni()
         );
+        if (dates.isEmpty()) {
+            throw new IllegalArgumentException("Frequenza non valida: " + corso.getFrequenza());
+        }
 
         List<Sessione> cur = findByCorso(corso.getIdCorso());
         cur.sort(Comparator.comparing(Sessione::getData));
@@ -473,26 +488,29 @@ public class SessioneDao {
             boolean old = conn.getAutoCommit();
             conn.setAutoCommit(false);
             try {
+                // 1) aggiorna le sessioni comuni
                 int common = Math.min(cur.size(), dates.size());
                 for (int i = 0; i < common; i++) {
                     Sessione s = cur.get(i);
+                    LocalDate nuovaData = dates.get(i);
                     if (s instanceof SessioneOnline) {
                         try (PreparedStatement ps = conn.prepareStatement(
                                 "UPDATE sessione_online SET data=? WHERE idsessioneonline=?")) {
-                            ps.setObject(1, dates.get(i));
+                            ps.setObject(1, nuovaData);
                             ps.setInt(2, s.getId());
                             ps.executeUpdate();
                         }
                     } else if (s instanceof SessionePresenza) {
                         try (PreparedStatement ps = conn.prepareStatement(
                                 "UPDATE sessione_presenza SET data=? WHERE \"idSessionePresenza\"=?")) {
-                            ps.setObject(1, dates.get(i));
+                            ps.setObject(1, nuovaData);
                             ps.setInt(2, s.getId());
                             ps.executeUpdate();
                         }
                     }
                 }
 
+                // 2) aggiunge eventuali nuove sessioni (qui default PRESENZA)
                 for (int i = common; i < dates.size(); i++) {
                     LocalDate d = dates.get(i);
                     try (PreparedStatement ps = conn.prepareStatement("""
@@ -506,6 +524,7 @@ public class SessioneDao {
                     }
                 }
 
+                // 3) rimuove l’eccedenza se il nuovo piano ha meno date
                 for (int i = cur.size() - 1; i >= dates.size(); i--) {
                     Sessione s = cur.get(i);
                     if (s instanceof SessionePresenza) {
@@ -519,7 +538,7 @@ public class SessioneDao {
                             ps.setInt(1, s.getId());
                             ps.executeUpdate();
                         }
-                    } else {
+                    } else { // online
                         try (PreparedStatement ps = conn.prepareStatement(
                                 "DELETE FROM sessione_online WHERE idsessioneonline=?")) {
                             ps.setInt(1, s.getId());
@@ -537,6 +556,40 @@ public class SessioneDao {
             }
         }
     }
+
+    /* =========================
+       Helper locali (no UI deps)
+       ========================= */
+
+    private static String canonicalizeFreq(String s) {
+        if (s == null) return "";
+        String x = s.trim().toLowerCase(java.util.Locale.ITALIAN);
+        // ammesse: giornaliero, ogni 2 giorni, settimanale, mensile
+        if (x.equals("ogni 2 giorni") || x.equals("ogni due giorni")) return "ogni 2 giorni";
+        if (x.equals("settimanale")) return "settimanale";
+        if (x.equals("mensile")) return "mensile";
+        return "";
+    }
+
+    private static List<LocalDate> generateDates(LocalDate inizio, String freq, int num) {
+        ArrayList<LocalDate> out = new ArrayList<>();
+        if (inizio == null || num <= 0) return out;
+
+        String f = canonicalizeFreq(freq);
+        if (f.isEmpty()) return out;
+
+        LocalDate d = inizio;
+        for (int i = 0; i < num; i++) {
+            out.add(d);
+            switch (f) {
+                case "ogni 2 giorni" -> d = d.plusDays(2);
+                case "settimanale"   -> d = d.plusDays(7);
+                case "mensile"       -> d = d.plusMonths(1);
+            }
+        }
+        return out;
+    }
+
     
     public void replaceRicetteForSessionePresenza(int idSessionePresenza, java.util.List<Long> idRicette) throws Exception {
         if (idSessionePresenza <= 0) throw new IllegalArgumentException("idSessionePresenza non valido");
@@ -590,4 +643,42 @@ public class SessioneDao {
             }
         }
     }
+    public void updateOnline(it.unina.foodlab.model.SessioneOnline s) throws Exception {
+        try (Connection conn = it.unina.foodlab.util.Db.get();
+             PreparedStatement ps = conn.prepareStatement("""
+                UPDATE sessione_online
+                   SET data = ?, ora_inizio = ?, ora_fine = ?, piattaforma = ?
+                 WHERE idsessioneonline = ?
+             """)) {
+            ps.setObject(1, s.getData());
+            ps.setObject(2, s.getOraInizio());
+            ps.setObject(3, s.getOraFine());
+            ps.setString(4, s.getPiattaforma());
+            ps.setInt(5, s.getId());
+            int n = ps.executeUpdate();
+            if (n != 1) throw new SQLException("Sessione online non aggiornata (id=" + s.getId() + ")");
+        }
+    }
+
+    public void updatePresenza(it.unina.foodlab.model.SessionePresenza s) throws Exception {
+        try (Connection conn = it.unina.foodlab.util.Db.get();
+             PreparedStatement ps = conn.prepareStatement("""
+                UPDATE sessione_presenza
+                   SET data = ?, ora_inizio = ?, ora_fine = ?, via = ?, num = ?, cap = ?, aula = ?, posti_max = ?
+                 WHERE "idSessionePresenza" = ?
+             """)) {
+            ps.setObject(1, s.getData());
+            ps.setObject(2, s.getOraInizio());
+            ps.setObject(3, s.getOraFine());
+            ps.setString(4, s.getVia());
+            ps.setString(5, s.getNum());
+            ps.setInt(6, s.getCap());          // INT NOT NULL
+            ps.setString(7, s.getAula());
+            ps.setInt(8, s.getPostiMax());     // INT NOT NULL
+            ps.setInt(9, s.getId());
+            int n = ps.executeUpdate();
+            if (n != 1) throw new SQLException("Sessione presenza non aggiornata (id=" + s.getId() + ")");
+        }
+    }
+
 }

@@ -1,56 +1,75 @@
 package it.unina.foodlab.dao;
+
 import it.unina.foodlab.model.Chef;
 import it.unina.foodlab.util.Db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Date;
 
 public class ChefDao {
 
-  // Metodo che controlla se username e password corrispondono ad un record nel DB.
-  // Restituisce true se le credenziali sono corrette, false altrimenti.
-  public boolean authenticate(String username, String password) throws Exception {
+    /** Verifica se le credenziali corrispondono a un record nel DB */
+    public boolean authenticate(String username, String password) throws Exception {
+        String sql = "SELECT 1 FROM chef WHERE username=? AND password=?";
+        try (Connection c = Db.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
 
-    // Query parametrica: controlla se esiste almeno un record con username e password uguali a quelli passati.
-    // "select 1" significa che non ci interessa scaricare i dati completi dello chef,
-    // ci basta sapere se almeno un record corrisponde (ottimizzazione).
-    String sql = "select 1 from chef where username=? and password=?";
+            ps.setString(1, username);
+            ps.setString(2, password);
 
-    // Apertura connessione e preparazione query
-    // try-with-resources chiuderà automaticamente la Connection e il PreparedStatement.
-    try (Connection c = Db.get();
-         PreparedStatement ps = c.prepareStatement(sql)) {
-
-      // Sostituiamo i "?" con i valori passati come parametri al metodo.
-      ps.setString(1, username); // Primo parametro "?" → username
-      ps.setString(2, password); // Secondo parametro "?" → password
-
-      // Eseguiamo la query e otteniamo il ResultSet
-      try (ResultSet rs = ps.executeQuery()) {
-        // rs.next() ritorna true se esiste almeno una riga → credenziali valide
-        return rs.next();
-      }
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
     }
-  }
-  public Chef findByUsername(String username) throws Exception {
-      String sql = "SELECT CF_Chef, nome, cognome, data_nascita, username, password FROM chef WHERE username=?";
-      try (Connection c = Db.get();
-           PreparedStatement ps = c.prepareStatement(sql)) {
-          ps.setString(1, username);
-          try (ResultSet rs = ps.executeQuery()) {
-              if (rs.next()) {
-                  Chef chef = new Chef();
-                  chef.setCF_Chef(rs.getString("CF_Chef"));
-                  chef.setNome(rs.getString("nome"));
-                  chef.setCognome(rs.getString("cognome"));
-                  chef.setNascita(rs.getDate("data_nascita").toLocalDate());
-                  chef.setUsername(rs.getString("username"));
-                  chef.setPassword(rs.getString("password"));
-                  return chef;
-              }
-              return null;
-          }
-      }
-  }
+
+    /** Recupera uno chef tramite username */
+    public Chef findByUsername(String username) throws Exception {
+        String sql = "SELECT CF_Chef, nome, cognome, data_nascita, username, password FROM chef WHERE username=?";
+        try (Connection c = Db.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Chef chef = new Chef();
+                    chef.setCF_Chef(rs.getString("CF_Chef"));
+                    chef.setNome(rs.getString("nome"));
+                    chef.setCognome(rs.getString("cognome"));
+                    Date date = rs.getDate("data_nascita");
+                    if (date != null) chef.setNascita(date.toLocalDate());
+                    chef.setUsername(rs.getString("username"));
+                    chef.setPassword(rs.getString("password"));
+                    return chef;
+                }
+                return null;
+            }
+        }
+    }
+    
+    public void register(Chef chef) throws Exception {
+        String sql = "INSERT INTO chef (nome, cognome, CF_Chef, username, password, data_nascita) " +
+                     "VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection c = Db.get();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, chef.getNome());
+            ps.setString(2, chef.getCognome());
+            ps.setString(3, chef.getCF_Chef());
+            ps.setString(4, chef.getUsername());
+            ps.setString(5, chef.getPassword());
+            ps.setDate(6, java.sql.Date.valueOf(chef.getNascita()));
+
+
+            int rows = ps.executeUpdate();
+            if (rows == 0) throw new Exception("Registrazione fallita: nessuna riga inserita.");
+        }
+    }
+
+
+
 }

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="it.unina.foodlab.controller.ReportController"
+            stylesheets="@/app.css"
+            prefWidth="1000.0" prefHeight="600.0">
+            
+            
+    <!-- padding generale -->
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
+
+    <!-- TOP: toolbar -->
+<top>
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <children>
+            <Button fx:id="btnIndietro" text="← Indietro"/>
+            <Label text="Scegli una data del mese:"/>
+            <DatePicker fx:id="dpMese" showWeekNumbers="false"/>
+            <Button fx:id="btnGenera" text="Genera Report"/>
+        </children>
+        <padding>
+            <Insets top="8" right="8" bottom="8" left="8"/>
+        </padding>
+    </HBox>
+</top>
+
+
+    <!-- CENTER: titolo + griglia valori -->
+    <center>
+        <VBox spacing="8">
+            <children>
+                <Label fx:id="lblTitolo" text="Report Mensile" />
+                <Separator/>
+                <GridPane fx:id="gridValori" hgap="12" vgap="8">
+                    <padding>
+                        <Insets top="8" right="8" bottom="8" left="8"/>
+                    </padding>
+                </GridPane>
+            </children>
+            <padding>
+                <Insets top="8" right="8" bottom="8" left="8"/>
+            </padding>
+        </VBox>
+    </center>
+
+    <!-- RIGHT: grafici in scroll -->
+    <right>
+        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" prefWidth="540.0">
+            <content>
+                <VBox fx:id="rightCharts" spacing="12" fillWidth="true">
+                    <padding>
+                        <Insets top="8" right="8" bottom="8" left="8"/>
+                    </padding>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </right>
+</BorderPane>

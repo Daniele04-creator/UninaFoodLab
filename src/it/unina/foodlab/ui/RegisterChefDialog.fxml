@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<DialogPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="it.unina.foodlab.controller.RegisterChefController"
+            prefWidth="500" prefHeight="600"
+            style="-fx-font-size: 14px; -fx-font-family: 'Segoe UI', Inter, system-ui, sans-serif; -fx-background-color: #2e3440;"
+            styleClass="register-root"
+            stylesheets="@/app.css">
+
+    <content>
+        <VBox alignment="CENTER" spacing="18" maxWidth="420">
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
+            <children>
+                <!-- Titolo -->
+                <Label text="Registrazione Chef"
+                       style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+
+<TextField fx:id="nomeField" promptText="Nome"
+           maxWidth="250"
+           prefHeight="42"
+           style="-fx-background-color: #3b4252; 
+                  -fx-background-radius: 4px; 
+                  -fx-text-fill: white; 
+                  -fx-prompt-text-fill: rgba(255,255,255,0.65); 
+                  -fx-border-color: transparent; 
+                  -fx-focus-color: #81a1c1; 
+                  -fx-faint-focus-color: transparent;"/>
+
+<!-- Cognome -->
+<TextField fx:id="cognomeField" promptText="Cognome"
+           maxWidth="250"
+           prefHeight="42"
+           style="-fx-background-color: #3b4252; 
+                  -fx-background-radius: 4px; 
+                  -fx-text-fill: white; 
+                  -fx-prompt-text-fill: rgba(255,255,255,0.65); 
+                  -fx-border-color: transparent; 
+                  -fx-focus-color: #81a1c1; 
+                  -fx-faint-focus-color: transparent;"/>
+
+<!-- Codice Fiscale -->
+<TextField fx:id="cfField" promptText="Codice Fiscale"
+           maxWidth="250"
+           prefHeight="42"
+           style="-fx-background-color: #3b4252; 
+                  -fx-background-radius: 4px; 
+                  -fx-text-fill: white; 
+                  -fx-prompt-text-fill: rgba(255,255,255,0.65); 
+                  -fx-border-color: transparent; 
+                  -fx-focus-color: #81a1c1; 
+                  -fx-faint-focus-color: transparent;"/>
+
+<!-- Data di nascita -->
+<DatePicker fx:id="nascitaPicker" promptText="Data di nascita"
+            maxWidth="250"
+            prefHeight="42"
+            style="-fx-background-color: #3b4252; 
+                   -fx-background-radius: 4px; 
+                   -fx-text-fill: white; 
+                   -fx-prompt-text-fill: rgba(255,255,255,0.65); 
+                   -fx-border-color: transparent; 
+                   -fx-focus-color: #81a1c1; 
+                   -fx-faint-focus-color: transparent;"/>
+
+<!-- Username -->
+<TextField fx:id="usernameField" promptText="Username"
+           maxWidth="250"
+           prefHeight="42"
+           style="-fx-background-color: #3b4252; 
+                  -fx-background-radius: 4px; 
+                  -fx-text-fill: white; 
+                  -fx-prompt-text-fill: rgba(255,255,255,0.65); 
+                  -fx-border-color: transparent; 
+                  -fx-focus-color: #81a1c1; 
+                  -fx-faint-focus-color: transparent;"/>
+
+<!-- Password -->
+<PasswordField fx:id="passwordField" promptText="Password"
+               maxWidth="250"
+               prefHeight="42"
+               style="-fx-background-color: #3b4252; 
+                      -fx-background-radius: 4px; 
+                      -fx-text-fill: white; 
+                      -fx-prompt-text-fill: rgba(255,255,255,0.65); 
+                      -fx-border-color: transparent; 
+                      -fx-focus-color: #81a1c1; 
+                      -fx-faint-focus-color: transparent;"/>
+
+
+                <!-- Errore -->
+                <Label fx:id="errorLabel" textFill="red" visible="false"
+                       style="-fx-text-fill: #bf616a; -fx-background-color: rgba(191,97,106,0.12); -fx-padding: 10 14; -fx-background-radius: 8;"/>
+            </children>
+        </VBox>
+    </content>
+
+    <buttonTypes>
+        <ButtonType text="Registrati" buttonData="OK_DONE"/>
+        <ButtonType text="Annulla"    buttonData="CANCEL_CLOSE"/>
+    </buttonTypes>
+</DialogPane>

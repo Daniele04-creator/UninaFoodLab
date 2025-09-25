@@ -1,0 +1,217 @@
+/* ToggleButton per visibilità password */
+#toggleVisibilityButton {
+    -fx-background-color: transparent;      /* sfondo trasparente */
+    -fx-cursor: hand;                        /* cursore a mano */
+    -fx-padding: 4;                          /* padding interno */
+    -fx-border-color: transparent;           /* senza bordo */
+}
+
+#toggleVisibilityButton:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);  /* leggero highlight al passaggio */
+}
+
+#toggleVisibilityButton:selected {
+    -fx-background-color: rgba(255, 255, 255, 0.2);  /* colore quando attivo */
+}
+
+/* Icona SVG all’interno del toggle */
+#toggleVisibilityButton > .graphic {
+    -fx-scale-x: 0.9;
+    -fx-scale-y: 0.9;
+    -fx-fill: #c8d0dc;   /* colore default icona */
+}
+
+#toggleVisibilityButton:selected > .graphic {
+    -fx-fill: #81a1c1;   /* colore icona quando attivo */
+}
+
+/* --- Stili validi solo per la schermata di registrazione --- */
+.register-root .button {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: 600;
+    -fx-padding: 10 16;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #5e81ac;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+    -fx-opacity: 1;
+    -fx-effect: none;
+}
+
+.register-root .button:hover {
+    -fx-background-color: #81a1c1;
+    -fx-border-color: #81a1c1;
+    -fx-opacity: 0.9;
+}
+
+.register-root .button:pressed {
+    -fx-background-color: #4c6c91;
+    -fx-border-color: #4c6c91;
+}
+
+.register-root .button:disabled {
+    -fx-background-color: #5e81ac;
+    -fx-border-color: #5e81ac;
+    -fx-opacity: 0.55;
+}
+
+/* Pulsanti con ID */
+.register-root #btnNew {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: 600;
+    -fx-padding: 8 14;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #5e81ac;
+    -fx-border-width: 1;
+}
+.register-root #btnNew:hover {
+    -fx-background-color: #81a1c1;
+    -fx-border-color: #81a1c1;
+}
+.register-root #btnNew:pressed {
+    -fx-background-color: #4c6c91;
+    -fx-border-color: #4c6c91;
+}
+
+.register-root #btnEdit {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: 600;
+    -fx-padding: 8 14;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #5e81ac;
+    -fx-border-width: 1;
+}
+.register-root #btnEdit:hover {
+    -fx-background-color: #81a1c1;
+    -fx-border-color: #81a1c1;
+}
+.register-root #btnEdit:pressed {
+    -fx-background-color: #4c6c91;
+    -fx-border-color: #4c6c91;
+}
+
+.register-root #btnAssocRicette {
+    -fx-background-color: #EBCB00;
+    -fx-text-fill: white;
+    -fx-font-weight: 600;
+    -fx-background-radius: 6px;
+    -fx-padding: 6 12;
+    -fx-border-color: transparent;
+}
+.register-root #btnAssocRicette:hover {
+    -fx-background-color: #FFD700;
+    -fx-border-color: #FFD700;
+}
+.register-root #btnAssocRicette:pressed {
+    -fx-background-color: #D4AC0D;
+    -fx-border-color: #D4AC0D;
+}
+
+.register-root #btnDelete {
+    -fx-background-color: #bf616a;
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: 600;
+    -fx-padding: 8 14;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #bf616a;
+    -fx-border-width: 1;
+}
+.register-root #btnDelete:hover {
+    -fx-background-color: #d17880;
+    -fx-border-color: #d17880;
+}
+.register-root #btnDelete:pressed {
+    -fx-background-color: #a94f57;
+    -fx-border-color: #a94f57;
+}
+
+/* Campi di input */
+.register-root .combo-box,
+.register-root .choice-box,
+.register-root .spinner,
+.register-root .text-field,
+.register-root .date-picker {
+    -fx-background-color: #3b4252;
+    -fx-border-color: #3b4252;
+    -fx-border-width: 1.5;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #bbbbbb;
+    -fx-padding: 4 6 4 6;
+    -fx-font-size: 14px;
+}
+.register-root .combo-box:hover,
+.register-root .choice-box:hover,
+.register-root .spinner:hover,
+.register-root .date-picker:hover,
+.register-root .text-field:hover {
+    -fx-border-color: #3b4252;
+}
+.register-root .combo-box:focused,
+.register-root .choice-box:focused,
+.register-root .spinner:focused,
+.register-root .date-picker:focused,
+.register-root .text-field:focused {
+    -fx-border-color: #3b4252;
+}
+
+/* DatePicker */
+.register-root .date-picker .arrow-button,
+.register-root .date-picker .text-field {
+    -fx-background-color: #3b4252;
+    -fx-border-color: #3b4252;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-text-fill: white;
+}
+.register-root .date-picker .popup-content {
+    -fx-background-color: #3b4252;
+    -fx-border-color: #3b4252;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+.register-root .date-picker .day-cell {
+    -fx-background-color: #3b4252;
+    -fx-border-color: #3b4252;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-text-fill: white;
+}
+.register-root .date-picker .day-cell:hover {
+    -fx-background-color: #5c6370;
+}
+.register-root .date-picker .day-cell:selected {
+    -fx-background-color: #bbbbbb;
+    -fx-text-fill: #3b4252;
+}
+
+/* Pulsante "+" */
+.register-root .add-button {
+    -fx-background-color: #3b4252;
+    -fx-border-color: #3b4252;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
+.register-root .add-button:hover {
+    -fx-background-color: #5c6370;
+}
+
+/* Altezza standard pulsanti */
+.register-root .button {
+    -fx-pref-height: 36px;
+}
+
+.date-picker-popup {
+    -fx-background-color: #5c6370;
+}

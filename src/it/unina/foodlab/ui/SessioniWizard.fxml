@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<DialogPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="it.unina.foodlab.controller.SessioniWizardController"
+            fx:id="dialogPane"
+            
+            prefWidth="1000" prefHeight="650">
+
+    <buttonTypes>
+        <ButtonType text="Annulla"  buttonData="CANCEL_CLOSE"/>
+        <ButtonType text="Conferma" buttonData="OK_DONE" fx:id="okButtonType"/>
+    </buttonTypes>
+
+    <content>
+        <VBox spacing="10">
+            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+            <Label text="Imposta modalità e dettagli per ciascuna sessione:"/>
+
+            <TableView fx:id="table" editable="true" prefHeight="520">
+                <!-- la tabella riempie il dialog -->
+                <VBox.vgrow>
+                    <Priority fx:constant="ALWAYS"/>
+                </VBox.vgrow>
+
+                <!-- distribuisce lo spazio e protegge i titoli -->
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+                </columnResizePolicy>
+
+                <columns>
+                    <TableColumn fx:id="cData"        text="Data"         prefWidth="130" minWidth="130"/>
+                    <TableColumn fx:id="cInizio"      text="Inizio"       prefWidth="90"  minWidth="90"/>
+                    <TableColumn fx:id="cFine"        text="Fine"         prefWidth="90"  minWidth="90"/>
+                    <TableColumn fx:id="cTipo"        text="Modalità"     prefWidth="180" minWidth="180"/>
+                    <TableColumn fx:id="cPiattaforma" text="Piattaforma"  prefWidth="190" minWidth="190"/>
+                    <TableColumn fx:id="cVia"         text="Via"          prefWidth="200" minWidth="200"/>
+                    <TableColumn fx:id="cNum"         text="Num"          prefWidth="80"  minWidth="80"/>
+                    <TableColumn fx:id="cCap"         text="CAP"          prefWidth="110" minWidth="110"/>
+                    <TableColumn fx:id="cAula"        text="Aula"         prefWidth="120" minWidth="120"/>
+                    <TableColumn fx:id="cPosti"       text="Posti"        prefWidth="100" minWidth="100"/>
+                </columns>
+
+                <placeholder>
+                    <Label text="Nessuna sessione. Usa 'Aggiungi' per creare una riga."/>
+                </placeholder>
+            </TableView>
+
+            <!-- Barra comandi interna al content -->
+            <HBox spacing="10" alignment="CENTER">
+                <children>
+                    <Button fx:id="btnAdd" text="Aggiungi"/>
+                    <Button fx:id="btnRemove" text="Rimuovi"/>
+                </children>
+                <padding><Insets top="6" bottom="0"/></padding>
+            </HBox>
+        </VBox>
+    </content>
+</DialogPane>

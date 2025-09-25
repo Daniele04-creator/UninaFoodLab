@@ -20,7 +20,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class LoginController {
-
+	
     @FXML private VBox card;
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
@@ -29,6 +29,7 @@ public class LoginController {
     @FXML private SVGPath eyeIcon;
     @FXML private Label errorLabel;
     @FXML private Button loginButton;
+    @FXML private Button registerButton;
     @FXML private ProgressIndicator spinner;
 
     private Stage stage;
@@ -46,6 +47,7 @@ public class LoginController {
         usernameField.setOnAction(e -> getActivePasswordField().requestFocus());
         passwordField.setOnAction(e -> handleLogin());
         passwordVisibleField.setOnAction(e -> handleLogin());
+        registerButton.setOnAction(e -> onRegister());
     }
 
     /** chiamata da Main dopo il load dell'FXML */
@@ -66,23 +68,59 @@ public class LoginController {
         }
 
         setBusy(true);
+
+        // Non lanciare eccezioni, gestiamo l'errore internamente
+        boolean success = false;
+        String errorMessage = "";
+
         try {
-            var result = authenticate(username, password);
-            if (stage != null) {
-                Scene scene = new Scene(result.getRoot(), 1000, 640);
-                stage.setTitle("UninaFoodLab - Corsi di " + result.getChefDisplayName());
-                stage.setScene(scene);
-                stage.show();
+            ChefDao chefDao = new ChefDao();
+            if (!chefDao.authenticate(username, password)) {
+                errorMessage = "Username o password errati";
+            } else {
+                Chef chef = chefDao.findByUsername(username);
+                if (chef == null || chef.getCF_Chef() == null || chef.getCF_Chef().isBlank()) {
+                    errorMessage = "Chef non trovato dopo l'autenticazione";
+                } else {
+                    // Login OK
+                    AppSession.setCfChef(chef.getCF_Chef().trim());
+
+                    CorsoDao corsoDao = new CorsoDao(chef.getCF_Chef());
+                    SessioneDao sessioneDao = new SessioneDao(chef.getCF_Chef());
+
+                    FXMLLoader ldr = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/corsi.fxml"));
+                    Parent root = ldr.load();
+                    CorsiPanelController controller = ldr.getController();
+                    controller.setDaos(corsoDao, sessioneDao);
+
+                    String displayName = chef.getNome() != null
+                            ? (chef.getNome() + " " + (chef.getCognome() == null ? "" : chef.getCognome())).trim()
+                            : chef.getCF_Chef();
+
+                    if (displayName.isBlank()) displayName = chef.getCF_Chef();
+
+                    if (stage != null) {
+                        Scene scene = new Scene(root, 1000, 640);
+                        stage.setTitle("UninaFoodLab - Corsi di " + displayName);
+                        stage.setScene(scene);
+                        stage.show();
+                    }
+                    success = true;
+                }
             }
-        } catch (RuntimeException ex) {
-            ex.printStackTrace(); // per vedere la causa in console
-            String message = ex.getMessage() == null ? "Login fallito" : ex.getMessage();
-            showError(message);
-            shake(card);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            errorMessage = "Errore durante il login: " + ex.getMessage();
         } finally {
             setBusy(false);
         }
+
+        if (!success) {
+            showError(errorMessage);
+            shake(card);
+        }
     }
+
 
     private TextField getActivePasswordField() {
         return passwordVisibleField.isVisible() ? passwordVisibleField : passwordField;
@@ -185,6 +223,51 @@ public class LoginController {
             throw new RuntimeException(ex);
         }
     }
+    
+    @FXML
+    private void onRegister() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/RegisterChefDialog.fxml"));
+            DialogPane dialogPane = loader.load();
+            RegisterChefController controller = loader.getController();
+
+            Dialog<ButtonType> dialog = new Dialog<>();
+            dialog.setTitle("Registrazione Chef");
+            dialog.setDialogPane(dialogPane);
+
+            // Trova il ButtonType con OK_DONE (quello “Registrati” definito nel FXML)
+            ButtonType okType = dialogPane.getButtonTypes().stream()
+                    .filter(bt -> bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("OK ButtonType non trovato nel DialogPane"));
+
+            Button okButton = (Button) dialogPane.lookupButton(okType);
+            okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+                Chef chef = controller.getChef();
+                if (chef == null) {
+                    event.consume(); // blocca la chiusura
+                } else {
+                    try {
+                        new it.unina.foodlab.dao.ChefDao().register(chef);
+                        // volendo: mostra un messaggio di successo qui
+                    } catch (Exception ex) {
+                        controller.showError("Errore durante la registrazione: " + ex.getMessage());
+                        ex.printStackTrace();
+                        event.consume();
+                    }
+                }
+            });
+
+            dialog.showAndWait();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            showError("Errore apertura dialog registrazione: " + ex.getMessage());
+        }
+    }
+
+
+
+
 
     public static class LoginResult {
         private final Parent root;

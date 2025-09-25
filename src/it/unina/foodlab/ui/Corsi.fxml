@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
-<?import javafx.geometry.Pos?>
 
 <BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
             fx:controller="it.unina.foodlab.controller.CorsiPanelController"
@@ -15,9 +14,11 @@
                 <Label text="Menu" styleClass="h3" />
                 <Separator />
                 <Button fx:id="btnReport" text="Report mensile" maxWidth="Infinity"
-                        style="-fx-graphic: url('/icons/pie-chart-16.png');-fx-content-display: graphic-only;"/>
+                        style="-fx-graphic: url('/icons/pie-chart-16.png'); -fx-content-display: graphic-only;"/>
             </children>
-            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+            <padding>
+                <Insets top="12" right="12" bottom="12" left="12"/>
+            </padding>
         </VBox>
     </left>
 
@@ -27,19 +28,72 @@
             <children>
                 <Label text="Corsi" styleClass="h2"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label text="Argomento:"/>
-                <ComboBox fx:id="cbArgFiltro" minWidth="160"/>
-                <TextField fx:id="txtSearch" promptText="Cerca per argomento, frequenza, chef…" prefWidth="260"/>
-                <Button fx:id="btnClear" text="Pulisci filtri"/>
-                <Button fx:id="btnRefresh" text="Aggiorna"/>
+
+                <!-- Menu Filtri -->
+                <MenuButton fx:id="btnFilters" text="Filtri"
+                            style="-fx-graphic: url('/icons/filled-filter-16.png'); -fx-content-display: graphic-only;">
+                    <tooltip><Tooltip text="Filtri disponibili"/></tooltip>
+                    <items>
+
+                        <!-- Header del menu con pulsante 'Pulisci' (icona-only) a destra -->
+                        <CustomMenuItem hideOnClick="false">
+                            <content>
+                                <HBox spacing="8" alignment="CENTER_RIGHT" styleClass="filters-header">
+                                    <children>
+                                        <Label text="Filtri" styleClass="h3"/>
+                                        <Pane HBox.hgrow="ALWAYS"/>
+                                        <Button fx:id="btnClearInMenu" text="" mnemonicParsing="false"
+                                                style="-fx-graphic: url('/icons/cancel-16.png'); -fx-content-display: graphic-only;">
+                                            <tooltip><Tooltip text="Pulisci filtri"/></tooltip>
+                                        </Button>
+                                    </children>
+                                </HBox>
+                            </content>
+                        </CustomMenuItem>
+
+                        <SeparatorMenuItem/>
+
+                        <MenuItem fx:id="miFiltroArg"  text="Argomento"/>
+                        <MenuItem fx:id="miFiltroFreq" text="Frequenza"/>
+                        <MenuItem fx:id="miFiltroChef" text="Chef"/>
+                        <MenuItem fx:id="miFiltroId"   text="ID"/>
+
+                        <SeparatorMenuItem/>
+
+                        <!-- Intervallo date -->
+                        <CustomMenuItem hideOnClick="false">
+                            <content>
+                                <HBox spacing="6" alignment="CENTER_LEFT">
+                                    <children>
+                                        <Label text="Dal:"/>
+                                        <DatePicker fx:id="dpFrom"/>
+                                        <Label text="al:"/>
+                                        <DatePicker fx:id="dpTo"/>
+                                        <!-- Bottone 'Applica' icona-only -->
+                                        <Button fx:id="btnApplyDate" text="" mnemonicParsing="false"
+                                                style="-fx-graphic: url('/icons/ok-16.png'); -fx-content-display: graphic-only;">
+                                            <tooltip><Tooltip text="Applica intervallo"/></tooltip>
+                                        </Button>
+                                    </children>
+                                </HBox>
+                            </content>
+                        </CustomMenuItem>
+                    </items>
+                </MenuButton>
+
+                <Button fx:id="btnRefresh"
+                        style="-fx-graphic: url('/icons/refresh-2-16.png'); -fx-content-display: graphic-only;">
+                    <tooltip><Tooltip text="Aggiorna"/></tooltip>
+                </Button>
             </children>
-            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+            <padding>
+                <Insets top="12" right="12" bottom="12" left="12"/>
+            </padding>
         </HBox>
     </top>
 
     <!-- ============== TABELLA CENTRALE ============== -->
     <center>
-        <!-- HBox wrapper per aggiungere padding a destra -->
         <HBox BorderPane.alignment="CENTER" spacing="0">
             <children>
                 <TableView fx:id="table" HBox.hgrow="ALWAYS">
@@ -55,12 +109,15 @@
                         <TableColumn fx:id="colFine" text="Fine" prefWidth="110" style="-fx-alignment: CENTER_LEFT;"/>
                         <TableColumn fx:id="colChef" text="Chef" prefWidth="200" style="-fx-alignment: CENTER_LEFT;"/>
                     </columns>
+
                     <placeholder>
                         <Label text="Nessun corso trovato."/>
                     </placeholder>
                 </TableView>
             </children>
-            <padding><Insets top="0" right="20" bottom="0" left="0"/></padding>
+            <padding>
+                <Insets top="0" right="20" bottom="0" left="0"/>
+            </padding>
         </HBox>
     </center>
 
@@ -68,12 +125,32 @@
     <bottom>
         <HBox spacing="10" alignment="CENTER_RIGHT">
             <children>
-                <Button fx:id="btnNew" text="Nuovo"/>
-                <Button fx:id="btnEdit" text="Modifica" disable="true"/>
-                <Button fx:id="btnAssocRicette" text="Associa ricette" disable="true"/>
-                <Button fx:id="btnDelete" text="Elimina" disable="true"/>
+                <Button fx:id="btnNew"
+                        styleClass="add-button"
+                        text="Nuovo"
+                        style="-fx-graphic: url('/icons/plus-16.png'); -fx-content-display: graphic-only;">
+                    <tooltip><Tooltip text="Nuovo"/></tooltip>
+                </Button>
+
+                <Button fx:id="btnEdit" disable="true"
+                        style="-fx-graphic: url('/icons/edit-2-16.png'); -fx-content-display: graphic-only;">
+                    <tooltip><Tooltip text="Modifica"/></tooltip>
+                </Button>
+
+                <Button fx:id="btnAssocRicette" disable="true"
+                        style="-fx-graphic: url('/icons/bill-16.png'); -fx-content-display: graphic-only;">
+                    <tooltip><Tooltip text="Associa ricette"/></tooltip>
+                </Button>
+
+                <Button fx:id="btnDelete" disable="true"
+                        style="-fx-graphic: url('/icons/trash-2-16.png'); -fx-content-display: graphic-only;">
+                    <tooltip><Tooltip text="Elimina"/></tooltip>
+                </Button>
             </children>
-            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+            <padding>
+                <Insets top="12" right="12" bottom="12" left="12"/>
+            </padding>
         </HBox>
     </bottom>
+
 </BorderPane>

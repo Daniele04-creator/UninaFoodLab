@@ -10,9 +10,10 @@
             prefWidth="1000" prefHeight="650">
 
     <buttonTypes>
-        <ButtonType text="Annulla"  buttonData="CANCEL_CLOSE"/>
-        <ButtonType text="Conferma" buttonData="OK_DONE" fx:id="okButtonType"/>
-    </buttonTypes>
+    <ButtonType text="Annulla"  buttonData="CANCEL_CLOSE" fx:id="cancelButtonType"/>
+    <ButtonType text="Conferma" buttonData="OK_DONE" fx:id="okButtonType"/>
+</buttonTypes>
+
 
     <content>
         <VBox spacing="10">
@@ -52,8 +53,17 @@
             <!-- Barra comandi interna al content -->
             <HBox spacing="10" alignment="CENTER">
                 <children>
-                    <Button fx:id="btnAdd" text="Aggiungi"/>
-                    <Button fx:id="btnRemove" text="Rimuovi"/>
+                    <Button fx:id="btnAdd"
+        styleClass="add-button"
+        text="Nuovo"
+        style="-fx-graphic: url('/icons/plus-16.png'); -fx-content-display: graphic-only;">
+    <tooltip><Tooltip text="Nuovo"/></tooltip>
+</Button>
+                    <Button fx:id="btnRemove"
+        style="-fx-graphic: url('/icons/trash-2-16.png'); -fx-content-display: graphic-only;">
+    <tooltip><Tooltip text="Rimuovi"/></tooltip>
+</Button>
+
                 </children>
                 <padding><Insets top="6" bottom="0"/></padding>
             </HBox>

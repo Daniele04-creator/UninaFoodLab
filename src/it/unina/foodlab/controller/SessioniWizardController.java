@@ -9,7 +9,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.TableRow;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -41,10 +40,11 @@ public class SessioniWizardController {
     @FXML private TableColumn<SessionDraft, String> cAula;
     @FXML private TableColumn<SessionDraft, String> cPosti;
 
-    // Se nel tuo FXML ci sono ancora questi bottoni nel contenuto,
-    // li nascondiamo e usiamo la button bar del DialogPane.
+    // presenti nel content del FXML: li nascondiamo
     @FXML private Button btnAdd;
     @FXML private Button btnRemove;
+    @FXML private ButtonType cancelButtonType;
+
 
     /* ---------- Stato ---------- */
     private Corso corso;
@@ -52,15 +52,15 @@ public class SessioniWizardController {
     /** Modello temporaneo per riga */
     static class SessionDraft {
         LocalDate data;
-        String oraInizio = "10:00";
-        String oraFine   = "12:00";
-        String tipo = "Online";       // "Online" | "In presenza"
-        String piattaforma = "Teams"; // solo Online
-        String via = "";              // solo Presenza
+        String oraInizio = "";
+        String oraFine   = "";
+        String tipo = "";        // "Online" | "In presenza"
+        String piattaforma = ""; // solo Online
+        String via = "";         // solo Presenza
         String num = "";
         String cap = "";
         String aula = "";
-        String postiMax = "";         // 0/blank = illimitati
+        String postiMax = "";    // 0/blank = illimitati
     }
 
     private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("H:mm");
@@ -71,184 +71,224 @@ public class SessioniWizardController {
     private static final int    MAX_VISIBLE_ROWS = 6;
     private static final double HEADER_H       = 30;
 
-   @FXML
-private void initialize() {
-    // Selezione & edit
-    table.setEditable(true);
-    table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    @FXML
+    private void initialize() {
+        // Selezione & edit
+        table.setEditable(true);
+        table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
-    /* === Anti-zoom: riga fissa === */
-    table.setFixedCellSize(ROW_HEIGHT);
-    table.setRowFactory(tv -> {
-        TableRow<SessionDraft> r = new TableRow<>();
-        r.setPrefHeight(ROW_HEIGHT);
-        r.setMinHeight(ROW_HEIGHT);
-        r.setMaxHeight(ROW_HEIGHT);
-        return r;
-    });
+        /* === Anti-zoom: riga fissa === */
+        table.setFixedCellSize(ROW_HEIGHT);
+        table.setRowFactory(tv -> {
+            TableRow<SessionDraft> r = new TableRow<>();
+            r.setPrefHeight(ROW_HEIGHT);
+            r.setMinHeight(ROW_HEIGHT);
+            r.setMaxHeight(ROW_HEIGHT);
+            return r;
+        });
 
-    /* DATA: NON editabile (solo testo) */
-    cData.setCellValueFactory(cd ->
-        new SimpleStringProperty(cd.getValue().data == null ? "" : cd.getValue().data.toString())
-    );
-    cData.setCellFactory(col -> new TableCell<>() {
-        @Override protected void updateItem(String item, boolean empty) {
-            super.updateItem(item, empty);
-            setText(empty ? null : item);
-            setGraphic(null);
-        }
-    });
+        /* DATA: NON editabile (solo testo) */
+        cData.setCellValueFactory(cd ->
+            new SimpleStringProperty(cd.getValue().data == null ? "" : cd.getValue().data.toString())
+        );
+        cData.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+                setGraphic(null);
+            }
+        });
 
-    /* TESTO editabile: ora inizio/fine (altezza editor fissa) */
-    makeEditableTextColumn(cInizio, d -> d.oraInizio, (d,v) -> d.oraInizio = v);
-    makeEditableTextColumn(cFine,   d -> d.oraFine,   (d,v) -> d.oraFine   = v);
+        /* TESTO editabile: ora inizio/fine (altezza editor fissa) */
+        makeEditableTextColumn(cInizio, d -> d.oraInizio, (d,v) -> d.oraInizio = v);
+        makeEditableTextColumn(cFine,   d -> d.oraFine,   (d,v) -> d.oraFine   = v);
 
-    /* MODALITÀ ComboBox (altezza fissa) */
-    cTipo.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().tipo));
-    cTipo.setCellFactory(col -> new TableCell<>() {
-        private final ComboBox<String> cb =
+        /* MODALITÀ ComboBox (altezza fissa) */
+        cTipo.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().tipo));
+        cTipo.setCellFactory(col -> new TableCell<>() {
+            private final ComboBox<String> cb =
                 new ComboBox<>(FXCollections.observableArrayList("Online", "In presenza"));
-        private final HBox wrapper = new HBox(cb);
-        private boolean internal = false;
-        {
-            cb.getStyleClass().add("cell-editor");
-            cb.setMaxWidth(Double.MAX_VALUE);
-            HBox.setHgrow(cb, Priority.ALWAYS);
-            cb.setPrefHeight(EDITOR_HEIGHT);
-            cb.setMinHeight(Region.USE_PREF_SIZE);
-            cb.setMaxHeight(Region.USE_PREF_SIZE);
-            wrapper.setFillHeight(true);
+            private final HBox wrapper = new HBox(cb);
+            private boolean internal = false;
+            {
+                cb.getStyleClass().add("cell-editor");
+                cb.setMaxWidth(Double.MAX_VALUE);
+                HBox.setHgrow(cb, Priority.ALWAYS);
+                cb.setPrefHeight(EDITOR_HEIGHT);
+                cb.setMinHeight(Region.USE_PREF_SIZE);
+                cb.setMaxHeight(Region.USE_PREF_SIZE);
+                wrapper.setFillHeight(true);
 
-            cb.valueProperty().addListener((o, oldV, newV) -> {
-                if (internal) return;
-                int i = getIndex();
-                var tv = getTableView();
-                if (tv == null || i < 0 || i >= tv.getItems().size()) return;
-                SessionDraft row = tv.getItems().get(i);
-                if (Objects.equals(row.tipo, newV)) return;
-                row.tipo = newV;
-                if ("Online".equals(newV)) {
-                    row.via = ""; row.num = ""; row.cap = ""; row.aula = ""; row.postiMax = "";
-                } else {
-                    row.piattaforma = "";
+                cb.valueProperty().addListener((o, oldV, newV) -> {
+                    if (internal) return;
+                    int i = getIndex();
+                    var tv = getTableView();
+                    if (tv == null || i < 0 || i >= tv.getItems().size()) return;
+                    SessionDraft row = tv.getItems().get(i);
+                    if (Objects.equals(row.tipo, newV)) return;
+                    row.tipo = newV;
+                    if ("Online".equals(newV)) {
+                        row.via = ""; row.num = ""; row.cap = ""; row.aula = ""; row.postiMax = "";
+                    } else {
+                        row.piattaforma = "";
+                    }
+                    tv.refresh();
+                });
+            }
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) { setGraphic(null); return; }
+                internal = true;
+                cb.setValue(item);
+                internal = false;
+                setGraphic(wrapper);
+                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            }
+        });
+        cTipo.setMinWidth(170);
+        cTipo.setPrefWidth(190);
+
+        /* Colonne condizionali (mostrano editor solo quando serve) */
+        Predicate<SessionDraft> isPres = d -> "In presenza".equals(d.tipo);
+        makeConditionalTextColumn(cPiattaforma, d -> "Online".equals(d.tipo), d -> d.piattaforma, (d,v) -> d.piattaforma = v);
+        makeConditionalTextColumn(cVia,   isPres, d -> d.via,      (d,v) -> d.via = v);
+        makeConditionalTextColumn(cNum,   isPres, d -> d.num,      (d,v) -> d.num = v);
+        makeConditionalTextColumn(cCap,   isPres, d -> d.cap,      (d,v) -> d.cap = v);
+        makeConditionalTextColumn(cAula,  isPres, d -> d.aula,     (d,v) -> d.aula = v);
+        makeConditionalTextColumn(cPosti, isPres, d -> d.postiMax, (d,v) -> d.postiMax = v);
+
+        /* === Resize policy: niente scroll orizzontale === */
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.getColumns().forEach(c -> {
+            c.setReorderable(false);
+            c.setMaxWidth(1f * Integer.MAX_VALUE);
+        });
+
+        // Minimi per vedere tutte le colonne
+        cData.setMinWidth(160);
+        cInizio.setMinWidth(90);
+        cFine.setMinWidth(90);
+        cTipo.setMinWidth(170);
+        cPiattaforma.setMinWidth(160);
+        cVia.setMinWidth(140);
+        cNum.setMinWidth(80);
+        cCap.setMinWidth(80);
+        cAula.setMinWidth(140);
+        cPosti.setMinWidth(100);
+
+        /* === Limita l'altezza della tabella === */
+        double tablePrefH = HEADER_H + ROW_HEIGHT * MAX_VISIBLE_ROWS;
+        table.setMinHeight(HEADER_H + ROW_HEIGHT * 2);
+        table.setPrefHeight(tablePrefH);
+        table.setMaxHeight(tablePrefH);
+
+        Platform.runLater(() -> {
+            if (table.getParent() instanceof javafx.scene.layout.VBox vb) {
+                javafx.scene.layout.VBox.setVgrow(table, Priority.NEVER);
+            }
+            autosizeColumnsToHeader();
+        });
+
+        /* === Dimensioni del dialog === */
+        dialogPane.setPrefSize(1300, 760);
+        dialogPane.setMinSize(1100, 650);
+        dialogPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
+        /* Nascondi i bottoni presenti nel content */
+        if (btnAdd != null) { btnAdd.setVisible(false); btnAdd.setManaged(false); }
+        if (btnRemove != null) { btnRemove.setVisible(false); btnRemove.setManaged(false); }
+
+        /* Bottoni nella button bar (aggiungi/rimuovi a sinistra) */
+        setupButtonBar();
+
+        /* --- Trasforma OK/Annulla in bottoni “icona-only”, come nel CorsoEditor --- */
+        Platform.runLater(() -> {
+            // ====== OK / Conferma ======
+            Button okBtn = null;
+            if (okButtonType != null) okBtn = (Button) dialogPane.lookupButton(okButtonType);
+            if (okBtn == null) okBtn = (Button) dialogPane.lookupButton(ButtonType.OK);
+            if (okBtn == null) okBtn = (Button) dialogPane.lookupButton(ButtonType.APPLY);
+            if (okBtn != null) {
+                okBtn.setText("");
+                okBtn.setMnemonicParsing(false);
+                okBtn.setStyle("-fx-graphic: url('/icons/ok-16.png'); -fx-content-display: graphic-only;");
+                okBtn.setTooltip(new Tooltip("Conferma"));
+            }
+
+            // ====== Annulla / Chiudi ======
+            Button cancelBtn = null;
+            if (cancelButtonType != null) cancelBtn = (Button) dialogPane.lookupButton(cancelButtonType);
+            if (cancelBtn == null) {
+                // fallback: qualunque CANCEL_CLOSE presente
+                for (ButtonType bt : dialogPane.getButtonTypes()) {
+                    if (bt != null && bt.getButtonData() != null && bt.getButtonData().isCancelButton()) {
+                        cancelBtn = (Button) dialogPane.lookupButton(bt);
+                        if (cancelBtn != null) break;
+                    }
                 }
-                tv.refresh();
+                if (cancelBtn == null) cancelBtn = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
+                if (cancelBtn == null) cancelBtn = (Button) dialogPane.lookupButton(ButtonType.CLOSE);
+            }
+            if (cancelBtn != null) {
+                cancelBtn.setText("");
+                cancelBtn.setMnemonicParsing(false);
+                cancelBtn.setStyle("-fx-graphic: url('/icons/cancel-16.png'); -fx-content-display: graphic-only;");
+                cancelBtn.setTooltip(new Tooltip("Annulla"));
+            }
+        });
+    }
+
+
+    /** Bottoni nella button bar: “+” e cestino a sinistra, OK/Cancel a destra. */
+    private void setupButtonBar() {
+        // assicurati che OK/Cancel esistano
+        if (dialogPane.getButtonTypes().isEmpty()) {
+            dialogPane.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+        }
+
+        // bottoni custom a SINISTRA (il testo non lo mostreremo)
+        ButtonType ADD_TYPE = new ButtonType("Aggiungi", ButtonBar.ButtonData.LEFT);
+        ButtonType REM_TYPE = new ButtonType("Rimuovi",  ButtonBar.ButtonData.LEFT);
+
+        dialogPane.getButtonTypes().add(0, REM_TYPE);
+        dialogPane.getButtonTypes().add(0, ADD_TYPE);
+
+        // “+” solo icona
+        Button addBtn = (Button) dialogPane.lookupButton(ADD_TYPE);
+        if (addBtn != null) {
+            addBtn.setText("");
+            addBtn.setMnemonicParsing(false);
+            addBtn.getStyleClass().add("add-button"); // opzionale
+            addBtn.setStyle("-fx-graphic: url('/icons/plus-16.png'); -fx-content-display: graphic-only;");
+            addBtn.setTooltip(new Tooltip("Aggiungi"));
+            addBtn.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
+                ev.consume();       // non chiudere il dialog
+                addBlankRowAfterLast();
             });
         }
-        @Override protected void updateItem(String item, boolean empty) {
-            super.updateItem(item, empty);
-            if (empty) { setGraphic(null); return; }
-            internal = true;
-            cb.setValue(item);
-            internal = false;
-            setGraphic(wrapper);
-            setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
+        // “Rimuovi” solo icona (cestino)
+        Button remBtn = (Button) dialogPane.lookupButton(REM_TYPE);
+        if (remBtn != null) {
+            remBtn.setText("");
+            remBtn.setMnemonicParsing(false);
+            remBtn.setStyle("-fx-graphic: url('/icons/trash-2-16.png'); -fx-content-display: graphic-only;");
+            remBtn.setTooltip(new Tooltip("Rimuovi"));
+            remBtn.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
+                ev.consume();       // non chiudere il dialog
+                removeSelectedRows();
+            });
         }
-    });
-    cTipo.setMinWidth(170);
-    cTipo.setPrefWidth(190);
-
-    /* Colonne condizionali (mostrano editor solo quando serve) */
-    Predicate<SessionDraft> isPres = d -> "In presenza".equals(d.tipo);
-    makeConditionalTextColumn(cPiattaforma, d -> "Online".equals(d.tipo), d -> d.piattaforma, (d,v) -> d.piattaforma = v);
-    makeConditionalTextColumn(cVia,   isPres, d -> d.via,      (d,v) -> d.via = v);
-    makeConditionalTextColumn(cNum,   isPres, d -> d.num,      (d,v) -> d.num = v);
-    makeConditionalTextColumn(cCap,   isPres, d -> d.cap,      (d,v) -> d.cap = v);
-    makeConditionalTextColumn(cAula,  isPres, d -> d.aula,     (d,v) -> d.aula = v);
-    makeConditionalTextColumn(cPosti, isPres, d -> d.postiMax, (d,v) -> d.postiMax = v);
-
-    /* === Resize policy: niente scroll orizzontale === */
-    table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
-    table.getColumns().forEach(c -> {
-        c.setReorderable(false);
-        c.setMaxWidth(1f * Integer.MAX_VALUE); // trucco JavaFX
-    });
-
-    // Minimi per vedere tutte le colonne
-    cData.setMinWidth(160);
-    cInizio.setMinWidth(90);
-    cFine.setMinWidth(90);
-    cTipo.setMinWidth(170);
-    cPiattaforma.setMinWidth(160);
-    cVia.setMinWidth(140);
-    cNum.setMinWidth(80);
-    cCap.setMinWidth(80);
-    cAula.setMinWidth(140);
-    cPosti.setMinWidth(100);
-
-    /* === Limita l'altezza della tabella === */
-    double tablePrefH = HEADER_H + ROW_HEIGHT * MAX_VISIBLE_ROWS;
-    table.setMinHeight(HEADER_H + ROW_HEIGHT * 2);
-    table.setPrefHeight(tablePrefH);
-    table.setMaxHeight(tablePrefH);
-
-    Platform.runLater(() -> {
-        if (table.getParent() instanceof javafx.scene.layout.VBox vb) {
-            javafx.scene.layout.VBox.setVgrow(table, Priority.NEVER);
-        }
-        autosizeColumnsToHeader();
-    });
-
-    /* === Dimensioni del dialog === */
-    dialogPane.setPrefSize(1300, 760);
-    dialogPane.setMinSize(1100, 650);
-    dialogPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-
-    /* Se hai ancora i bottoni nel contenuto, nascondili */
-    if (btnAdd != null) { btnAdd.setVisible(false); btnAdd.setManaged(false); }
-    if (btnRemove != null) { btnRemove.setVisible(false); btnRemove.setManaged(false); }
-
-    /* Bottoni nella button bar (Aggiungi/Rimuovi a sinistra) */
-    setupButtonBar();  // <--- IMPORTANTISSIMO
-}
-
-   /** Bottoni nella button bar: Aggiungi/Rimuovi a sinistra, OK/Cancel a destra.
-    *  Usa EventFilter+consume() per NON chiudere il dialog quando si cliccano
-    *  Aggiungi/Rimuovi. */
-   private void setupButtonBar() {
-       // assicurati che OK/Cancel esistano
-       if (dialogPane.getButtonTypes().isEmpty()) {
-           dialogPane.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
-       }
-
-       // bottoni custom a SINISTRA
-       ButtonType ADD_TYPE = new ButtonType("Aggiungi", ButtonBar.ButtonData.LEFT);
-       ButtonType REM_TYPE = new ButtonType("Rimuovi",  ButtonBar.ButtonData.LEFT);
-
-       // inserisci a sinistra (prima degli altri)
-       dialogPane.getButtonTypes().add(0, REM_TYPE);
-       dialogPane.getButtonTypes().add(0, ADD_TYPE);
-
-       // IMPORTANTISSIMO: consumare l'evento per evitare la chiusura del dialog
-       Button addBtn = (Button) dialogPane.lookupButton(ADD_TYPE);
-       if (addBtn != null) {
-           addBtn.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
-               ev.consume();                // <-- NON chiudere il dialog
-               addBlankRowAfterLast();
-           });
-       }
-
-       Button remBtn = (Button) dialogPane.lookupButton(REM_TYPE);
-       if (remBtn != null) {
-           remBtn.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
-               ev.consume();                // <-- NON chiudere il dialog
-               removeSelectedRows();
-           });
-       }
-   }
-
-    
+    }
 
     /* ---------- API pubbliche ---------- */
 
-    /** Per NUOVO corso (senza sessioni salvate). */
     public void initWithCorso(Corso corso) {
         this.corso = Objects.requireNonNull(corso, "corso nullo");
         int n = Math.max(1, corso.getNumSessioni());
         table.setItems(FXCollections.observableArrayList(buildDrafts(corso, n)));
     }
 
-    /** Per EDIT: corso esistente + lista sessioni già in DB. */
     public void initWithCorsoAndExisting(Corso corso, List<Sessione> esistenti) {
         this.corso = Objects.requireNonNull(corso, "corso nullo");
         var drafts = new ArrayList<SessionDraft>();
@@ -280,15 +320,15 @@ private void initialize() {
         table.setItems(FXCollections.observableArrayList(drafts));
     }
 
-    /** Aggiunge una riga vuota in fondo (data proposta dopo l'ultima o +7 giorni). */
+    /** Aggiunge una riga vuota in fondo. */
     public void addBlankRowAfterLast() {
         var items = table.getItems();
         SessionDraft d = new SessionDraft();
         LocalDate base = items.stream()
-                .map(s -> s.data)
-                .filter(Objects::nonNull)
-                .max(LocalDate::compareTo)
-                .orElse((corso != null && corso.getDataInizio() != null) ? corso.getDataInizio() : LocalDate.now());
+            .map(s -> s.data)
+            .filter(Objects::nonNull)
+            .max(LocalDate::compareTo)
+            .orElse((corso != null && corso.getDataInizio() != null) ? corso.getDataInizio() : LocalDate.now());
         d.data = base.plusDays(7);
         d.tipo = "Online";
         items.add(d);
@@ -309,9 +349,8 @@ private void initialize() {
         }
     }
 
-    /** Costruisce il risultato finale (validato). Ritorna null se invalidi -> il Dialog resta aperto. */
- public List<Sessione> buildResult() {
-        // porta il focus sul pulsante OK per “committare” eventuali editor attivi
+    /** Costruisce il risultato finale (validato). */
+    public List<Sessione> buildResult() {
         Button ok = (Button) dialogPane.lookupButton(
             okButtonType != null ? okButtonType : ButtonType.OK
         );
@@ -337,7 +376,7 @@ private void initialize() {
                 Integer cap = isBlank(d.cap) ? 0 : parseIntOrNull(d.cap);
                 if (cap == null || cap < 0) { error("CAP non valido"); return null; }
 
-                int posti = 0; // 0 = illimitati/non impostati
+                int posti = 0;
                 if (!isBlank(d.postiMax)) {
                     Integer p = parseIntOrNull(d.postiMax);
                     if (p == null || p <= 0) { error("Posti deve essere > 0"); return null; }

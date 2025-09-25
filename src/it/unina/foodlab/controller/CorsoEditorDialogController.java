@@ -5,9 +5,12 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.application.Platform;
+import javafx.scene.control.DialogPane;
 
 import java.time.LocalDate;
 import java.util.Optional;
+
 
 public class CorsoEditorDialogController {
 
@@ -21,6 +24,8 @@ public class CorsoEditorDialogController {
     @FXML private DatePicker dpInizio;
     @FXML private Label lblFine;
 
+    @FXML private DialogPane dialogPane;
+    
     private boolean edit;
     private Corso original;
 
@@ -46,13 +51,38 @@ public class CorsoEditorDialogController {
 
         // --- listeners per aggiornare data fine ---
         Runnable updateFine = this::updateDataFine;
-        cbFreq.valueProperty().addListener((o,a,b)->updateFine.run());
-        dpInizio.valueProperty().addListener((o,a,b)->updateFine.run());
-        spNumSess.valueProperty().addListener((o,a,b)->updateFine.run());
+        cbFreq.valueProperty().addListener((o,a,b) -> updateFine.run());
+        dpInizio.valueProperty().addListener((o,a,b) -> updateFine.run());
+        spNumSess.valueProperty().addListener((o,a,b) -> updateFine.run());
 
-        // --- pulsante "+" per nuovi argomenti ---
+        // --- bottone "+" (solo icona) per nuovi argomenti ---
+        btnAddArg.setText("");
+        btnAddArg.setMnemonicParsing(false);
+        btnAddArg.setStyle("-fx-graphic: url('/icons/plus-16.png'); -fx-content-display: graphic-only;");
+        btnAddArg.setTooltip(new Tooltip("Aggiungi argomento"));
         btnAddArg.setOnAction(e -> addNewArgomento());
+
+        // --- converte i ButtonType del DialogPane in bottoni con icona ---
+        // (deve essere fatto dopo che i nodi sono creati)
+        Platform.runLater(() -> {
+            Button okBtn = (Button) dialogPane.lookupButton(createButtonType);
+            if (okBtn != null) {
+                okBtn.setText("");
+                okBtn.setMnemonicParsing(false);
+                okBtn.setStyle("-fx-graphic: url('/icons/ok-16.png'); -fx-content-display: graphic-only;");
+                okBtn.setTooltip(new Tooltip("Crea"));
+            }
+
+            Button cancelBtn = (Button) dialogPane.lookupButton(cancelButtonType);
+            if (cancelBtn != null) {
+                cancelBtn.setText("");
+                cancelBtn.setMnemonicParsing(false);
+                cancelBtn.setStyle("-fx-graphic: url('/icons/cancel-16.png'); -fx-content-display: graphic-only;");
+                cancelBtn.setTooltip(new Tooltip("Annulla"));
+            }
+        });
     }
+
 
     public void setCorso(Corso corso) {
         this.original = corso;

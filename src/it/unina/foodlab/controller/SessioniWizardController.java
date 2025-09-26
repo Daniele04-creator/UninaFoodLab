@@ -14,6 +14,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 
+import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -40,7 +41,6 @@ public class SessioniWizardController {
     @FXML private TableColumn<SessionDraft, String> cAula;
     @FXML private TableColumn<SessionDraft, String> cPosti;
 
-    // presenti nel content del FXML: li nascondiamo
     @FXML private Button btnAdd;
     @FXML private Button btnRemove;
     @FXML private ButtonType cancelButtonType;
@@ -73,7 +73,6 @@ public class SessioniWizardController {
 
     @FXML
     private void initialize() {
-        // Selezione & edit
         table.setEditable(true);
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
@@ -87,7 +86,7 @@ public class SessioniWizardController {
             return r;
         });
 
-        /* DATA: NON editabile (solo testo) */
+        /* DATA: NON editabile */
         cData.setCellValueFactory(cd ->
             new SimpleStringProperty(cd.getValue().data == null ? "" : cd.getValue().data.toString())
         );
@@ -99,19 +98,18 @@ public class SessioniWizardController {
             }
         });
 
-        /* TESTO editabile: ora inizio/fine (altezza editor fissa) */
+        /* TESTO editabile: ora inizio/fine */
         makeEditableTextColumn(cInizio, d -> d.oraInizio, (d,v) -> d.oraInizio = v);
         makeEditableTextColumn(cFine,   d -> d.oraFine,   (d,v) -> d.oraFine   = v);
 
-        /* MODALITÀ ComboBox (altezza fissa) */
+        /* MODALITÀ ComboBox */
         cTipo.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().tipo));
         cTipo.setCellFactory(col -> new TableCell<>() {
-            private final ComboBox<String> cb =
-                new ComboBox<>(FXCollections.observableArrayList("Online", "In presenza"));
+            private final ComboBox<String> cb = new ComboBox<>(FXCollections.observableArrayList("Online", "In presenza"));
             private final HBox wrapper = new HBox(cb);
             private boolean internal = false;
             {
-                cb.getStyleClass().add("cell-editor");
+                cb.getStyleClass().addAll("cell-editor", "sessione-cell"); // CSS rosa senza bordi
                 cb.setMaxWidth(Double.MAX_VALUE);
                 HBox.setHgrow(cb, Priority.ALWAYS);
                 cb.setPrefHeight(EDITOR_HEIGHT);
@@ -148,7 +146,7 @@ public class SessioniWizardController {
         cTipo.setMinWidth(170);
         cTipo.setPrefWidth(190);
 
-        /* Colonne condizionali (mostrano editor solo quando serve) */
+        /* Colonne condizionali */
         Predicate<SessionDraft> isPres = d -> "In presenza".equals(d.tipo);
         makeConditionalTextColumn(cPiattaforma, d -> "Online".equals(d.tipo), d -> d.piattaforma, (d,v) -> d.piattaforma = v);
         makeConditionalTextColumn(cVia,   isPres, d -> d.via,      (d,v) -> d.via = v);
@@ -157,26 +155,20 @@ public class SessioniWizardController {
         makeConditionalTextColumn(cAula,  isPres, d -> d.aula,     (d,v) -> d.aula = v);
         makeConditionalTextColumn(cPosti, isPres, d -> d.postiMax, (d,v) -> d.postiMax = v);
 
-        /* === Resize policy: niente scroll orizzontale === */
+        /* Resize policy */
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         table.getColumns().forEach(c -> {
             c.setReorderable(false);
             c.setMaxWidth(1f * Integer.MAX_VALUE);
         });
 
-        // Minimi per vedere tutte le colonne
-        cData.setMinWidth(160);
-        cInizio.setMinWidth(90);
-        cFine.setMinWidth(90);
-        cTipo.setMinWidth(170);
-        cPiattaforma.setMinWidth(160);
-        cVia.setMinWidth(140);
-        cNum.setMinWidth(80);
-        cCap.setMinWidth(80);
-        cAula.setMinWidth(140);
-        cPosti.setMinWidth(100);
+        /* Minimi per colonne */
+        cData.setMinWidth(160); cInizio.setMinWidth(90); cFine.setMinWidth(90);
+        cTipo.setMinWidth(170); cPiattaforma.setMinWidth(160);
+        cVia.setMinWidth(140); cNum.setMinWidth(80); cCap.setMinWidth(80);
+        cAula.setMinWidth(140); cPosti.setMinWidth(100);
 
-        /* === Limita l'altezza della tabella === */
+        /* Altezza massima della tabella */
         double tablePrefH = HEADER_H + ROW_HEIGHT * MAX_VISIBLE_ROWS;
         table.setMinHeight(HEADER_H + ROW_HEIGHT * 2);
         table.setPrefHeight(tablePrefH);
@@ -189,25 +181,21 @@ public class SessioniWizardController {
             autosizeColumnsToHeader();
         });
 
-        /* === Dimensioni del dialog === */
+        /* Dimensioni dialog */
         dialogPane.setPrefSize(1300, 760);
         dialogPane.setMinSize(1100, 650);
         dialogPane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-        /* Nascondi i bottoni presenti nel content */
+        /* Nascondi bottoni nel content */
         if (btnAdd != null) { btnAdd.setVisible(false); btnAdd.setManaged(false); }
         if (btnRemove != null) { btnRemove.setVisible(false); btnRemove.setManaged(false); }
 
-        /* Bottoni nella button bar (aggiungi/rimuovi a sinistra) */
+        /* Button bar: + e cestino a sinistra */
         setupButtonBar();
 
-        /* --- Trasforma OK/Annulla in bottoni “icona-only”, come nel CorsoEditor --- */
+        /* Trasforma OK/Cancel in icona-only */
         Platform.runLater(() -> {
-            // ====== OK / Conferma ======
-            Button okBtn = null;
-            if (okButtonType != null) okBtn = (Button) dialogPane.lookupButton(okButtonType);
-            if (okBtn == null) okBtn = (Button) dialogPane.lookupButton(ButtonType.OK);
-            if (okBtn == null) okBtn = (Button) dialogPane.lookupButton(ButtonType.APPLY);
+            Button okBtn = okButtonType != null ? (Button) dialogPane.lookupButton(okButtonType) : (Button) dialogPane.lookupButton(ButtonType.OK);
             if (okBtn != null) {
                 okBtn.setText("");
                 okBtn.setMnemonicParsing(false);
@@ -215,20 +203,17 @@ public class SessioniWizardController {
                 okBtn.setTooltip(new Tooltip("Conferma"));
             }
 
-            // ====== Annulla / Chiudi ======
-            Button cancelBtn = null;
-            if (cancelButtonType != null) cancelBtn = (Button) dialogPane.lookupButton(cancelButtonType);
+            Button cancelBtn = cancelButtonType != null ? (Button) dialogPane.lookupButton(cancelButtonType) : null;
             if (cancelBtn == null) {
-                // fallback: qualunque CANCEL_CLOSE presente
                 for (ButtonType bt : dialogPane.getButtonTypes()) {
-                    if (bt != null && bt.getButtonData() != null && bt.getButtonData().isCancelButton()) {
+                    if (bt.getButtonData() != null && bt.getButtonData().isCancelButton()) {
                         cancelBtn = (Button) dialogPane.lookupButton(bt);
                         if (cancelBtn != null) break;
                     }
                 }
-                if (cancelBtn == null) cancelBtn = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
-                if (cancelBtn == null) cancelBtn = (Button) dialogPane.lookupButton(ButtonType.CLOSE);
             }
+            if (cancelBtn == null) cancelBtn = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
+            if (cancelBtn == null) cancelBtn = (Button) dialogPane.lookupButton(ButtonType.CLOSE);
             if (cancelBtn != null) {
                 cancelBtn.setText("");
                 cancelBtn.setMnemonicParsing(false);
@@ -236,38 +221,36 @@ public class SessioniWizardController {
                 cancelBtn.setTooltip(new Tooltip("Annulla"));
             }
         });
-    }
 
+        File cssFile = new File("src/app.css");
+        dialogPane.getStylesheets().add(cssFile.toURI().toString());
+    }
 
     /** Bottoni nella button bar: “+” e cestino a sinistra, OK/Cancel a destra. */
     private void setupButtonBar() {
-        // assicurati che OK/Cancel esistano
         if (dialogPane.getButtonTypes().isEmpty()) {
             dialogPane.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
         }
 
-        // bottoni custom a SINISTRA (il testo non lo mostreremo)
         ButtonType ADD_TYPE = new ButtonType("Aggiungi", ButtonBar.ButtonData.LEFT);
         ButtonType REM_TYPE = new ButtonType("Rimuovi",  ButtonBar.ButtonData.LEFT);
 
         dialogPane.getButtonTypes().add(0, REM_TYPE);
         dialogPane.getButtonTypes().add(0, ADD_TYPE);
 
-        // “+” solo icona
         Button addBtn = (Button) dialogPane.lookupButton(ADD_TYPE);
         if (addBtn != null) {
             addBtn.setText("");
             addBtn.setMnemonicParsing(false);
-            addBtn.getStyleClass().add("add-button"); // opzionale
+            addBtn.getStyleClass().add("add-button");
             addBtn.setStyle("-fx-graphic: url('/icons/plus-16.png'); -fx-content-display: graphic-only;");
             addBtn.setTooltip(new Tooltip("Aggiungi"));
             addBtn.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
-                ev.consume();       // non chiudere il dialog
+                ev.consume();
                 addBlankRowAfterLast();
             });
         }
 
-        // “Rimuovi” solo icona (cestino)
         Button remBtn = (Button) dialogPane.lookupButton(REM_TYPE);
         if (remBtn != null) {
             remBtn.setText("");
@@ -275,7 +258,7 @@ public class SessioniWizardController {
             remBtn.setStyle("-fx-graphic: url('/icons/trash-2-16.png'); -fx-content-display: graphic-only;");
             remBtn.setTooltip(new Tooltip("Rimuovi"));
             remBtn.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
-                ev.consume();       // non chiudere il dialog
+                ev.consume();
                 removeSelectedRows();
             });
         }
@@ -320,7 +303,6 @@ public class SessioniWizardController {
         table.setItems(FXCollections.observableArrayList(drafts));
     }
 
-    /** Aggiunge una riga vuota in fondo. */
     public void addBlankRowAfterLast() {
         var items = table.getItems();
         SessionDraft d = new SessionDraft();
@@ -337,7 +319,6 @@ public class SessioniWizardController {
         table.scrollTo(items.size() - 1);
     }
 
-    /** Rimuove tutte le righe selezionate. */
     public void removeSelectedRows() {
         var selIdx = new ArrayList<>(table.getSelectionModel().getSelectedIndices());
         if (selIdx.isEmpty()) return;
@@ -349,7 +330,6 @@ public class SessioniWizardController {
         }
     }
 
-    /** Costruisce il risultato finale (validato). */
     public List<Sessione> buildResult() {
         Button ok = (Button) dialogPane.lookupButton(
             okButtonType != null ? okButtonType : ButtonType.OK
@@ -391,14 +371,14 @@ public class SessioniWizardController {
     /* ---------- Helpers colonne ---------- */
 
     private void makeEditableTextColumn(TableColumn<SessionDraft,String> col,
-                                        Function<SessionDraft,String> getter,
-                                        BiConsumer<SessionDraft,String> setter) {
+            Function<SessionDraft,String> getter,
+            BiConsumer<SessionDraft,String> setter) {
         col.setCellValueFactory(cd -> new SimpleStringProperty(getter.apply(cd.getValue())));
         col.setCellFactory(tc -> new TableCell<>() {
             private final TextField tf = new TextField();
             private final HBox wrapper = new HBox(tf);
             {
-                tf.getStyleClass().add("cell-editor");
+                tf.getStyleClass().addAll("cell-editor", "sessione-cell");
                 tf.setMaxWidth(Double.MAX_VALUE);
                 HBox.setHgrow(tf, Priority.ALWAYS);
                 tf.setPrefHeight(EDITOR_HEIGHT);
@@ -425,15 +405,15 @@ public class SessioniWizardController {
     }
 
     private void makeConditionalTextColumn(TableColumn<SessionDraft,String> col,
-                                           Predicate<SessionDraft> visibleWhen,
-                                           Function<SessionDraft,String> getter,
-                                           BiConsumer<SessionDraft,String> setter) {
+                   Predicate<SessionDraft> visibleWhen,
+                   Function<SessionDraft,String> getter,
+                   BiConsumer<SessionDraft,String> setter) {
         col.setCellValueFactory(cd -> new SimpleStringProperty(getter.apply(cd.getValue())));
         col.setCellFactory(tc -> new TableCell<>() {
             private final TextField tf = new TextField();
             private final HBox wrapper = new HBox(tf);
             {
-                tf.getStyleClass().add("cell-editor");
+                tf.getStyleClass().addAll("cell-editor", "sessione-cell");
                 tf.setMaxWidth(Double.MAX_VALUE);
                 HBox.setHgrow(tf, Priority.ALWAYS);
                 tf.setPrefHeight(EDITOR_HEIGHT);
@@ -449,7 +429,8 @@ public class SessioniWizardController {
                     }
                 });
             }
-            @Override protected void updateItem(String item, boolean empty) {
+            @Override
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty) { setGraphic(null); return; }
                 int i = getIndex();

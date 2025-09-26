@@ -1,3 +1,4 @@
+
 .root {
   -color-dark: #232730;
   -color-light: #fdfdfe;
@@ -5072,6 +5073,90 @@ Text {
     -fx-border-color: #4c6c91;
 }
 
+#btnReport {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: 600;
+    -fx-padding: 8 14;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #5e81ac;
+    -fx-border-width: 1;
+}
+
+#btnReport:hover {
+    -fx-background-color: #81a1c1;
+    -fx-border-color: #81a1c1;
+}
+
+#btnReport:pressed {
+    -fx-background-color: #4c6c91;
+    -fx-border-color: #4c6c91;
+}
+
+#btnIndietro {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: 600;
+    -fx-padding: 8 14;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #5e81ac;
+    -fx-border-width: 1;
+}
+
+#btnIndietro:hover {
+    -fx-background-color: #81a1c1;
+    -fx-border-color: #81a1c1;
+}
+
+#btnIndietro:pressed {
+    -fx-background-color: #4c6c91;
+    -fx-border-color: #4c6c91;
+}
+
+#btnGenera {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: 600;
+    -fx-padding: 8 14;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #5e81ac;
+    -fx-border-width: 1;
+}
+
+#btnGenera:hover {
+    -fx-background-color: #81a1c1;
+    -fx-border-color: #81a1c1;
+}
+
+#btnGenera:pressed {
+    -fx-background-color: #4c6c91;
+    -fx-border-color: #4c6c91;
+}
+
+#btnRefresh {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: 600;
+    -fx-padding: 8 14;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #5e81ac;
+    -fx-border-width: 1;
+}
+
+#btnRefresh:hover {
+    -fx-background-color: #81a1c1;
+    -fx-border-color: #81a1c1;
+}
+
+#btnRefresh:pressed {
+    -fx-background-color: #4c6c91;
+    -fx-border-color: #4c6c91;
+}
+
 #btnEdit {
 	-fx-background-color: #5e81ac;
 	-fx-text-fill: #eceff4;
@@ -5138,6 +5223,33 @@ Text {
     -fx-background-color: derive(-fx-background-color, 20%);
     -fx-border-color: derive(-fx-border-color, 20%);
 }
+#btnDelete {
+    -fx-background-color: #bf616a;
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: 600;
+    -fx-padding: 8 14;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: #bf616a;
+    -fx-border-width: 1;
+}
+
+#btnRemove:hover {
+    -fx-background-color: #d17880;
+    -fx-border-color: #d17880;
+}
+
+#btnRemove:pressed {
+    -fx-background-color: #a94f57;
+    -fx-border-color: #a94f57;
+}
+
+.button:disabled {
+    -fx-opacity: 0.55;
+    -fx-background-color: derive(-fx-background-color, 20%);
+    -fx-border-color: derive(-fx-border-color, 20%);
+}
+
 
 /* Font del dialog */
   {
@@ -5242,6 +5354,51 @@ Text {
 .button {
     -fx-pref-height: 36px;
 }
+
+.button:pressed,
+.button:focused {
+    -fx-effect: null;      /* rimuove l’ombreggiatura quando premuto */
+    -fx-opacity: 1;        /* mantiene la trasparenza originale */
+}
+
+.card-text {
+    -fx-font-size: 18px;       /* font più grande */
+    -fx-font-weight: bold;      /* grassetto */
+    -fx-font-family: "System";
+	-fx-padding: 0 0 25 0;  /* font coerente con il resto */
+}
+
+.card {
+    -fx-background-color: #272b35;
+    -fx-padding: 16px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+}
+
+
+
+.sessione-combo {
+    -fx-background-color: white;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-text-fill: white;
+}
+
+.sessione-cell {
+    -fx-control-inner-background: #ffffff; /* sfondo della TextField */
+    -fx-background-color: transparent;     /* sfondo del wrapper / cella */
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent; 
+    -fx-border-width: 0;
+    -fx-text-fill: white;                  /* colore del testo */
+}
+
+
+
+
 
 
 

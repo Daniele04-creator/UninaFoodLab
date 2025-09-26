@@ -177,7 +177,8 @@ public class LoginController {
     private LoginResult authenticate(String username, String password) {
         try {
             ChefDao chefDao = new ChefDao();
-            if (!chefDao.authenticate(username, password)) throw new RuntimeException("Credenziali errate");
+            if (!chefDao.authenticate(username, password)) 
+                throw new RuntimeException("Credenziali errate");
 
             Chef chef = chefDao.findByUsername(username);
             if (chef == null || chef.getCF_Chef() == null || chef.getCF_Chef().isBlank())
@@ -189,11 +190,12 @@ public class LoginController {
             CorsoDao corsoDao = new CorsoDao(cfChef);
             SessioneDao sessioneDao = new SessioneDao(cfChef);
 
-            // Carica l'FXML della vista corsi e recupera il controller
+            // Carica l'FXML della vista corsi
             java.net.URL fxml = getClass().getResource("/it/unina/foodlab/ui/corsi.fxml");
             if (fxml == null) {
                 throw new RuntimeException("FXML non trovato sul classpath: /it/unina/foodlab/ui/corsi.fxml");
             }
+
             FXMLLoader ldr = new FXMLLoader(fxml);
             Parent root;
             try {
@@ -211,18 +213,29 @@ public class LoginController {
             }
             controller.setDaos(corsoDao, sessioneDao);
 
+            // Calcolo il displayName dello chef
             String displayName = chef.getNome() != null
                     ? (chef.getNome() + " " + (chef.getCognome() == null ? "" : chef.getCognome())).trim()
                     : cfChef;
             if (displayName.isBlank()) displayName = cfChef;
 
+            // Imposto il fade-in sulla root prima di restituirla
+            root.setOpacity(0);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(600), root);
+            fadeIn.setFromValue(0);
+            fadeIn.setToValue(1);
+            fadeIn.setInterpolator(javafx.animation.Interpolator.EASE_BOTH);
+            fadeIn.play();
+
             return new LoginResult(root, displayName);
+
         } catch (RuntimeException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
     }
+
     
     @FXML
     private void onRegister() {

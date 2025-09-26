@@ -2,11 +2,15 @@ package it.unina.foodlab.controller;
 
 import it.unina.foodlab.dao.CorsoDao;
 import it.unina.foodlab.dao.SessioneDao;
+import it.unina.foodlab.dao.RicettaDao;
 import it.unina.foodlab.model.Chef;
 import it.unina.foodlab.model.Corso;
+import it.unina.foodlab.model.Ricetta;
 import it.unina.foodlab.model.Sessione;
 import it.unina.foodlab.model.SessioneOnline;
 import it.unina.foodlab.model.SessionePresenza;
+
+import it.unina.foodlab.controller.AssociaRicetteController;
 
 import javafx.scene.control.Tooltip;
 
@@ -46,6 +50,8 @@ public class CorsiPanelController {
     private static final String LABEL_CHEF = "Chef";
     private static final String LABEL_ID   = "ID";
     private static final String LABEL_PERIODO = "Periodo";
+ // in cima alla classe
+    private RicettaDao ricettaDao;
 
     private String formatFilterLabel(String base, String value) {
         return base + ": " + (isBlank(value) ? "(tutte)" : value);
@@ -153,8 +159,6 @@ public class CorsiPanelController {
             dpTo.setValue(null);
             refilter();
             updateFiltersUI();
-            // se preferisci chiudere il menu dopo il clear:
-            // btnFilters.hide();
         });
 
         btnRefresh.setOnAction(e -> reload());
@@ -196,6 +200,14 @@ public class CorsiPanelController {
     public void setDaos(CorsoDao corsoDao, SessioneDao sessioneDao) {
         this.corsoDao = corsoDao;
         this.sessioneDao = sessioneDao;
+        if (this.ricettaDao == null) this.ricettaDao = new RicettaDao();
+        reload();
+    }
+    
+    public void setDaos(CorsoDao corsoDao, SessioneDao sessioneDao, RicettaDao ricettaDao) {
+        this.corsoDao = corsoDao;
+        this.sessioneDao = sessioneDao;
+        this.ricettaDao = ricettaDao;
         reload();
     }
 
@@ -340,12 +352,6 @@ public class CorsiPanelController {
             }
         };
 
-        loadTask.setOnFailed(ev -> {
-            Throwable ex = loadTask.getException();
-            showError("Errore modifica sessioni (caricamento): " + (ex != null ? ex.getMessage() : "sconosciuto"));
-            if (ex != null) ex.printStackTrace();
-        });
-
         loadTask.setOnSucceeded(ev -> {
             List<Sessione> esistenti = loadTask.getValue();
             try {
@@ -361,6 +367,7 @@ public class CorsiPanelController {
                 URL css = getClass().getResource(APP_CSS);
                 if (css != null) pane.getStylesheets().add(css.toExternalForm());
 
+                // Avvolgi in ScrollPane per contenuti grandi
                 Node currentContent = pane.getContent();
                 if (currentContent instanceof Region regionContent) {
                     ScrollPane sc = new ScrollPane(regionContent);
@@ -375,36 +382,21 @@ public class CorsiPanelController {
                 Dialog<List<Sessione>> dlg = new Dialog<>();
                 dlg.setTitle("Modifica sessioni - " + (sel.getArgomento() == null ? "" : sel.getArgomento()));
                 dlg.setDialogPane(pane);
-                dlg.setResizable(true);
 
-                pane.setPrefSize(1150, 720);
+                // Dimensione preferita iniziale
+                pane.setPrefSize(1200, 800);
+
                 dlg.setOnShown(e2 -> {
                     Window w = dlg.getDialogPane().getScene().getWindow();
                     if (w instanceof Stage stg) {
                         stg.setResizable(true);
-                        stg.setMinWidth(1000);
+                        stg.setWidth(1600);
+                        stg.setHeight(800);
+                        stg.setMinWidth(1500);
                         stg.setMinHeight(650);
                         stg.centerOnScreen();
                     }
                 });
-
-                Window owner = (table.getScene() != null) ? table.getScene().getWindow() : null;
-                if (owner instanceof Stage st) {
-                    dlg.initOwner(st);
-                    dlg.initModality(Modality.WINDOW_MODAL);
-                }
-
-                dlg.show();
-
-                Window w = dlg.getDialogPane().getScene().getWindow();
-                if (w instanceof Stage stg) {
-                    stg.centerOnScreen();
-                    stg.setMinWidth(stg.getWidth());
-                    stg.setMaxWidth(stg.getWidth());
-                    stg.setMinHeight(stg.getHeight());
-                    stg.setMaxHeight(stg.getHeight());
-                    stg.toFront();
-                }
 
                 dlg.setResultConverter(bt ->
                     (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
@@ -412,8 +404,7 @@ public class CorsiPanelController {
                         : null
                 );
 
-                dlg.setOnHidden(eh -> {
-                    List<Sessione> result = dlg.getResult();
+                dlg.showAndWait().ifPresent(result -> {
                     if (result != null) {
                         javafx.concurrent.Task<Void> replaceTask = new javafx.concurrent.Task<>() {
                             @Override protected Void call() throws Exception {
@@ -421,12 +412,12 @@ public class CorsiPanelController {
                                 return null;
                             }
                         };
+                        replaceTask.setOnSucceeded(ev2 -> showInfo("Sessioni aggiornate: " + result.size()));
                         replaceTask.setOnFailed(ev2 -> {
                             Throwable ex2 = replaceTask.getException();
                             showError("Errore salvataggio sessioni: " + (ex2 != null ? ex2.getMessage() : "sconosciuto"));
                             if (ex2 != null) ex2.printStackTrace();
                         });
-                        replaceTask.setOnSucceeded(ev2 -> showInfo("Sessioni aggiornate: " + result.size()));
                         new Thread(replaceTask, "replace-sessioni").start();
                     }
                 });
@@ -435,6 +426,12 @@ public class CorsiPanelController {
                 showError("Errore apertura wizard sessioni: " + e.getMessage());
                 e.printStackTrace();
             }
+        });
+
+        loadTask.setOnFailed(ev -> {
+            Throwable ex = loadTask.getException();
+            showError("Errore modifica sessioni (caricamento): " + (ex != null ? ex.getMessage() : "sconosciuto"));
+            if (ex != null) ex.printStackTrace();
         });
 
         new Thread(loadTask, "load-sessioni").start();
@@ -462,8 +459,20 @@ public class CorsiPanelController {
             if (res.isPresent()) {
                 Corso nuovo = res.get();
 
+                // --- Associa automaticamente l'attuale chef ---
+                if (corsoDao != null) {
+                    String cfChef = corsoDao.getOwnerCfChef();
+                    if (cfChef != null && !cfChef.isBlank()) {
+                        Chef chef = new Chef();
+                        chef.setCF_Chef(cfChef);
+                        nuovo.setChef(chef);
+                    }
+                }
+
+                // --- Apri il wizard delle sessioni (resizabile come onEdit) ---
                 Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo);
 
+                // --- Salva il corso (con eventuali sessioni) ---
                 try {
                     final long id;
                     if (sessOpt.isPresent() && sessOpt.get() != null) {
@@ -478,6 +487,7 @@ public class CorsiPanelController {
                     }
                     nuovo.setIdCorso(id);
 
+                    // --- Aggiorna la tabella senza premere "Aggiorna" ---
                     backing.add(nuovo);
                     table.getSelectionModel().select(nuovo);
                     updateFiltersUI();
@@ -501,9 +511,36 @@ public class CorsiPanelController {
             SessioniWizardController ctrl = fx.getController();
             ctrl.initWithCorso(corso);
 
+            // Avvolgi il contenuto in uno ScrollPane (per contenuti grandi)
+            Node currentContent = pane.getContent();
+            if (currentContent instanceof Region regionContent) {
+                ScrollPane sc = new ScrollPane(regionContent);
+                sc.setFitToWidth(true);
+                sc.setFitToHeight(true);
+                sc.setPannable(true);
+                sc.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                sc.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                pane.setContent(sc);
+            }
+
             Dialog<List<Sessione>> dlg = new Dialog<>();
             dlg.setTitle("Configura sessioni del corso");
             dlg.setDialogPane(pane);
+
+            // Dimensione iniziale
+            pane.setPrefSize(1200, 800);
+
+            dlg.setOnShown(e2 -> {
+                Window w = dlg.getDialogPane().getScene().getWindow();
+                if (w instanceof Stage stg) {
+                    stg.setResizable(true);
+                    stg.setWidth(1600);
+                    stg.setHeight(800);
+                    stg.setMinWidth(1500);
+                    stg.setMinHeight(650);
+                    stg.centerOnScreen();
+                }
+            });
 
             URL css = getClass().getResource(APP_CSS);
             if (css != null) pane.getStylesheets().add(css.toExternalForm());
@@ -539,22 +576,112 @@ public class CorsiPanelController {
         });
     }
 
-    private void onAssociateRecipes() {
-        Corso sel = table.getSelectionModel().getSelectedItem();
-        if (sel == null) return;
-        try {
-            List<SessionePresenza> presenze = new ArrayList<>();
-            sessioneDao.findByCorso(sel.getIdCorso()).forEach(s -> {
+    /** ====== NUOVO: associa ricette alle sessioni in presenza ====== */
+   /** ====== Associa ricette alle sessioni in presenza (con FXMLLoader + ControllerFactory) ====== */
+private void onAssociateRecipes() {
+    Corso sel = table.getSelectionModel().getSelectedItem();
+    if (sel == null) return;
+
+    if (!isOwnedByLoggedChef(sel)) {
+        new Alert(Alert.AlertType.WARNING,
+                "Puoi modificare solo i corsi che appartengono al tuo profilo.")
+            .showAndWait();
+        return;
+    }
+
+    try {
+        // 1) Recupera le sessioni in presenza del corso
+        List<SessionePresenza> presenze = new ArrayList<>();
+        List<Sessione> tutte = sessioneDao.findByCorso(sel.getIdCorso());
+        if (tutte != null) {
+            for (Sessione s : tutte) {
                 if (s instanceof SessionePresenza sp) presenze.add(sp);
-            });
-            if (presenze.isEmpty()) {
-                showInfo("Il corso non ha sessioni in presenza.");
-                return;
             }
-            showInfo("Funzionalità associa ricette qui (da implementare).");
-        } catch (Exception e) {
-            showError("Errore recupero sessioni: " + e.getMessage());
         }
+
+        if (presenze.isEmpty()) {
+            showInfo("Il corso non ha sessioni in presenza.");
+            return;
+        }
+
+        // 2) Se più di una, chiedi quale sessione associare
+        SessionePresenza target = (presenze.size() == 1)
+                ? presenze.get(0)
+                : choosePresenza(presenze).orElse(null);
+
+        if (target == null) return; // annullato
+
+        // 3) Dati per il dialog: tutte le ricette + già collegate
+        if (ricettaDao == null) ricettaDao = new RicettaDao(); // fallback
+        List<Ricetta> tutteLeRicette = ricettaDao.findAll();
+        List<Ricetta> ricetteGiaAssociate =
+                sessioneDao.findRicetteBySessionePresenza(target.getId());
+
+        // 4) Carica l'FXML con fx:controller=it.unina.foodlab.controller.AssociaRicetteController
+        var url = AssociaRicetteController.class.getResource("/it/unina/foodlab/ui/AssociaRicette.fxml");
+        if (url == null) throw new IllegalStateException("FXML non trovato: /it/unina/foodlab/ui/AssociaRicette.fxml");
+
+        FXMLLoader fx = new FXMLLoader(url);
+        fx.setControllerFactory(t -> {
+            if (t == AssociaRicetteController.class) {
+                return new AssociaRicetteController(
+                        sessioneDao,
+                        target.getId(),
+                        (tutteLeRicette != null ? tutteLeRicette : java.util.Collections.emptyList()),
+                        (ricetteGiaAssociate != null ? ricetteGiaAssociate : java.util.Collections.emptyList())
+                );
+            }
+            try {
+                return t.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("Impossibile creare controller: " + t, e);
+            }
+        });
+
+        // NB: qui non ci serve 'root', ci basta che il controller venga creato e inizializzato
+        fx.load();
+        AssociaRicetteController dlg = fx.getController();
+
+        Optional<List<Long>> result = dlg.showAndWait();
+        dlg.salvaSeConfermato(result);
+
+    } catch (Exception e) {
+        showError("Errore associazione ricette: " + e.getMessage());
+        e.printStackTrace();
+    }
+}
+
+
+    /** Dialog per scegliere una sessione in presenza quando sono > 1. */
+    private Optional<SessionePresenza> choosePresenza(List<SessionePresenza> presenze) {
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
+
+        Map<String, SessionePresenza> map = new LinkedHashMap<>();
+        for (SessionePresenza sp : presenze) {
+            String data = sp.getData() != null ? df.format(sp.getData()) : "";
+            String orari = (sp.getOraInizio() != null ? tf.format(sp.getOraInizio()) : "") +
+                           "-" +
+                           (sp.getOraFine() != null ? tf.format(sp.getOraFine()) : "");
+            String indirizzo = joinNonEmpty(" ",
+                    nz(sp.getVia()), nz(sp.getNum()),
+                    nz(sp.getCap())
+            ).trim();
+            String label = String.format("%s  %s  %s", data, orari, indirizzo).trim();
+            // Evita chiavi duplicate
+            String key = label;
+            int suffix = 2;
+            while (map.containsKey(key)) key = label + " (" + (suffix++) + ")";
+            map.put(key, sp);
+        }
+
+        ChoiceDialog<String> d = new ChoiceDialog<>(map.keySet().iterator().next(), map.keySet());
+        d.setTitle("Seleziona la sessione in presenza");
+        d.setHeaderText("Scegli la sessione a cui associare le ricette");
+        d.setContentText(null);
+
+        Optional<String> pick = d.showAndWait();
+        return pick.map(map::get);
     }
 
     private void showSessioniDialog(Corso corso) {
@@ -790,6 +917,13 @@ public class CorsiPanelController {
         d.setTitle(title);
         d.setHeaderText(header);
         d.setContentText(null);
+        
+        Scene scene = d.getDialogPane().getScene();
+        if (scene != null) {
+            URL css = getClass().getResource(APP_CSS);
+                scene.getStylesheets().add(css.toExternalForm());
+        }
+        
         Optional<String> res = d.showAndWait();
         return res.orElse(null);
     }
@@ -799,4 +933,6 @@ public class CorsiPanelController {
         if (value == null) return null;
         return ALL_OPTION.equalsIgnoreCase(value.trim()) ? null : value.trim();
     }
+    
+    
 }

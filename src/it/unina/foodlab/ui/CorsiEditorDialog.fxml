@@ -4,10 +4,11 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.geometry.Insets?>
 
-<DialogPane xmlns:fx="http://javafx.com/fxml/1"
+<DialogPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.unina.foodlab.controller.CorsoEditorDialogController"
-            stylesheets="@/app.css" styleClass="corsi-dialog" fx:id="dialogPane">
-
+            stylesheets="@/app.css"
+            fx:id="dialogPane">
 
     <buttonTypes>
         <ButtonType fx:id="createButtonType" text="Crea" buttonData="OK_DONE"/>
@@ -21,7 +22,7 @@
             </padding>
             <children>
                 <Label text="Argomento:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                
+
                 <HBox spacing="5" GridPane.rowIndex="0" GridPane.columnIndex="1">
                     <children>
                         <ComboBox fx:id="cbArg" editable="false" prefWidth="200"/>
@@ -33,9 +34,10 @@
                 <ChoiceBox fx:id="cbFreq" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
                 <Label text="Data inizio:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                <DatePicker fx:id="dpInizio" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                <DatePicker fx:id="dpInizio" showWeekNumbers="false"
+                            GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
-                <Label text="Data fine (auto):" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <Label text="Data fine:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
                 <Label fx:id="lblFine" text="—" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
                 <Label text="N. sessioni:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>

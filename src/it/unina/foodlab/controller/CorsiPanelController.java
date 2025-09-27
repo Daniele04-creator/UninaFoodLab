@@ -437,71 +437,77 @@ public class CorsiPanelController {
         new Thread(loadTask, "load-sessioni").start();
     }
 
-    public void onNew() {
-        try {
-            FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/CorsiEditorDialog.fxml"));
-            DialogPane pane = fx.load();
+   public void onNew() {
+    try {
+        FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/CorsiEditorDialog.fxml"));
+        DialogPane pane = fx.load();
 
-            CorsoEditorDialogController ctrl = fx.getController();
-            ctrl.setCorso(null);
+        CorsoEditorDialogController ctrl = fx.getController();
+        ctrl.setCorso(null);
 
-            Dialog<Corso> dialog = new Dialog<>();
-            dialog.setTitle("Nuovo Corso");
-            dialog.setDialogPane(pane);
+        Dialog<Corso> dialog = new Dialog<>();
+        dialog.setTitle("Nuovo Corso");
+        dialog.setDialogPane(pane);
+        dialog.setResizable(true);
 
-            dialog.setResultConverter(bt ->
-                    (bt == ctrl.getCreateButtonType() || bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
-                            ? ctrl.getResult()
-                            : null
-            );
+        dialog.setResultConverter(bt -> {
+            if (bt == null) return null;
+            // accetta SOLO il bottone "Crea" del controller
+            return (bt == ctrl.getCreateButtonType()) ? ctrl.getResult() : null;
+        });
 
-            Optional<Corso> res = dialog.showAndWait();
-            if (res.isPresent()) {
-                Corso nuovo = res.get();
-
-                // --- Associa automaticamente l'attuale chef ---
-                if (corsoDao != null) {
-                    String cfChef = corsoDao.getOwnerCfChef();
-                    if (cfChef != null && !cfChef.isBlank()) {
-                        Chef chef = new Chef();
-                        chef.setCF_Chef(cfChef);
-                        nuovo.setChef(chef);
-                    }
-                }
-
-                // --- Apri il wizard delle sessioni (resizabile come onEdit) ---
-                Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo);
-
-                // --- Salva il corso (con eventuali sessioni) ---
-                try {
-                    final long id;
-                    if (sessOpt.isPresent() && sessOpt.get() != null) {
-                        List<Sessione> sessions = sessOpt.get();
-                        if (!sessions.isEmpty()) {
-                            id = corsoDao.insertWithSessions(nuovo, sessions);
-                        } else {
-                            id = corsoDao.insert(nuovo);
-                        }
-                    } else {
-                        id = corsoDao.insert(nuovo);
-                    }
-                    nuovo.setIdCorso(id);
-
-                    // --- Aggiorna la tabella senza premere "Aggiorna" ---
-                    backing.add(nuovo);
-                    table.getSelectionModel().select(nuovo);
-                    updateFiltersUI();
-                } catch (Exception saveEx) {
-                    showError("Salvataggio corso/sessioni fallito: " + saveEx.getMessage());
-                    saveEx.printStackTrace();
-                }
-            }
-
-        } catch (Exception ex) {
-            showError("Errore apertura editor corso: " + ex.getMessage());
-            ex.printStackTrace();
+        Optional<Corso> res = dialog.showAndWait();
+        if (res.isEmpty()) {
+            // Utente ha annullato il primo dialog -> NON creare nulla
+            return;
         }
+
+        Corso nuovo = res.get();
+
+        // Associa automaticamente l'attuale chef (se presente)
+        if (corsoDao != null) {
+            String cfChef = corsoDao.getOwnerCfChef();
+            if (cfChef != null && !cfChef.isBlank()) {
+                Chef chef = new Chef();
+                chef.setCF_Chef(cfChef);
+                nuovo.setChef(chef);
+            }
+        }
+
+        // Wizard delle sessioni
+        Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo);
+        if (sessOpt.isEmpty()) {
+            // Utente ha annullato il wizard -> NON creare nulla
+            return;
+        }
+
+        List<Sessione> sessions = sessOpt.get();
+        if (sessions == null || sessions.isEmpty()) {
+            // Nessuna sessione confermata -> NON creare nulla
+            return;
+        }
+
+        // Salvataggio atomico corso + sessioni
+        try {
+            long id = corsoDao.insertWithSessions(nuovo, sessions);
+            nuovo.setIdCorso(id);
+
+            // Aggiorna UI
+            backing.add(nuovo);
+            table.getSelectionModel().select(nuovo);
+            updateFiltersUI();
+
+        } catch (Exception saveEx) {
+            showError("Salvataggio corso/sessioni fallito: " + saveEx.getMessage());
+            saveEx.printStackTrace();
+        }
+
+    } catch (Exception ex) {
+        showError("Errore apertura editor corso: " + ex.getMessage());
+        ex.printStackTrace();
     }
+}
+
 
     private Optional<List<Sessione>> openSessioniWizard(Corso corso) {
         try {

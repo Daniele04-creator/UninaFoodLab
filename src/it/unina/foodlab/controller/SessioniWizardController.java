@@ -28,6 +28,7 @@ public class SessioniWizardController {
     /* ---------- UI dal FXML ---------- */
     @FXML private DialogPane dialogPane;
     @FXML private ButtonType okButtonType;
+    @FXML private ButtonType cancelButtonType;
 
     @FXML private TableView<SessionDraft> table;
     @FXML private TableColumn<SessionDraft, String> cData;
@@ -43,8 +44,6 @@ public class SessioniWizardController {
 
     @FXML private Button btnAdd;
     @FXML private Button btnRemove;
-    @FXML private ButtonType cancelButtonType;
-
 
     /* ---------- Stato ---------- */
     private Corso corso;
@@ -66,10 +65,10 @@ public class SessioniWizardController {
     private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("H:mm");
 
     /* layout */
-    private static final double ROW_HEIGHT     = 32;
-    private static final double EDITOR_HEIGHT  = 28;
+    private static final double ROW_HEIGHT       = 32;
+    private static final double EDITOR_HEIGHT    = 28;
     private static final int    MAX_VISIBLE_ROWS = 6;
-    private static final double HEADER_H       = 30;
+    private static final double HEADER_H         = 30;
 
     @FXML
     private void initialize() {
@@ -88,7 +87,7 @@ public class SessioniWizardController {
 
         /* DATA: NON editabile */
         cData.setCellValueFactory(cd ->
-            new SimpleStringProperty(cd.getValue().data == null ? "" : cd.getValue().data.toString())
+                new SimpleStringProperty(cd.getValue().data == null ? "" : cd.getValue().data.toString())
         );
         cData.setCellFactory(col -> new TableCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
@@ -99,8 +98,10 @@ public class SessioniWizardController {
         });
 
         /* TESTO editabile: ora inizio/fine */
-        makeEditableTextColumn(cInizio, d -> d.oraInizio, (d,v) -> d.oraInizio = v);
-        makeEditableTextColumn(cFine,   d -> d.oraFine,   (d,v) -> d.oraFine   = v);
+        /* ORA inizio/fine con ComboBox di orari (step 15 minuti) */
+        makeTimePickerColumn(cInizio, d -> d.oraInizio, (d,v) -> d.oraInizio = v, 15);
+        makeTimePickerColumn(cFine,   d -> d.oraFine,   (d,v) -> d.oraFine   = v, 15);
+
 
         /* MODALITÀ ComboBox */
         cTipo.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue().tipo));
@@ -109,7 +110,7 @@ public class SessioniWizardController {
             private final HBox wrapper = new HBox(cb);
             private boolean internal = false;
             {
-                cb.getStyleClass().addAll("cell-editor", "sessione-cell"); // CSS rosa senza bordi
+                cb.getStyleClass().addAll("cell-editor", "sessione-cell");
                 cb.setMaxWidth(Double.MAX_VALUE);
                 HBox.setHgrow(cb, Priority.ALWAYS);
                 cb.setPrefHeight(EDITOR_HEIGHT);
@@ -175,7 +176,7 @@ public class SessioniWizardController {
         table.setMaxHeight(tablePrefH);
 
         Platform.runLater(() -> {
-            if (table.getParent() instanceof javafx.scene.layout.VBox vb) {
+            if (table.getParent() instanceof javafx.scene.layout.VBox) {
                 javafx.scene.layout.VBox.setVgrow(table, Priority.NEVER);
             }
             autosizeColumnsToHeader();
@@ -193,14 +194,24 @@ public class SessioniWizardController {
         /* Button bar: + e cestino a sinistra */
         setupButtonBar();
 
-        /* Trasforma OK/Cancel in icona-only */
+        /* Trasforma OK/Cancel in icona-only + VALIDAZIONE che blocca la chiusura */
         Platform.runLater(() -> {
-            Button okBtn = okButtonType != null ? (Button) dialogPane.lookupButton(okButtonType) : (Button) dialogPane.lookupButton(ButtonType.OK);
+            Button okBtn = okButtonType != null
+                    ? (Button) dialogPane.lookupButton(okButtonType)
+                    : (Button) dialogPane.lookupButton(ButtonType.OK);
             if (okBtn != null) {
                 okBtn.setText("");
                 okBtn.setMnemonicParsing(false);
                 okBtn.setStyle("-fx-graphic: url('/icons/ok-16.png'); -fx-content-display: graphic-only;");
                 okBtn.setTooltip(new Tooltip("Conferma"));
+
+                okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, ev -> {
+                    Optional<String> err = validateAllAndFocus();
+                    if (err.isPresent()) {
+                        ev.consume();          // <-- NON chiudere il dialog
+                        error(err.get());
+                    }
+                });
             }
 
             Button cancelBtn = cancelButtonType != null ? (Button) dialogPane.lookupButton(cancelButtonType) : null;
@@ -222,6 +233,7 @@ public class SessioniWizardController {
             }
         });
 
+        // Usa il tuo app.css
         File cssFile = new File("src/app.css");
         dialogPane.getStylesheets().add(cssFile.toURI().toString());
     }
@@ -307,10 +319,10 @@ public class SessioniWizardController {
         var items = table.getItems();
         SessionDraft d = new SessionDraft();
         LocalDate base = items.stream()
-            .map(s -> s.data)
-            .filter(Objects::nonNull)
-            .max(LocalDate::compareTo)
-            .orElse((corso != null && corso.getDataInizio() != null) ? corso.getDataInizio() : LocalDate.now());
+                .map(s -> s.data)
+                .filter(Objects::nonNull)
+                .max(LocalDate::compareTo)
+                .orElse((corso != null && corso.getDataInizio() != null) ? corso.getDataInizio() : LocalDate.now());
         d.data = base.plusDays(7);
         d.tipo = "Online";
         items.add(d);
@@ -330,38 +342,19 @@ public class SessioniWizardController {
         }
     }
 
+    /** Costruisce il risultato. La validazione è già fatta dall'EventFilter su OK. */
     public List<Sessione> buildResult() {
-        Button ok = (Button) dialogPane.lookupButton(
-            okButtonType != null ? okButtonType : ButtonType.OK
-        );
-        if (ok != null) ok.requestFocus();
-
         List<Sessione> result = new ArrayList<>();
         for (SessionDraft d : table.getItems()) {
-            if (d.data == null) { error("Data mancante"); return null; }
-
-            final LocalTime t1, t2;
-            try {
-                t1 = LocalTime.parse(d.oraInizio.trim(), TF);
-                t2 = LocalTime.parse(d.oraFine.trim(), TF);
-                if (!t2.isAfter(t1)) { error("Ora fine deve essere successiva a inizio"); return null; }
-            } catch (Exception ex) {
-                error("Formato orario non valido (HH:MM)"); return null;
-            }
+            LocalTime t1 = LocalTime.parse(d.oraInizio.trim(), TF);
+            LocalTime t2 = LocalTime.parse(d.oraFine.trim(), TF);
 
             if ("Online".equals(d.tipo)) {
                 result.add(new SessioneOnline(0, d.data, t1, t2, corso, d.piattaforma));
             } else {
-                if (isBlank(d.via) || isBlank(d.aula)) { error("Via e Aula sono obbligatorie"); return null; }
                 Integer cap = isBlank(d.cap) ? 0 : parseIntOrNull(d.cap);
-                if (cap == null || cap < 0) { error("CAP non valido"); return null; }
-
                 int posti = 0;
-                if (!isBlank(d.postiMax)) {
-                    Integer p = parseIntOrNull(d.postiMax);
-                    if (p == null || p <= 0) { error("Posti deve essere > 0"); return null; }
-                    posti = p;
-                }
+                if (!isBlank(d.postiMax)) posti = Integer.parseInt(d.postiMax.trim());
                 result.add(new SessionePresenza(0, d.data, t1, t2, corso, d.via, d.num, cap, d.aula, posti));
             }
         }
@@ -371,12 +364,12 @@ public class SessioniWizardController {
     /* ---------- Helpers colonne ---------- */
 
     private void makeEditableTextColumn(TableColumn<SessionDraft,String> col,
-            Function<SessionDraft,String> getter,
-            BiConsumer<SessionDraft,String> setter) {
+                                        Function<SessionDraft,String> getter,
+                                        BiConsumer<SessionDraft,String> setter) {
         col.setCellValueFactory(cd -> new SimpleStringProperty(getter.apply(cd.getValue())));
         col.setCellFactory(tc -> new TableCell<>() {
             private final TextField tf = new TextField();
-            private final HBox wrapper = new HBox(tf);
+            private final HBox wrapper = new HBox(tf) ;
             {
                 tf.getStyleClass().addAll("cell-editor", "sessione-cell");
                 tf.setMaxWidth(Double.MAX_VALUE);
@@ -405,9 +398,9 @@ public class SessioniWizardController {
     }
 
     private void makeConditionalTextColumn(TableColumn<SessionDraft,String> col,
-                   Predicate<SessionDraft> visibleWhen,
-                   Function<SessionDraft,String> getter,
-                   BiConsumer<SessionDraft,String> setter) {
+                                           Predicate<SessionDraft> visibleWhen,
+                                           Function<SessionDraft,String> getter,
+                                           BiConsumer<SessionDraft,String> setter) {
         col.setCellValueFactory(cd -> new SimpleStringProperty(getter.apply(cd.getValue())));
         col.setCellFactory(tc -> new TableCell<>() {
             private final TextField tf = new TextField();
@@ -469,7 +462,60 @@ public class SessioniWizardController {
         return 7;
     }
 
-    /* ---------- util ---------- */
+    /* ---------- Validazione + util ---------- */
+
+    /** Ritorna Optional.empty() se tutto ok, altrimenti messaggio errore e seleziona la riga. */
+    private Optional<String> validateAllAndFocus() {
+        List<SessionDraft> items = table.getItems();
+        for (int i = 0; i < items.size(); i++) {
+            SessionDraft d = items.get(i);
+
+            if (d.data == null) {
+                focusRow(i);
+                return Optional.of("Data mancante");
+            }
+
+            try {
+                LocalTime t1 = LocalTime.parse(nz(d.oraInizio).trim(), TF);
+                LocalTime t2 = LocalTime.parse(nz(d.oraFine).trim(), TF);
+                if (!t2.isAfter(t1)) {
+                    focusRow(i);
+                    return Optional.of("Ora fine deve essere successiva a inizio");
+                }
+            } catch (Exception e) {
+                focusRow(i);
+                return Optional.of("Formato orario non valido (HH:MM)");
+            }
+
+            if ("Online".equals(d.tipo)) {
+                // Se vuoi renderla obbligatoria, decommenta:
+                // if (isBlank(d.piattaforma)) { focusRow(i); return Optional.of("Piattaforma obbligatoria"); }
+            } else { // In presenza
+                if (isBlank(d.via) || isBlank(d.aula)) {
+                    focusRow(i);
+                    return Optional.of("Via e Aula sono obbligatorie");
+                }
+                Integer cap = isBlank(d.cap) ? 0 : parseIntOrNull(d.cap);
+                if (cap == null || cap < 0) {
+                    focusRow(i);
+                    return Optional.of("CAP non valido");
+                }
+                if (!isBlank(d.postiMax)) {
+                    Integer p = parseIntOrNull(d.postiMax);
+                    if (p == null || p <= 0) {
+                        focusRow(i);
+                        return Optional.of("Posti deve essere > 0");
+                    }
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    private void focusRow(int rowIndex) {
+        table.getSelectionModel().clearAndSelect(rowIndex);
+        table.scrollTo(rowIndex);
+    }
 
     private boolean isBlank(String s){ return s == null || s.isBlank(); }
     private String nz(String s){ return s == null ? "" : s; }
@@ -499,4 +545,82 @@ public class SessioniWizardController {
         }
         table.layout();
     }
+    
+ // in cima già hai TF = DateTimeFormatter.ofPattern("H:mm") – va bene.
+
+    private javafx.collections.ObservableList<LocalTime> buildTimes(int stepMinutes) {
+        var list = FXCollections.<LocalTime>observableArrayList();
+        for (int h = 0; h < 24; h++) {
+            for (int m = 0; m < 60; m += stepMinutes) {
+                list.add(LocalTime.of(h, m));
+            }
+        }
+        return list;
+    }
+
+    private void makeTimePickerColumn(TableColumn<SessionDraft, String> col,
+                                      Function<SessionDraft,String> getter,
+                                      BiConsumer<SessionDraft,String> setter,
+                                      int stepMinutes) {
+
+        var TIMES = buildTimes(stepMinutes);
+
+        col.setCellValueFactory(cd -> new SimpleStringProperty(getter.apply(cd.getValue())));
+        col.setCellFactory(tc -> new TableCell<>() {
+            private final ComboBox<LocalTime> cb = new ComboBox<>(TIMES);
+            private final HBox wrapper = new HBox(cb);
+
+            {
+                cb.setVisibleRowCount(10);
+                cb.setPrefHeight(EDITOR_HEIGHT);
+                cb.setMaxWidth(Double.MAX_VALUE);
+                HBox.setHgrow(cb, Priority.ALWAYS);
+
+                // Mostra/legge nel formato HH:mm
+                cb.setConverter(new javafx.util.StringConverter<LocalTime>() {
+                    @Override public String toString(LocalTime t) {
+                        return t == null ? "" : t.format(DateTimeFormatter.ofPattern("HH:mm"));
+                    }
+                    @Override public LocalTime fromString(String s) {
+                        if (s == null || s.isBlank()) return null;
+                        // accetta "9:00" o "09:00"
+                        return LocalTime.parse(s.trim(), TF);
+                    }
+                });
+
+                // facoltativo: consenti digitazione manuale
+                cb.setEditable(true);
+
+                // aggiorna il modello alla selezione / digitazione
+                cb.valueProperty().addListener((o,a,b) -> {
+                    int i = getIndex();
+                    var tv = getTableView();
+                    if (tv != null && i >= 0 && i < tv.getItems().size()) {
+                        setter.accept(tv.getItems().get(i), b == null ? "" : b.format(DateTimeFormatter.ofPattern("HH:mm")));
+                    }
+                });
+
+                // apre subito la tendina quando clicchi nella cella
+                wrapper.setOnMouseClicked(e -> cb.show());
+            }
+
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) { setGraphic(null); return; }
+
+                // sincronizza il valore della combo con la stringa del modello
+                LocalTime val = null;
+                try {
+                    if (item != null && !item.isBlank()) {
+                        val = LocalTime.parse(item.trim(), TF);
+                    }
+                } catch (Exception ignore) { /* lascia null */ }
+                cb.setValue(val);
+
+                setGraphic(wrapper);
+                setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            }
+        });
+    }
+
 }

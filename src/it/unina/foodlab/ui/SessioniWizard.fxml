@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<DialogPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="it.unina.foodlab.controller.SessioniWizardController"
+            fx:id="dialogPane"
+            stylesheets="@/app.css"
+            prefWidth="1000" prefHeight="650">
+
+    <buttonTypes>
+        <ButtonType text="Annulla"  buttonData="CANCEL_CLOSE" fx:id="cancelButtonType"/>
+        <ButtonType text="Conferma" buttonData="OK_DONE" fx:id="okButtonType"/>
+    </buttonTypes>
+
+    <content>
+        <VBox spacing="10">
+            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+            <Label text="Imposta modalità e dettagli per ciascuna sessione:"/>
+
+            <!-- Tabella adattiva (niente scroll precoce) -->
+            <TableView fx:id="table" editable="true"
+                       prefHeight="-1.0"
+                       maxHeight="Infinity">
+                <VBox.vgrow><Priority fx:constant="ALWAYS"/></VBox.vgrow>
+
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+                </columnResizePolicy>
+
+                <columns>
+                    <TableColumn fx:id="cData"        text="Data"         prefWidth="130" minWidth="130"/>
+                    <TableColumn fx:id="cInizio"      text="Inizio"       prefWidth="140" minWidth="140"/>
+                    <TableColumn fx:id="cFine"        text="Fine"         prefWidth="140" minWidth="140"/>
+                    <TableColumn fx:id="cTipo"        text="Modalità"     prefWidth="160" minWidth="160"/>
+                    <TableColumn fx:id="cPiattaforma" text="Piattaforma"  prefWidth="180" minWidth="180"/>
+                    <TableColumn fx:id="cVia"         text="Via"          prefWidth="200" minWidth="200"/>
+                    <TableColumn fx:id="cNum"         text="Num"          prefWidth="80"  minWidth="80"/>
+                    <TableColumn fx:id="cCap"         text="CAP"          prefWidth="110" minWidth="110"/>
+                    <TableColumn fx:id="cAula"        text="Aula"         prefWidth="120" minWidth="120"/>
+                    <TableColumn fx:id="cPosti"       text="Posti"        prefWidth="100" minWidth="100"/>
+                </columns>
+
+                <placeholder>
+                    <Label text="Nessuna sessione. Usa 'Nuovo' per creare una riga."/>
+                </placeholder>
+            </TableView>
+
+            <!-- Barra comandi -->
+            <HBox spacing="10" alignment="CENTER">
+                <children>
+                    <Button fx:id="btnAdd"
+                            styleClass="add-button"
+                            text="Nuovo"
+                            style="-fx-graphic: url('/icons/plus-16.png'); -fx-content-display: graphic-only;">
+                        <tooltip><Tooltip text="Nuovo"/></tooltip>
+                    </Button>
+                    <Button fx:id="btnRemove"
+                            style="-fx-graphic: url('/icons/trash-2-16.png'); -fx-content-display: graphic-only;">
+                        <tooltip><Tooltip text="Rimuovi"/></tooltip>
+                    </Button>
+                </children>
+                <padding><Insets top="6" bottom="0"/></padding>
+            </HBox>
+        </VBox>
+    </content>
+</DialogPane>

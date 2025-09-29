@@ -1,0 +1,10 @@
+# Cartella compilata
+/bin/
+
+# Impostazioni Eclipse (opzionale)
+.settings/
+
+# File temporanei
+*.tmp
+*.rsc
+/target/

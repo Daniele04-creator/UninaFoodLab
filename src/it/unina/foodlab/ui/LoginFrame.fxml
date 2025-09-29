@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Cursor?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.SVGPath?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.effect.ColorAdjust?>
+
+
+<StackPane fx:id="outer" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="it.unina.foodlab.controller.LoginController"
+           style="-fx-font-size: 14px; -fx-font-family: 'Segoe UI', Inter, system-ui, sans-serif; -fx-background-color: #272b35;"
+           stylesheets="@/Login.css">
+    <padding>
+        <Insets top="24" right="24" bottom="24" left="24"/>
+    </padding>
+    <children>
+        <!-- Sfondo pattern/immagine -->
+        <ImageView fitWidth="1920" fitHeight="1080" pickOnBounds="true" preserveRatio="false" opacity="0.5">
+            <image>
+                <Image url="@/background-pattern.png" />
+            </image>
+            <effect>
+        <ColorAdjust brightness="-0.4"/>
+    </effect>
+        </ImageView>
+        <!-- Card centrale -->
+        <VBox fx:id="card" alignment="CENTER" spacing="16" maxWidth="360" maxHeight="480"
+              style="-fx-background-color: #2e3440; -fx-background-radius: 8px;">
+            <padding>
+                <Insets top="28" right="28" bottom="28" left="28"/>
+            </padding>
+            <children>
+				<ImageView fitHeight="150" fitWidth="300" preserveRatio="true">
+				    <image>
+				        <Image url="@/icons/LogoLogin.png"/>
+				    </image>
+				</ImageView>
+
+                <Label text="Chef Login" style="-fx-font-size: 14px; -fx-text-fill: rgba(255,255,255,0.75);" />
+
+                <VBox spacing="16" fillWidth="true" alignment="CENTER">
+                    <children>
+                        <!-- Username Field -->
+                        <HBox alignment="CENTER_LEFT" spacing="10"
+                              style="-fx-background-color: #3b4252; -fx-background-radius: 4px;">
+                            <padding>
+                                <Insets top="8" right="8" bottom="8" left="8"/>
+                            </padding>
+                            <children>
+                                <StackPane minHeight="36" minWidth="36" maxHeight="36" maxWidth="36">
+                                    <SVGPath fill="#b9c2d0" content="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zm0 2c-3.866 0-7 3.134-7 7h2c0-2.761 2.239-5 5-5s5 2.239 5 5h2c0-3.866-3.134-7-7-7z" />
+                                </StackPane>
+                                <TextField fx:id="usernameField" promptText="Username" HBox.hgrow="ALWAYS"
+                                           style="-fx-background-color: transparent; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.65); -fx-border-color: transparent; -fx-focus-color: #81a1c1; -fx-faint-focus-color: transparent;" />
+                            </children>
+                        </HBox>
+
+                        <!-- Password Field -->
+                        <HBox alignment="CENTER_LEFT" spacing="10"
+                              style="-fx-background-color: #3b4252; -fx-background-radius: 4px;">
+                            <padding>
+                                <Insets top="8" right="8" bottom="8" left="8"/>
+                            </padding>
+                            <children>
+                                <StackPane minHeight="36" minWidth="36" maxHeight="36" maxWidth="36">
+                                    <SVGPath fill="#b9c2d0" content="M6 8V6a6 6 0 1 1 12 0v2h1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h1zm2 0h8V6a4 4 0 0 0-8 0v2z" />
+                                </StackPane>
+                                <StackPane HBox.hgrow="ALWAYS">
+                                    <PasswordField fx:id="passwordField" promptText="Password" StackPane.alignment="CENTER_LEFT"
+                                                   style="-fx-background-color: transparent; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.65); -fx-border-color: transparent; -fx-focus-color: #81a1c1; -fx-faint-focus-color: transparent;" />
+                                    <TextField fx:id="passwordVisibleField" promptText="Password" visible="false" managed="false" StackPane.alignment="CENTER_LEFT"
+                                              style="-fx-background-color: transparent; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.65); -fx-border-color: transparent; -fx-focus-color: #81a1c1; -fx-faint-focus-color: transparent;" />
+                                </StackPane>
+                                <Region HBox.hgrow="ALWAYS" />
+                                <ToggleButton fx:id="toggleVisibilityButton">
+                                    <cursor>
+                                        <Cursor fx:constant="HAND"/>
+                                    </cursor>
+                                    <graphic>
+                                        <SVGPath fx:id="eyeIcon" fill="#c8d0dc" scaleX="0.9" scaleY="0.9"
+                                                 content="M2 5l19 14-1.5 2L.5 7 2 5zm3.3 2.4C7.7 6.2 9.7 5 12 5c7 0 11 7 11 7-.7 1.1-1.7 2.3-3 3.3L18.6 13c.3-.6.4-1.2.4-1.9a5 5 0 0 0-5-5c-.7 0-1.3.1-1.9.4L5.3 7.4z"/>
+                                    </graphic>
+                                </ToggleButton>
+                            </children>
+                        </HBox>
+
+                        <!-- Error Label -->
+                        <Label fx:id="errorLabel" managed="false" visible="false"
+                               style="-fx-text-fill: #bf616a; -fx-background-color: rgba(191,97,106,0.12); -fx-padding: 8 12; -fx-background-radius: 6;" />
+
+                        <!-- Pulsanti Login e Registrati -->
+                        <HBox spacing="12" alignment="CENTER">
+                            <children>
+                                <!-- Login Button + Spinner -->
+                                <StackPane alignment="CENTER">
+                                    <children>
+                                        <Button fx:id="loginButton" text="Login" defaultButton="true"
+                                                style="-fx-background-color: #5e81ac; 
+                                                       -fx-text-fill: #eceff4; 
+                                                       -fx-font-weight: 600; 
+                                                       -fx-padding: 10 16; 
+                                                       -fx-background-radius: 6; 
+                                                       -fx-border-radius: 6; 
+                                                       -fx-border-color: #5e81ac; 
+                                                       -fx-border-width: 1;"
+                                                prefWidth="140" prefHeight="40"/>
+                                        <ProgressIndicator fx:id="spinner" maxHeight="16" maxWidth="16" visible="false" managed="false"
+                                                           StackPane.alignment="CENTER_RIGHT">
+                                            <StackPane.margin>
+                                                <Insets top="0" right="12" bottom="0" left="0"/>
+                                            </StackPane.margin>
+                                        </ProgressIndicator>
+                                    </children>
+                                </StackPane>
+
+                                <!-- Registrazione Button -->
+                                <Button fx:id="registerButton" text="Registrati" 
+                                        style="-fx-background-color: #d46a6a; 
+                                               -fx-text-fill: #ffffff; 
+                                               -fx-font-weight: 600; 
+                                               -fx-padding: 10 16; 
+                                               -fx-background-radius: 6; 
+                                               -fx-border-radius: 6; 
+                                               -fx-border-color: #d46a6a; 
+                                               -fx-border-width: 1;"
+                                        prefWidth="140" prefHeight="40"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </children>
+</StackPane>

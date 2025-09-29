@@ -9,7 +9,6 @@ import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Text;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;

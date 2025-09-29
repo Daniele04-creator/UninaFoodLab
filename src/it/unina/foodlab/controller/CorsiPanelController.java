@@ -42,7 +42,7 @@ import java.util.function.Predicate;
 
 public class CorsiPanelController {
 
-    public static final String APP_CSS = "/app.css";
+    public static final String APP_CSS = "/app.css"; //lop
     private static final String ALL_OPTION = "Tutte";
     private static final int FILTERS_BADGE_MAX_CHARS = 32;
     private static final String LABEL_ARG  = "Argomento";

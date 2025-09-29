@@ -1,0 +1,215 @@
+/* Font e background principale */
+.root {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 14px;
+    -fx-background-color: #2E3440;
+}
+
+/* Top bar */
+HBox {
+    -fx-background-color: #3B4252;
+    -fx-padding: 10;
+    -fx-spacing: 10;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+/* Label */
+Label {
+    -fx-text-fill: #ECEFF4;
+    -fx-font-weight: bold;
+}
+
+/* TextField */
+.text-field {
+    -fx-text-fill: #ECEFF4;
+    -fx-prompt-text-fill: #979FAE;
+}
+
+.text-field .text {
+    -fx-fill: #ECEFF4;
+}
+
+.text-field .background {
+    -fx-background-color: #434C5E, #434C5E, #434C5E, #434C5E; /* sfondo interno */
+    -fx-background-insets: 0,1,2,3;
+    -fx-background-radius: 6;
+}
+
+.text-field:focused .background {
+    -fx-background-color: #3B4252;
+    -fx-border-color: #5E81AC;
+}
+
+/* ChoiceBox */
+.choice-box {
+    -fx-background-color: #434C5E;
+    -fx-text-fill: #ECEFF4;
+}
+
+.choice-box .arrow-button,
+.choice-box .list-view {
+    -fx-background-color: #434C5E;
+    -fx-control-inner-background: #434C5E;
+    -fx-text-fill: #ECEFF4;
+}
+
+/* Button */
+.button {
+    -fx-background-color: #5E81AC;
+    -fx-text-fill: #ECEFF4;
+    -fx-background-radius: 6;
+    -fx-padding: 6 20;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.2), 2,0,0,1);
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.button:hover { -fx-background-color: #537297; }
+.button:pressed { -fx-background-color: #476283; }
+
+/* TableView */
+.table-view {
+    -fx-background-color: #3B4252;
+    -fx-border-color: #5E6675;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #232730;
+}
+
+.table-view .column-header,
+.table-view .column-header .label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #ECEFF4;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #3B4252; /* garantisce che le righe non siano bianche */
+}
+
+.table-view .table-row-cell:filled:hover {
+    -fx-background-color: #434C5E;
+}
+
+.table-view .table-cell {
+    -fx-padding: 8 10;
+    -fx-text-fill: #ECEFF4;
+}
+
+/* Colonna checkbox centrata */
+.table-column .label {
+    -fx-alignment: CENTER;
+}
+
+/* ScrollPane interno TableView */
+.table-view .virtual-flow {
+    -fx-background-color: #3B4252;
+}
+
+/* TableView principale */
+.table-view {
+    -fx-background-color: #272b35; /* sfondo della tabella */
+    -fx-border-color: #5E6675;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+/* Header della tabella */
+.table-view .column-header-background {
+    -fx-background-color: #272b35; /* header uguale al background */
+}
+
+.table-view .column-header,
+.table-view .column-header .label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #ECEFF4; /* colore dei nomi delle colonne */
+}
+.table-view .virtual-flow {
+    -fx-background-color: #272b35;    
+    -fx-background-radius: 12;      /* angoli stondati del contenuto */
+}
+
+/* TableView principale */
+.table-view {
+    -fx-border-color: #444;      /* colore del bordo esterno */
+    -fx-border-width: 1px;       /* spessore del bordo */
+    -fx-border-style: solid;     /* stile del bordo */
+    -fx-background-color: #2b2b2b; /* sfondo tabella */
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 0;
+}
+
+/* Celle della tabella */
+.table-view .table-cell {
+    -fx-background-color: transparent;  /* trasparente per far vedere il bordo stondato */
+    -fx-border-color: #444;      
+    -fx-border-width: 0 0 1px 0; /* bordo solo in basso (righe) */
+}
+
+/* Header della tabella */
+.table-view .column-header-background {
+    -fx-border-color: #2b2b2b;      /* bordo sotto l’header */
+    -fx-border-width: 0 0 1px 0;
+    -fx-background-color: #272b35;
+    -fx-background-radius: 4 4 0 0;  /* angoli superiori stondati */
+}
+
+/* Header di ogni colonna */
+.table-view .column-header, 
+.table-view .column-header .label {
+    -fx-background-radius: 4 4 0 0;  /* arrotondamento coerente con header */
+	
+}
+
+/* Rimuove completamente i bordi tra le colonne nell’header */
+.table-view .column-header-background .column-header {
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
+}
+
+/* Eventuale label interna */
+.table-view .column-header-background .label {
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
+}
+
+/* Sfondo header */
+.table-view .column-header-background {
+    -fx-background-color: #272b35; /* stesso colore della tabella */
+}
+
+/* Nome colonne */
+.table-view .column-header,
+.table-view .column-header .label {
+    -fx-background-color: #272b35; /* assicura header uniforme */
+    -fx-text-fill: #ECEFF4;        /* colore del testo */
+    -fx-font-weight: bold;
+}
+
+/* Se il testo non cambia ancora: forziamo tutti i Label figli degli header */
+.table-view .column-header .label {
+    -fx-text-fill: #ECEFF4;
+}
+
+.text-field,
+.choice-box {
+    -fx-background-color: #434C5E; /* sfondo scuro */
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-text-fill: #ECEFF4;
+    -fx-prompt-text-fill: #979FAE;
+    -fx-padding: 6 10;
+    -fx-border-color: transparent;
+}
+
+.text-field:focused,
+.choice-box:focused {
+    -fx-background-color: #3B4252;
+    -fx-border-color: #5E81AC; /* accent per focus */
+}

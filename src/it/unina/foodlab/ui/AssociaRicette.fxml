@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Pos?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="it.unina.foodlab.controller.AssociaRicetteController"
+      fx:id="root"
+      spacing="12" fillWidth="true"
+      stylesheets="@/AssociaRicette.css">
+
+    <!-- Top bar -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <children>
+            <Label text="Filtro:"/>
+            <TextField fx:id="txtSearch" promptText="Cerca per nome o descrizione…"/>
+
+            <Label text="Difficoltà:"/>
+            <ChoiceBox fx:id="chDifficolta"/>
+
+            <Region fx:id="topBarSpacer" HBox.hgrow="ALWAYS"/>
+
+            <Button fx:id="btnSelAll" text="Seleziona tutto"/>
+            <Button fx:id="btnSelNone" text="Nessuna"/>
+        </children>
+        <padding><Insets/></padding>
+    </HBox>
+
+    <TableView fx:id="table" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colChk" text="✓" prefWidth="60" style="-fx-alignment: CENTER;"/>
+            <TableColumn fx:id="colNome" text="Nome"/>
+            <TableColumn fx:id="colDiff" text="Difficoltà" prefWidth="120"/>
+            <TableColumn fx:id="colTempo" text="Tempo prep. (min)" prefWidth="150" style="-fx-alignment: CENTER-RIGHT;"/>
+            <TableColumn fx:id="colDesc" text="Descrizione"/>
+        </columns>
+    </TableView>
+
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+</VBox>

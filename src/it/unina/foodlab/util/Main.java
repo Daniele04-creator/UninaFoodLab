@@ -20,6 +20,7 @@ public class Main extends Application {
         stage.setScene(new Scene(root, 700, 540));
         Image icon = new Image(getClass().getResourceAsStream("/icons/Logo.png"));
         stage.getIcons().add(icon);
+        stage.setMaximized(true);
         stage.show();
 
         controller.requestInitialFocus();

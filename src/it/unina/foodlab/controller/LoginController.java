@@ -14,10 +14,15 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.animation.PauseTransition;
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Modality;
+import javafx.stage.Screen;
 
 public class LoginController {
 	
@@ -104,6 +109,7 @@ public class LoginController {
                         stage.setTitle("UninaFoodLab - Corsi di " + displayName);
                         stage.setScene(scene);
                         stage.show();
+                        enforceFullScreenLook(stage);
                     }
                     success = true;
                 }
@@ -119,6 +125,37 @@ public class LoginController {
             showError(errorMessage);
             shake(card);
         }
+    }
+
+    
+
+
+    private void enforceFullScreenLook(Stage stage) {
+        Platform.runLater(() -> {
+            try {
+                // scegli lo screen in cui è attualmente la finestra (multi-monitor friendly)
+                Screen screen = Screen.getScreensForRectangle(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight())
+                                      .stream().findFirst().orElse(Screen.getPrimary());
+                Rectangle2D vb = screen.getVisualBounds();
+
+                stage.setX(vb.getMinX());
+                stage.setY(vb.getMinY());
+                stage.setWidth(vb.getWidth());
+                stage.setHeight(vb.getHeight());
+
+                stage.toFront();
+                stage.requestFocus();
+
+                // forza refresh del window manager
+                stage.setAlwaysOnTop(true);
+                PauseTransition pt = new PauseTransition(Duration.millis(120));
+                pt.setOnFinished(ev -> stage.setAlwaysOnTop(false));
+                pt.play();
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
     }
 
 
@@ -240,43 +277,72 @@ public class LoginController {
     @FXML
     private void onRegister() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/RegisterChefDialog.fxml"));
-            DialogPane dialogPane = loader.load();
+            // Costruisci il percorso assoluto al file FXML della registrazione
+            java.io.File fxmlFile = new java.io.File("src/it/unina/foodlab/ui/RegisterChefDialog.fxml");
+            if (!fxmlFile.exists()) {
+                showError("File FXML non trovato: " + fxmlFile.getAbsolutePath());
+                return;
+            }
+
+            FXMLLoader loader = new FXMLLoader(fxmlFile.toURI().toURL());
+            StackPane registerRoot = loader.load();
             RegisterChefController controller = loader.getController();
 
-            Dialog<ButtonType> dialog = new Dialog<>();
-            dialog.setTitle("Registrazione Chef");
-            dialog.setDialogPane(dialogPane);
+            // Ottieni lo stage e la scena corrente
+            Stage stage = (Stage) loginButton.getScene().getWindow();
+            Scene scene = stage.getScene();
 
-            // Trova il ButtonType con OK_DONE (quello “Registrati” definito nel FXML)
-            ButtonType okType = dialogPane.getButtonTypes().stream()
-                    .filter(bt -> bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("OK ButtonType non trovato nel DialogPane"));
+            // Sostituisci il root della scena con la view di registrazione
+            scene.setRoot(registerRoot);
 
-            Button okButton = (Button) dialogPane.lookupButton(okType);
-            okButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
-                Chef chef = controller.getChef();
-                if (chef == null) {
-                    event.consume(); // blocca la chiusura
-                } else {
-                    try {
-                        new it.unina.foodlab.dao.ChefDao().register(chef);
-                        // volendo: mostra un messaggio di successo qui
-                    } catch (Exception ex) {
-                        controller.showError("Errore durante la registrazione: " + ex.getMessage());
-                        ex.printStackTrace();
-                        event.consume();
+            // Configura pulsante Registrati
+            Button registerBtn = (Button) registerRoot.lookup("#registerButton");
+            if (registerBtn != null) {
+                registerBtn.setOnAction(event -> {
+                    Chef chef = controller.getChef();
+                    if (chef == null) {
+                        controller.showError("Compila tutti i campi correttamente");
+                    } else {
+                        try {
+                            new ChefDao().register(chef);
+
+                            // Torna alla schermata di login
+                            java.io.File loginFile = new java.io.File("src/it/unina/foodlab/ui/LoginFrame.fxml");
+                            FXMLLoader loginLoader = new FXMLLoader(loginFile.toURI().toURL());
+                            StackPane loginRoot = loginLoader.load();
+                            scene.setRoot(loginRoot);
+
+                        } catch (Exception ex) {
+                            controller.showError("Errore durante la registrazione: " + ex.getMessage());
+                            ex.printStackTrace();
+                        }
                     }
+                });
+            }
+        // Configura pulsante Annulla (torna alla scena di login)
+        Button cancelBtn = (Button) registerRoot.lookup("#cancelButton");
+        if (cancelBtn != null) {
+            cancelBtn.setOnAction(event -> {
+                try {
+                    java.io.File loginFxml = new java.io.File("src/it/unina/foodlab/ui/LoginFrame.fxml");
+                    FXMLLoader loginLoader = new FXMLLoader(loginFxml.toURI().toURL());
+                    StackPane loginRoot = loginLoader.load();
+                    scene.setRoot(loginRoot);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    showError("Errore caricando Login.fxml: " + ex.getMessage());
                 }
             });
-
-            dialog.showAndWait();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            showError("Errore apertura dialog registrazione: " + ex.getMessage());
         }
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        showError("Errore apertura registrazione: " + ex.getMessage());
     }
+}
+
+
+
 
 
 

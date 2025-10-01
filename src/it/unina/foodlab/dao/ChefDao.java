@@ -63,7 +63,7 @@ public class ChefDao {
             ps.setString(4, chef.getUsername());
             ps.setString(5, chef.getPassword());
             ps.setDate(6, java.sql.Date.valueOf(chef.getNascita()));
-
+            
 
             int rows = ps.executeUpdate();
             if (rows == 0) throw new Exception("Registrazione fallita: nessuna riga inserita.");

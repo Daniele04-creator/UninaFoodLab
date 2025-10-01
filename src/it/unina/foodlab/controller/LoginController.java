@@ -133,16 +133,11 @@ public class LoginController {
                     if (st == null) throw new RuntimeException("Stage non disponibile");
 
                     Scene scene = new Scene(root, 1000, 640);
-                    root.setOpacity(0); // fade-in gradevole
+                    
                     st.setTitle("UninaFoodLab - Corsi di " + displayName);
                     st.setScene(scene);
                     st.show();
                     enforceFullScreenLook(st);
-
-                    FadeTransition fadeIn = new FadeTransition(Duration.millis(450), root);
-                    fadeIn.setFromValue(0);
-                    fadeIn.setToValue(1);
-                    fadeIn.play();
 
                     return; // SUCCESS: esco senza mostrare errore
                 }

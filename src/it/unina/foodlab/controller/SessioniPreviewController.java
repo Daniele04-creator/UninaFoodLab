@@ -136,6 +136,7 @@ public class SessioniPreviewController {
         // wrap in HBox per margini laterali
         HBox wrap = new HBox(card);
         wrap.getStyleClass().add("card-wrap");
+        
         return wrap;
     }
 

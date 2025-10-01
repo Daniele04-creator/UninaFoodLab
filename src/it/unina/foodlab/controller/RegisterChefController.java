@@ -86,7 +86,11 @@ public class RegisterChefController {
         if (!cognome.matches(NAME_REGEX)) { showError("Cognome non valido."); requestFocus(cognomeField); return null; }
         if (nascita.isAfter(LocalDate.now())) { showError("Data di nascita nel futuro non ammessa."); nascitaPicker.requestFocus(); return null; }
 
-        if (cf.length() < 5 || cf.length() > 20) { showError("Codice fiscale/ID non valido (5–20)."); requestFocus(cfField); return null; }
+        if (!cf.matches("^CH\\d{3}$")) {
+            showError("Codice fiscale deve iniziare con 'CH' seguito da 3 cifre");
+            requestFocus(cfField);
+            return null;
+        }
 
         Chef chef = new Chef();
         chef.setNome(capitalize(nome));

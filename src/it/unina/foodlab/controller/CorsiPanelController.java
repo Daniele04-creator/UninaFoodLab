@@ -423,7 +423,7 @@ public class CorsiPanelController {
                                 return null;
                             }
                         };
-                        replaceTask.setOnSucceeded(ev2 -> showInfo("Sessioni aggiornate: " + result.size()));
+                        replaceTask.setOnSucceeded(ev2 -> showInfo("Sessioni aggiornate: "));
                         replaceTask.setOnFailed(ev2 -> {
                             Throwable ex2 = replaceTask.getException();
                             showError("Errore salvataggio sessioni: " + (ex2 != null ? ex2.getMessage() : "sconosciuto"));
@@ -582,6 +582,10 @@ public class CorsiPanelController {
 
         Alert a = new Alert(Alert.AlertType.CONFIRMATION,
                 "Eliminare il corso: " + sel.getArgomento() + " ?");
+        URL css = getClass().getResource(APP_CSS);
+        if (css != null) {
+            a.getDialogPane().getStylesheets().add(css.toExternalForm());
+        }
         a.showAndWait().filter(bt -> bt == ButtonType.OK).ifPresent(bt -> {
             try {
                 corsoDao.delete(sel.getIdCorso());
@@ -693,6 +697,11 @@ private void onAssociateRecipes() {
         }
 
         ChoiceDialog<String> d = new ChoiceDialog<>(map.keySet().iterator().next(), map.keySet());
+        URL css = getClass().getResource(APP_CSS);
+        if (css != null) {
+            d.getDialogPane().getStylesheets().add(css.toExternalForm());
+        }
+
         d.setTitle("Seleziona la sessione in presenza");
         d.setHeaderText("Scegli la sessione a cui associare le ricette");
         d.setContentText(null);
@@ -818,6 +827,10 @@ private void openSessioniPreview(Corso corso) {
 
     private void showInfo(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION);
+        URL css = getClass().getResource(APP_CSS);
+        if (css != null) {
+            a.getDialogPane().getStylesheets().add(css.toExternalForm());
+        }
         a.setHeaderText(null);
         a.setContentText(msg);
         a.showAndWait();

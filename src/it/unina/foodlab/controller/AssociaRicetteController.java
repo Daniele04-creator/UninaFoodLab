@@ -20,6 +20,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.net.URL;
 import java.util.*;
 
 public class AssociaRicetteController extends Dialog<List<Long>> {
@@ -28,6 +29,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
     @FXML private VBox root;
 
     // UI
+    public static final String APP_CSS = "/app.css"; //lop
     @FXML private TextField txtSearch;
     @FXML private ChoiceBox<String> chDifficolta;
     @FXML private Button btnSelAll, btnSelNone;
@@ -170,7 +172,14 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
                 for (Long idRem : before) if (!after.contains(idRem))
                     sessioneDao.removeRicettaFromSessionePresenza(idSessionePresenza, idRem);
 
-                new Alert(Alert.AlertType.INFORMATION, "Associazioni ricette salvate.").showAndWait();
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Associazioni ricette salvate.");
+             // aggiungo lo stylesheet
+                URL css = getClass().getResource(APP_CSS);
+                if (css != null) {
+                    alert.getDialogPane().getStylesheets().add(css.toExternalForm());
+                }
+                alert.showAndWait();
+              
             } catch (Exception ex) {
                 Alert a = new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK);
                 a.setHeaderText("Errore salvataggio ricette");

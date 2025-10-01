@@ -13,7 +13,7 @@ import it.unina.foodlab.model.SessionePresenza;
 import it.unina.foodlab.controller.AssociaRicetteController;
 
 import javafx.scene.control.Tooltip;
-
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -107,106 +107,104 @@ public class CorsiPanelController {
     private LocalDate dateFrom = null;
     private LocalDate dateTo   = null;
 
+
     @FXML
-    private void initialize() {
-        initTableColumns();
+private void initialize() {
+    initTableColumns();
 
-        table.setItems(sorted);
-        sorted.comparatorProperty().bind(table.comparatorProperty());
+    table.setItems(sorted);
+    sorted.comparatorProperty().bind(table.comparatorProperty());
 
-        // --- MENU FILTRI (tendine dinamiche) ---
-        miFiltroArg.setOnAction(e -> {
-            String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
-            filtroArg = normalizeAllToNull(scelto);
-            refilter();
-            updateFiltersUI();
+    // --- MENU FILTRI ---
+    miFiltroArg.setOnAction(e -> {
+        String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
+        filtroArg = normalizeAllToNull(scelto);
+        refilter();
+        updateFiltersUI();
+    });
+
+    miFiltroFreq.setOnAction(e -> {
+        String scelto = askChoice("Filtro Frequenza", "Seleziona frequenza", distinctFrequenze(), filtroFreq);
+        filtroFreq = normalizeAllToNull(scelto);
+        refilter();
+        updateFiltersUI();
+    });
+
+    miFiltroChef.setOnAction(e -> {
+        String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
+        filtroChef = normalizeAllToNull(scelto);
+        refilter();
+        updateFiltersUI();
+    });
+
+    miFiltroId.setOnAction(e -> {
+        String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
+        filtroId = normalizeAllToNull(scelto);
+        refilter();
+        updateFiltersUI();
+    });
+
+    btnApplyDate.setOnAction(e -> {
+        dateFrom = dpFrom.getValue();
+        dateTo   = dpTo.getValue();
+        refilter();
+        updateFiltersUI();
+    });
+
+    btnClearInMenu.setOnAction(e -> {
+        filtroArg = filtroFreq = filtroChef = filtroId = null;
+        dateFrom = dateTo = null;
+        dpFrom.setValue(null);
+        dpTo.setValue(null);
+        refilter();
+        updateFiltersUI();
+    });
+
+    btnRefresh.setOnAction(e -> reload());
+    btnReport.setOnAction(e -> openReportMode());
+
+    // --- Abilitazione bottoni CRUD ---
+    table.getSelectionModel().selectedItemProperty().addListener((obs, ov, sel) -> {
+        boolean has = sel != null;
+        boolean own = isOwnedByLoggedChef(sel);
+        btnEdit.setDisable(!has || !own);
+        btnDelete.setDisable(!has || !own);
+        btnAssocRicette.setDisable(!has || !own);
+    });
+
+    // Doppio click: viewer
+    table.setRowFactory(tv -> {
+        TableRow<Corso> row = new TableRow<>();
+        row.setOnMouseClicked(e -> {
+            if (!row.isEmpty() && e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
+                openSessioniPreview(row.getItem());
+            }
         });
+        return row;
+    });
 
-        miFiltroFreq.setOnAction(e -> {
-            String scelto = askChoice("Filtro Frequenza", "Seleziona frequenza", distinctFrequenze(), filtroFreq);
-            filtroFreq = normalizeAllToNull(scelto);
-            refilter();
-            updateFiltersUI();
-        });
+    // Bottoni CRUD
+    btnNew.setOnAction(e -> onNew());
+    btnEdit.setOnAction(e -> onEdit());
+    btnDelete.setOnAction(e -> onDelete());
+    btnAssocRicette.setOnAction(e -> onAssociateRecipes());
 
-        miFiltroChef.setOnAction(e -> {
-            String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
-            filtroChef = normalizeAllToNull(scelto);
-            refilter();
-            updateFiltersUI();
-        });
+    // Stato iniziale UI filtri
+    updateFiltersUI();
 
-        miFiltroId.setOnAction(e -> {
-            String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
-            filtroId = normalizeAllToNull(scelto);
-            refilter();
-            updateFiltersUI();
-        });
-
-        // Range date
-        btnApplyDate.setOnAction(e -> {
-            dateFrom = dpFrom.getValue();
-            dateTo   = dpTo.getValue();
-            refilter();
-            updateFiltersUI();
-        });
-
-        // Pulisci tutti i filtri (BOTTONE DENTRO IL MENU)
-        btnClearInMenu.setOnAction(e -> {
-            filtroArg = filtroFreq = filtroChef = filtroId = null;
-            dateFrom = dateTo = null;
-            dpFrom.setValue(null);
-            dpTo.setValue(null);
-            refilter();
-            updateFiltersUI();
-        });
-
-        btnRefresh.setOnAction(e -> reload());
-        btnReport.setOnAction(e -> openReportMode());
-
-        // Abilitazione bottoni CRUD in base alla selezione
-        table.getSelectionModel().selectedItemProperty().addListener((obs, ov, sel) -> {
-            boolean has = sel != null;
-            boolean own = isOwnedByLoggedChef(sel);
-            btnEdit.setDisable(!has || !own);
-            btnDelete.setDisable(!has || !own);
-            btnAssocRicette.setDisable(!has || !own);
-        });
-
-        // Doppio click: viewer (read-only)
-        table.setRowFactory(tv -> {
-            TableRow<Corso> row = new TableRow<>();
-            row.setOnMouseClicked(e -> {
-                if (!row.isEmpty()
-                        && e.getButton() == MouseButton.PRIMARY
-                        && e.getClickCount() == 2) {
-                    Corso corso = row.getItem();
-                    showSessioniDialog(corso);
-                }
-            });
-            return row;
-        });
-
-        // Bottoni CRUD
-        btnNew.setOnAction(e -> onNew());
-        btnEdit.setOnAction(e -> onEdit());
-        btnDelete.setOnAction(e -> onDelete());
-        btnAssocRicette.setOnAction(e -> onAssociateRecipes());
-        
-        table.setRowFactory(tv -> {
-    TableRow<Corso> row = new TableRow<>();
-    row.setOnMouseClicked(ev -> {
-        if (ev.getClickCount() == 2 && !row.isEmpty()) {
-            openSessioniPreview(row.getItem());
+    // Imposta dimensioni minime e ridimensionamento finestra principale
+    Platform.runLater(() -> {
+        Stage stage = (Stage) table.getScene().getWindow();
+        if (stage != null) {
+            stage.setMinWidth(1000);  // larghezza minima
+            stage.setMinHeight(600);  // altezza minima
+            stage.setWidth(1200);     // larghezza iniziale
+            stage.setHeight(800);     // altezza iniziale
+            stage.centerOnScreen();
         }
     });
-    return row;
-});
+}
 
-
-        // Stato iniziale UI filtri
-        updateFiltersUI();
-    }
 
     public void setDaos(CorsoDao corsoDao, SessioneDao sessioneDao) {
         this.corsoDao = corsoDao;

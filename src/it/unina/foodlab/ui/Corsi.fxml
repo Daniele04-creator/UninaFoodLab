@@ -15,7 +15,9 @@
             <children>
                 <Separator />
                 <Button fx:id="btnReport" maxWidth="Infinity"
-                        style="-fx-graphic: url('/icons/pie-chart-16.png'); -fx-content-display: graphic-only;"/>
+                		prefWidth="120" prefHeight="40"
+       					minWidth="120" minHeight="40"
+                        style="-fx-padding: 100 200 100 200; -fx-graphic: url('/icons/pie-chart-16.png'); -fx-content-display: graphic-only;"/>
             </children>
             <padding>
                 <Insets top="12" right="12" bottom="12" left="12"/>
@@ -132,22 +134,30 @@
             <children>
                 <Button fx:id="btnNew"
                         styleClass="add-button"
-                        style="-fx-graphic: url('/icons/plus-16.png'); -fx-content-display: graphic-only;">
+                        prefWidth="120" prefHeight="40"
+       					minWidth="120" minHeight="40"
+                        style="-fx-padding: 100 200 100 200; -fx-graphic: url('/icons/plus-16.png'); -fx-content-display: graphic-only;">
                     <tooltip><Tooltip text="Nuovo"/></tooltip>
                 </Button>
 
                 <Button fx:id="btnEdit" disable="true"
-                        style="-fx-graphic: url('/icons/edit-2-16.png'); -fx-content-display: graphic-only;">
+               			prefWidth="120" prefHeight="40"
+       					minWidth="120" minHeight="40"
+                        style="-fx-padding: 100 200 100 200; -fx-graphic: url('/icons/edit-2-16.png'); -fx-content-display: graphic-only;">
                     <tooltip><Tooltip text="Modifica"/></tooltip>
                 </Button>
 
                 <Button fx:id="btnAssocRicette" disable="true"
-                        style="-fx-graphic: url('/icons/bill-16.png'); -fx-content-display: graphic-only;">
+                		prefWidth="120" prefHeight="40"
+       					minWidth="120" minHeight="40"
+                        style="-fx-padding: 100 200 100 200; -fx-graphic: url('/icons/bill-16.png'); -fx-content-display: graphic-only;">
                     <tooltip><Tooltip text="Associa ricette"/></tooltip>
                 </Button>
 
                 <Button fx:id="btnDelete" disable="true"
-                        style="-fx-graphic: url('/icons/trash-2-16.png'); -fx-content-display: graphic-only;">
+                		prefWidth="120" prefHeight="40"
+       					minWidth="120" minHeight="40"
+                        style="-fx-padding: 100 200 100 200; -fx-graphic: url('/icons/trash-2-16.png'); -fx-content-display: graphic-only;">
                     <tooltip><Tooltip text="Elimina"/></tooltip>
                 </Button>
             </children>

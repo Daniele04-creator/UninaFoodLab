@@ -5400,6 +5400,12 @@ Text {
     -fx-background-color: #434C5E;
 }
 
+.big-button {
+    -fx-font-size: 16pt;      /* testo più grande */
+    -fx-padding: 10 20 10 20; /* spazio interno */
+    -fx-min-width: 120px;     /* larghezza minima */
+    -fx-min-height: 40px;     /* altezza minima */
+}
 
 
 

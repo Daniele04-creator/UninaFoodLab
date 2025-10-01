@@ -5407,8 +5407,179 @@ Text {
     -fx-min-height: 40px;     /* altezza minima */
 }
 
+/* === SPINNER: frecce senza sfondo === */
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0 6;           /* spazio orizzontale, regola a piacere */
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+}
+.spinner .increment-arrow-button:hover,
+.spinner .decrement-arrow-button:hover,
+.spinner .increment-arrow-button:pressed,
+.spinner .decrement-arrow-button:pressed {
+    -fx-background-color: transparent;     /* niente hover/pressed */
+}
+
+/* Colore della freccia (icona) */
+.spinner .increment-arrow,
+.spinner .decrement-arrow {
+    -fx-background-color: #c8d0dc;         /* cambia il colore della freccia */
+}
+
+/* Campo testo dello spinner, per continuità visiva */
+.spinner .text-field {
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+}
+
+/* === COMBOBOX / CHOICEBOX (se vuoi freccia senza sfondo anche qui) === */
+.combo-box .arrow-button,
+.choice-box .open-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0 6;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+}
+.combo-box .arrow-button:hover,
+.choice-box .open-button:hover,
+.combo-box .arrow-button:pressed,
+.choice-box .open-button:pressed {
+    -fx-background-color: transparent;
+}
+.combo-box .arrow,
+.choice-box .arrow {
+    -fx-background-color: #c8d0dc;         /* colore della freccia */
+}
 
 
+/* Stile "pill" per editor dentro le celle della TableView */
+.table-view .text-field,
+.table-view .combo-box,
+.table-view .choice-box,
+.table-view .spinner {
+    -fx-background-color: #3b4252;
+    -fx-border-color: #3b4252;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #9aa3b2;
+    -fx-padding: 4 8;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Hover/focus più pulito */
+.table-view .text-field:focused,
+.table-view .combo-box:focused,
+.table-view .choice-box:focused,
+.table-view .spinner:focused {
+    -fx-border-color: #81a1c1;
+}
+
+/* Freccette senza sfondo (uguale a Inizio/Fine) */
+.table-view .spinner .increment-arrow-button,
+.table-view .spinner .decrement-arrow-button,
+.table-view .combo-box .arrow-button,
+.table-view .choice-box .open-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0 6;
+    -fx-border-color: transparent;
+}
+.table-view .spinner .increment-arrow,
+.table-view .spinner .decrement-arrow,
+.table-view .combo-box .arrow,
+.table-view .choice-box .arrow {
+    -fx-background-color: #c8d0dc;
+}
+
+/* Celle: togli bordini interni aggressivi */
+.table-view .table-cell {
+    -fx-background-insets: 0, 0 0 1 0; /* tieni solo la riga */
+}
+
+
+/* === Riquadri TRASPARENTI negli editor della tabella === */
+.table-view .text-field,
+.table-view .combo-box,
+.table-view .choice-box,
+.table-view .spinner {
+    -fx-background-color: transparent;           /* niente sfondo */
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(200,208,220,0.35);    /* bordo leggero */
+    -fx-border-width: 1.5;
+    -fx-border-radius: 10;
+    -fx-padding: 4 8;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: rgba(200,208,220,0.55);
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Focus: bordo accentato */
+.table-view .text-field:focused,
+.table-view .combo-box:focused,
+.table-view .choice-box:focused,
+.table-view .spinner:focused {
+    -fx-border-color: #81a1c1;
+    -fx-border-width: 1.6;
+}
+
+/* Frecce senza sfondo (spinner/combobox/choicebox) */
+.table-view .spinner .increment-arrow-button,
+.table-view .spinner .decrement-arrow-button,
+.table-view .combo-box .arrow-button,
+.table-view .choice-box .open-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0 6;
+    -fx-border-color: transparent;
+}
+.table-view .spinner .increment-arrow,
+.table-view .spinner .decrement-arrow,
+.table-view .combo-box .arrow,
+.table-view .choice-box .arrow {
+    -fx-background-color: #c8d0dc;              /* colore frecce */
+}
+
+
+/* === SPINNER: riquadro trasparente con UN SOLO bordo === */
+.table-view .spinner {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(200,208,220,0.35);
+    -fx-border-width: 1.5;
+    -fx-padding: 0;               /* niente padding extra sul container */
+}
+
+/* Quando è in focus (editor attivo), evidenzia SOLO il bordo esterno */
+.table-view .spinner:focused,
+.table-view .spinner .text-field:focused {
+    -fx-border-color: #81a1c1;
+    -fx-border-width: 1.6;
+}
+
+
+
+/* Frecce: senza sfondo */
+.table-view .spinner .increment-arrow-button,
+.table-view .spinner .decrement-arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0 6;
+    -fx-border-color: transparent;
+}
+.table-view .spinner .increment-arrow,
+.table-view .spinner .decrement-arrow {
+    -fx-background-color: #c8d0dc;
+}
 
 
 

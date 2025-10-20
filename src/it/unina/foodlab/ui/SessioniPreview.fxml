@@ -6,7 +6,7 @@
 
 <DialogPane xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.unina.foodlab.controller.SessioniPreviewController"
-            stylesheets="@/app.css"
+            
             prefWidth="760" prefHeight="560"
             fx:id="dialogPane">
 

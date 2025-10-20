@@ -9,36 +9,77 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * DAO Ricette: CRUD semplice + associazioni con sessioni in presenza.
+ * Nessun uso di stream/lambda. SQL in costanti per leggibilità.
+ */
 public class RicettaDao {
+
+    private static final String SQL_FIND_ALL = """
+        SELECT id_ricetta, nome, descrizione, difficolta, tempo_preparazione
+          FROM ricetta
+         ORDER BY LOWER(nome)
+    """;
+
+    private static final String SQL_FIND_BY_ID = """
+        SELECT id_ricetta, nome, descrizione, difficolta, tempo_preparazione
+          FROM ricetta
+         WHERE id_ricetta = ?
+    """;
+
+    private static final String SQL_INSERT = """
+        INSERT INTO ricetta (nome, descrizione, difficolta, tempo_preparazione)
+        VALUES (?, ?, ?, ?)
+    """;
+
+    private static final String SQL_UPDATE = """
+        UPDATE ricetta
+           SET nome=?, descrizione=?, difficolta=?, tempo_preparazione=?
+         WHERE id_ricetta=?
+    """;
+
+    private static final String SQL_DELETE = "DELETE FROM ricetta WHERE id_ricetta = ?";
+
+    private static final String SQL_LIST_SESS_BY_RICETTA = """
+        SELECT sp."idSessionePresenza" AS id,
+               sp.fk_id_corso,
+               sp.data, sp.ora_inizio, sp.ora_fine,
+               sp.via, sp.num, sp.cap, sp.aula, sp.posti_max
+          FROM sessione_presenza sp
+          JOIN sessione_presenza_ricetta spr
+            ON spr.fk_id_sess_pr = sp."idSessionePresenza"
+         WHERE spr.fk_id_ricetta = ?
+         ORDER BY sp.data, sp.ora_inizio
+    """;
+
+    private static final String SQL_ADD_LINK = """
+        INSERT INTO sessione_presenza_ricetta (fk_id_sess_pr, fk_id_ricetta)
+        VALUES (?, ?)
+        ON CONFLICT (fk_id_sess_pr, fk_id_ricetta) DO NOTHING
+    """;
+
+    private static final String SQL_REMOVE_LINK = """
+        DELETE FROM sessione_presenza_ricetta
+         WHERE fk_id_sess_pr = ? AND fk_id_ricetta = ?
+    """;
 
     public RicettaDao() { }
 
     // ================== CRUD BASE ==================
 
     public List<Ricetta> findAll() throws Exception {
-        String sql = """
-            SELECT id_ricetta, nome, descrizione, difficolta, tempo_preparazione
-              FROM ricetta
-             ORDER BY LOWER(nome)
-        """;
+        List<Ricetta> out = new ArrayList<Ricetta>();
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sql);
+             PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL);
              ResultSet rs = ps.executeQuery()) {
-
-            List<Ricetta> out = new ArrayList<>();
             while (rs.next()) out.add(mapRow(rs));
-            return out;
         }
+        return out;
     }
 
     public Ricetta findById(long id) throws Exception {
-        String sql = """
-            SELECT id_ricetta, nome, descrizione, difficolta, tempo_preparazione
-              FROM ricetta
-             WHERE id_ricetta = ?
-        """;
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID)) {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? mapRow(rs) : null;
@@ -47,12 +88,9 @@ public class RicettaDao {
     }
 
     public void insert(Ricetta r) throws Exception {
-        String sql = """
-            INSERT INTO ricetta (nome, descrizione, difficolta, tempo_preparazione)
-                 VALUES (?, ?, ?, ?)
-        """;
+        validateRicetta(r, false);
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, r.getNome());
             ps.setString(2, r.getDescrizione());
             ps.setString(3, r.getDifficolta());
@@ -65,13 +103,10 @@ public class RicettaDao {
     }
 
     public void update(Ricetta r) throws Exception {
-        String sql = """
-            UPDATE ricetta
-               SET nome = ?, descrizione = ?, difficolta = ?, tempo_preparazione = ?
-             WHERE id_ricetta = ?
-        """;
+        if (r == null || r.getIdRicetta() <= 0) throw new IllegalArgumentException("Ricetta non valida");
+        validateRicetta(r, true);
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_UPDATE)) {
             ps.setString(1, r.getNome());
             ps.setString(2, r.getDescrizione());
             ps.setString(3, r.getDifficolta());
@@ -82,9 +117,8 @@ public class RicettaDao {
     }
 
     public void delete(long id) throws Exception {
-        String sql = "DELETE FROM ricetta WHERE id_ricetta = ?";
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_DELETE)) {
             ps.setLong(1, id);
             ps.executeUpdate();
         }
@@ -92,24 +126,13 @@ public class RicettaDao {
 
     // ================== ASSOCIAZIONE N<->N (PRESENZA <-> RICETTA) ==================
 
-    /** Sessioni pratiche in cui Ã¨ usata la ricetta. Nessun filtro per owner qui. */
+    /** Sessioni pratiche in cui è usata la ricetta. Nessun filtro per owner qui. */
     public List<SessionePresenza> listSessioniByRicetta(long idRicetta) throws Exception {
-        String sql = """
-            SELECT sp."idSessionePresenza" AS id,
-                   sp.fk_id_corso,
-                   sp.data, sp.ora_inizio, sp.ora_fine,
-                   sp.via, sp.num, sp.cap, sp.aula, sp.posti_max
-              FROM sessione_presenza sp
-              JOIN sessione_presenza_ricetta spr
-                ON spr.fk_id_sess_pr = sp."idSessionePresenza"
-             WHERE spr.fk_id_ricetta = ?
-             ORDER BY sp.data, sp.ora_inizio
-        """;
+        List<SessionePresenza> out = new ArrayList<SessionePresenza>();
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_LIST_SESS_BY_RICETTA)) {
             ps.setLong(1, idRicetta);
             try (ResultSet rs = ps.executeQuery()) {
-                List<SessionePresenza> out = new ArrayList<>();
                 while (rs.next()) {
                     SessionePresenza sp = new SessionePresenza();
                     sp.setId(rs.getInt("id"));
@@ -124,48 +147,38 @@ public class RicettaDao {
                     int pm = rs.getInt("posti_max"); if (rs.wasNull()) pm = 0;
                     sp.setPostiMax(pm);
 
-                    // opzionale: set del corso (solo id)
                     Corso c = new Corso();
                     c.setIdCorso(rs.getLong("fk_id_corso"));
                     sp.setCorso(c);
 
                     out.add(sp);
                 }
-                return out;
             }
         }
+        return out;
     }
 
     /** Collega idRicetta -> idSessionePresenza (idempotente). */
     public void addSessione(long idRicetta, int idSessionePresenza) throws Exception {
-        final String sql = """
-            INSERT INTO sessione_presenza_ricetta (fk_id_sess_pr, fk_id_ricetta)
-            VALUES (?, ?)
-            ON CONFLICT (fk_id_sess_pr, fk_id_ricetta) DO NOTHING
-        """;
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_ADD_LINK)) {
             ps.setInt(1, idSessionePresenza);
             ps.setLong(2, idRicetta);
-            ps.executeUpdate(); // ritorna 0 se la coppia è già presente (ok)
+            ps.executeUpdate(); // 0 se già presente (OK)
         }
     }
 
     /** Scollega idRicetta <-/-> idSessionePresenza. */
     public void removeSessione(long idRicetta, int idSessionePresenza) throws Exception {
-        String sql = """
-            DELETE FROM sessione_presenza_ricetta
-             WHERE fk_id_sess_pr = ? AND fk_id_ricetta = ?
-        """;
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(SQL_REMOVE_LINK)) {
             ps.setInt(1, idSessionePresenza);
             ps.setLong(2, idRicetta);
             ps.executeUpdate();
         }
     }
 
-    // ================== MAPPER ==================
+    // ================== MAPPER & VALIDAZIONE ==================
 
     private Ricetta mapRow(ResultSet rs) throws SQLException {
         Ricetta r = new Ricetta();
@@ -175,5 +188,13 @@ public class RicettaDao {
         r.setDifficolta(rs.getString("difficolta")); // facile | medio | difficile
         r.setTempoPreparazione(rs.getInt("tempo_preparazione"));
         return r;
+    }
+
+    private void validateRicetta(Ricetta r, boolean updating) throws SQLException {
+        if (r == null) throw new SQLException("Ricetta mancante");
+        if (r.getNome() == null || r.getNome().trim().isEmpty()) throw new SQLException("Nome ricetta obbligatorio");
+        if (r.getDifficolta() == null || r.getDifficolta().trim().isEmpty())
+            throw new SQLException("Difficoltà obbligatoria (facile/medio/difficile)");
+        if (r.getTempoPreparazione() < 0) throw new SQLException("Tempo di preparazione non può essere negativo");
     }
 }

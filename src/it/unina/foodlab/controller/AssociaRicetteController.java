@@ -6,11 +6,13 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.image.Image;
@@ -20,16 +22,19 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 
+/**
+ * Dialog per associare ricette a una sessione in presenza.
+ * Restituisce la lista di id ricetta selezionati quando l'utente conferma (OK).
+ */
 public class AssociaRicetteController extends Dialog<List<Long>> {
 
-    // Root dell'FXML (fx:id="root")
+    /* ===================== FXML ===================== */
     @FXML private VBox root;
 
-    // UI
-    public static final String APP_CSS = "/app.css"; //lop
     @FXML private TextField txtSearch;
     @FXML private ChoiceBox<String> chDifficolta;
     @FXML private Button btnSelAll, btnSelNone;
@@ -39,7 +44,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
     @FXML private TableColumn<Riga, Number>  colTempo;
     @FXML private Region topBarSpacer;
 
-    // Stato/dep
+    /* ===================== Stato/dep ===================== */
     private final SessioneDao sessioneDao;
     private final int idSessionePresenza;
     private final List<Ricetta> tutteLeRicette;
@@ -48,148 +53,280 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
     private final ObservableSet<Long> selectedIds = FXCollections.observableSet();
     private FilteredList<Riga> filtered;
 
-    // >>> Costruttore con argomenti (usato dalla ControllerFactory)
+    /* ===================== Costruttore ===================== */
+
     public AssociaRicetteController(SessioneDao sessioneDao,
                                     int idSessionePresenza,
                                     List<Ricetta> tutteLeRicette,
                                     List<Ricetta> ricetteGiaAssociate) {
         this.sessioneDao = sessioneDao;
         this.idSessionePresenza = idSessionePresenza;
-        this.tutteLeRicette = (tutteLeRicette != null) ? tutteLeRicette : List.of();
-        this.ricetteGiaAssociate = (ricetteGiaAssociate != null) ? ricetteGiaAssociate : List.of();
+        this.tutteLeRicette = (tutteLeRicette != null) ? tutteLeRicette : Collections.<Ricetta>emptyList();
+        this.ricetteGiaAssociate = (ricetteGiaAssociate != null) ? ricetteGiaAssociate : Collections.<Ricetta>emptyList();
 
         setTitle("Associa ricette alla sessione (id=" + idSessionePresenza + ")");
         getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
-
-        setResultConverter(bt -> (bt == ButtonType.OK) ? new ArrayList<>(selectedIds) : null);
+        setResultConverter(new CallbackResult());
     }
 
-    // >>> Chiamato dall'FXML Loader dopo l'iniezione dei @FXML
+    private static class CallbackResult implements javafx.util.Callback<ButtonType, List<Long>> {
+        private final ObservableSet<Long> selectedIdsRef;
+        CallbackResult() { this.selectedIdsRef = null; }
+        CallbackResult(ObservableSet<Long> ref) { this.selectedIdsRef = ref; }
+        @Override public List<Long> call(ButtonType bt) {
+            if (selectedIdsRef == null) return null;
+            return (bt == ButtonType.OK) ? new ArrayList<Long>(selectedIdsRef) : null;
+        }
+    }
+
+    /* ===================== Initialize ===================== */
+
     @FXML
     private void initialize() {
-        // Monta il contenuto del Dialog dalla root caricata
-    	 getDialogPane().setContent(root);
+        // Il contenuto del dialog viene dal root FXML
+        getDialogPane().setContent(root);
+        getDialogPane().setStyle("-fx-background-color: #2E3440;");
 
-    	    // 1️⃣ Sfondo scuro del DialogPane
-    	    getDialogPane().setStyle("-fx-background-color: #2E3440;");
+        // Applica stylesheet se presente
 
-    	  
-
-        chDifficolta.setItems(FXCollections.observableArrayList("Tutte", "facile", "medio", "difficile"));
+        // Popola filtro difficoltà
+        ObservableList<String> diffItems = FXCollections.observableArrayList("Tutte", "facile", "medio", "difficile");
+        chDifficolta.setItems(diffItems);
         chDifficolta.setValue("Tutte");
 
+        // Tabella
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label("Nessuna ricetta trovata."));
 
+        // Colonne
         colChk.setPrefWidth(60);
         colChk.setStyle("-fx-alignment: CENTER;");
         colChk.setCellValueFactory(cd -> cd.getValue().checked);
         colChk.setCellFactory(CheckBoxTableCell.forTableColumn(colChk));
 
         colNome.setCellValueFactory(cd -> cd.getValue().nome);
-        colDiff.setPrefWidth(120);     colDiff.setCellValueFactory(cd -> cd.getValue().difficolta);
-        colTempo.setPrefWidth(150);    colTempo.setStyle("-fx-alignment: CENTER-RIGHT;");
+
+        colDiff.setPrefWidth(120);
+        colDiff.setCellValueFactory(cd -> cd.getValue().difficolta);
+
+        colTempo.setPrefWidth(150);
+        colTempo.setStyle("-fx-alignment: CENTER-RIGHT;");
         colTempo.setCellValueFactory(cd -> cd.getValue().tempoPreparazione);
+
         colDesc.setCellValueFactory(cd -> cd.getValue().descrizione);
 
-        table.setRowFactory(tv -> {
-            TableRow<Riga> row = new TableRow<>();
-            row.setOnMouseClicked(evt -> {
-                if (evt.getClickCount() == 2 && !row.isEmpty()) {
-                    Riga r = row.getItem();
-                    r.checked.set(!r.checked.get());
-                }
-            });
-            return row;
+        // Doppio click = toggle del check
+        table.setRowFactory(new javafx.util.Callback<TableView<Riga>, TableRow<Riga>>() {
+            @Override public TableRow<Riga> call(TableView<Riga> tv) {
+                final TableRow<Riga> row = new TableRow<Riga>();
+                row.setOnMouseClicked(evt -> {
+                    if (evt.getClickCount() == 2 && !row.isEmpty()) {
+                        Riga r = row.getItem();
+                        r.checked.set(!r.checked.get());
+                    }
+                });
+                return row;
+            }
         });
 
         HBox.setHgrow(topBarSpacer, Priority.ALWAYS);
 
+        // Listener filtri (senza usare features avanzate)
         txtSearch.textProperty().addListener((o, a, b) -> applyFilter());
         chDifficolta.valueProperty().addListener((o, a, b) -> applyFilter());
 
-        btnSelAll.setOnAction(e -> { if (filtered != null) filtered.forEach(r -> r.checked.set(true)); });
-        btnSelNone.setOnAction(e -> { if (filtered != null) filtered.forEach(r -> r.checked.set(false)); });
+        // Seleziona/Annulla tutti
+        if (btnSelAll != null) {
+            btnSelAll.setOnAction(new EventHandler<ActionEvent>() {
+                @Override public void handle(ActionEvent event) {
+                    if (filtered != null) {
+                        for (Riga r : filtered) r.checked.set(true);
+                    }
+                }
+            });
+        }
+        if (btnSelNone != null) {
+            btnSelNone.setOnAction(new EventHandler<ActionEvent>() {
+                @Override public void handle(ActionEvent event) {
+                    if (filtered != null) {
+                        for (Riga r : filtered) r.checked.set(false);
+                    }
+                }
+            });
+        }
 
-        // Dati iniziali
-        var righe = FXCollections.observableArrayList(tutteLeRicette.stream().map(Riga::new).toList());
-        righe.forEach(r -> r.checked.addListener((obs, old, val) -> {
-            if (val) selectedIds.add(r.idRicetta); else selectedIds.remove(r.idRicetta);
-        }));
-        filtered = new FilteredList<>(righe, r -> true);
+        // Dati iniziali (niente stream)
+        ObservableList<Riga> righe = FXCollections.observableArrayList();
+        for (int i = 0; i < tutteLeRicette.size(); i++) {
+            Ricetta rc = tutteLeRicette.get(i);
+            if (rc != null) righe.add(new Riga(rc));
+        }
+
+        // Selezione: mantieni set id selezionati sincronizzato
+        for (int i = 0; i < righe.size(); i++) {
+            final Riga r = righe.get(i);
+            r.checked.addListener((obs, oldVal, val) -> {
+                if (val) selectedIds.add(r.idRicetta); else selectedIds.remove(r.idRicetta);
+            });
+        }
+
+        filtered = new FilteredList<Riga>(righe, r -> true);
         table.setItems(filtered);
 
-        // Preselezione
-        ricetteGiaAssociate.forEach(r -> { if (r != null) selectedIds.add(r.getIdRicetta()); });
-        filtered.forEach(r -> r.checked.set(selectedIds.contains(r.idRicetta)));
+        // Pre-selezione ricette già associate
+        for (int i = 0; i < ricetteGiaAssociate.size(); i++) {
+            Ricetta r = ricetteGiaAssociate.get(i);
+            if (r != null) selectedIds.add(r.getIdRicetta());
+        }
+        for (Riga r : filtered) {
+            r.checked.set(selectedIds.contains(Long.valueOf(r.idRicetta)));
+        }
 
+        // Applica filtro iniziale
         applyFilter();
 
-        Button okBtn = (Button) getDialogPane().lookupButton(ButtonType.OK);
-        if (okBtn != null) okBtn.setStyle("-fx-background-color: #5E81AC; -fx-text-fill: #ECEFF4;");
-        Button cancelBtn = (Button) getDialogPane().lookupButton(ButtonType.CANCEL);
-        if (cancelBtn != null) cancelBtn.setStyle("-fx-background-color: #4C566A; -fx-text-fill: #ECEFF4;");
-        
-        ImageView okIcon = new ImageView(new Image(getClass().getResourceAsStream("/icons/ok-128.png")));
-        okIcon.setFitWidth(16);   // dimensione larghezza
-        okIcon.setFitHeight(16);  // dimensione altezza
-        okBtn.setGraphic(okIcon);
-        okBtn.setText("");         // rimuove il testo
+        // Personalizza bottoni OK/Cancel con icone (se disponibili)
+        styleDialogButtons();
 
-        ImageView cancelIcon = new ImageView(new Image(getClass().getResourceAsStream("/icons/cancel-128.png")));
-        cancelIcon.setFitWidth(16);
-        cancelIcon.setFitHeight(16);
-        cancelBtn.setGraphic(cancelIcon);
-        cancelBtn.setText("");
-        okBtn.setDisable(false);
+        // Imposta il converter del risultato (passo il riferimento corretto al set selezionati)
+        setResultConverter(new CallbackResult(selectedIds));
     }
+
+    /* ===================== Filtro ===================== */
 
     private void applyFilter() {
         if (filtered == null) return;
-        String q = Optional.ofNullable(txtSearch.getText()).orElse("").trim().toLowerCase(Locale.ROOT);
-        String diff = Optional.ofNullable(chDifficolta.getValue()).orElse("Tutte");
 
-        filtered.setPredicate(r -> {
-            if (r == null) return false;
-            boolean okTxt = q.isEmpty()
-                    || (r.nome.get() != null && r.nome.get().toLowerCase(Locale.ROOT).contains(q))
-                    || (r.descrizione.get() != null && r.descrizione.get().toLowerCase(Locale.ROOT).contains(q));
-            boolean okDiff = "Tutte".equals(diff) || diff.equalsIgnoreCase(r.difficolta.get());
+        final String q = (txtSearch != null && txtSearch.getText() != null)
+                ? txtSearch.getText().trim().toLowerCase(Locale.ROOT) : "";
+        final String diff = (chDifficolta != null && chDifficolta.getValue() != null)
+                ? chDifficolta.getValue() : "Tutte";
+
+        filtered.setPredicate(riga -> {
+            if (riga == null) return false;
+
+            boolean okTxt = true;
+            if (!q.isEmpty()) {
+                String n = valueOrEmpty(riga.nome.get());
+                String d = valueOrEmpty(riga.descrizione.get());
+                okTxt = containsIgnoreCase(n, q) || containsIgnoreCase(d, q);
+            }
+
+            boolean okDiff = "Tutte".equalsIgnoreCase(diff) ||
+                    (riga.difficolta.get() != null && diff.equalsIgnoreCase(riga.difficolta.get()));
+
             return okTxt && okDiff;
         });
     }
 
-    public void salvaSeConfermato(Optional<List<Long>> resultOpt) {
-        resultOpt.ifPresent(selectedNow -> {
-            try {
-                List<Ricetta> gia = sessioneDao.findRicetteBySessionePresenza(idSessionePresenza);
-                Set<Long> before = new HashSet<>();
-                for (Ricetta r : gia) if (r != null) before.add(r.getIdRicetta());
-
-                Set<Long> after = new HashSet<>(selectedNow);
-                for (Long idAdd : after) if (!before.contains(idAdd))
-                    sessioneDao.addRicettaToSessionePresenza(idSessionePresenza, idAdd);
-                for (Long idRem : before) if (!after.contains(idRem))
-                    sessioneDao.removeRicettaFromSessionePresenza(idSessionePresenza, idRem);
-
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Associazioni ricette salvate.");
-             // aggiungo lo stylesheet
-                URL css = getClass().getResource(APP_CSS);
-                if (css != null) {
-                    alert.getDialogPane().getStylesheets().add(css.toExternalForm());
-                }
-                alert.showAndWait();
-              
-            } catch (Exception ex) {
-                Alert a = new Alert(Alert.AlertType.ERROR, ex.getMessage(), ButtonType.OK);
-                a.setHeaderText("Errore salvataggio ricette");
-                a.getDialogPane().setMinWidth(520);
-                a.showAndWait();
-            }
-        });
+    private static boolean containsIgnoreCase(String text, String pieceLower) {
+        if (text == null) return false;
+        return text.toLowerCase(Locale.ROOT).contains(pieceLower);
     }
 
-    /* Riga tabella */
+    private static String valueOrEmpty(String s) {
+        return (s == null) ? "" : s;
+    }
+
+    /* ===================== Salvataggio ===================== */
+
+    /**
+     * Chiama questo metodo passando il risultato del dialog:
+     *   controller.salvaSeConfermato(showAndWait());
+     */
+    public void salvaSeConfermato(Optional<List<Long>> resultOpt) {
+        if (resultOpt == null || !resultOpt.isPresent()) return;
+
+        List<Long> selectedNow = resultOpt.get();
+        try {
+            List<Ricetta> gia = sessioneDao.findRicetteBySessionePresenza(idSessionePresenza);
+
+            // before = set di id già presenti
+            Set<Long> before = new HashSet<Long>();
+            for (int i = 0; i < gia.size(); i++) {
+                Ricetta r = gia.get(i);
+                if (r != null) before.add(r.getIdRicetta());
+            }
+
+            // after = set di id selezionati ora
+            Set<Long> after = new HashSet<Long>(selectedNow);
+
+            // Aggiunte
+            for (Long idAdd : after) {
+                if (!before.contains(idAdd)) {
+                    sessioneDao.addRicettaToSessionePresenza(idSessionePresenza, idAdd);
+                }
+            }
+            // Rimozioni
+            for (Long idRem : before) {
+                if (!after.contains(idRem)) {
+                    sessioneDao.removeRicettaFromSessionePresenza(idSessionePresenza, idRem);
+                }
+            }
+
+            showInfo("Associazioni ricette salvate.");
+
+        } catch (Exception ex) {
+            showError("Errore salvataggio ricette", ex.getMessage());
+        }
+    }
+
+    /* ===================== UI Helpers ===================== */
+
+    private void styleDialogButtons() {
+        Button okBtn = (Button) getDialogPane().lookupButton(ButtonType.OK);
+        if (okBtn != null) {
+            okBtn.setStyle("-fx-background-color: #5E81AC; -fx-text-fill: #ECEFF4;");
+            ImageView okIcon = loadIcon("/icons/ok-128.png");
+            if (okIcon != null) {
+                okIcon.setFitWidth(16);
+                okIcon.setFitHeight(16);
+                okBtn.setGraphic(okIcon);
+                okBtn.setText("");
+                okBtn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            }
+        }
+
+        Button cancelBtn = (Button) getDialogPane().lookupButton(ButtonType.CANCEL);
+        if (cancelBtn != null) {
+            cancelBtn.setStyle("-fx-background-color: #4C566A; -fx-text-fill: #ECEFF4;");
+            ImageView cancelIcon = loadIcon("/icons/cancel-128.png");
+            if (cancelIcon != null) {
+                cancelIcon.setFitWidth(16);
+                cancelIcon.setFitHeight(16);
+                cancelBtn.setGraphic(cancelIcon);
+                cancelBtn.setText("");
+                cancelBtn.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            }
+        }
+    }
+
+    private ImageView loadIcon(String path) {
+        try {
+            InputStream is = getClass().getResourceAsStream(path);
+            if (is == null) return null;
+            Image img = new Image(is);
+            return new ImageView(img);
+        } catch (Exception ex) {
+            // se manca l'icona non è bloccante
+            return null;
+        }
+    }
+
+    private void showInfo(String msg) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
+        alert.setHeaderText(null);
+        alert.getDialogPane().setMinWidth(420);
+    }
+
+    private void showError(String header, String content) {
+        Alert a = new Alert(Alert.AlertType.ERROR, content, ButtonType.OK);
+        a.setHeaderText(header);
+        a.getDialogPane().setMinWidth(520);
+    }
+
+    /* ===================== Riga tabella ===================== */
+
     public static class Riga {
         final long idRicetta;
         final SimpleBooleanProperty checked = new SimpleBooleanProperty(false);

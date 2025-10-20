@@ -7,7 +7,6 @@
 <DialogPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.unina.foodlab.controller.CorsoEditorDialogController"
-            stylesheets="@/app.css"
             fx:id="dialogPane">
 
     <buttonTypes>

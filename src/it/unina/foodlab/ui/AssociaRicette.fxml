@@ -8,7 +8,7 @@
       fx:controller="it.unina.foodlab.controller.AssociaRicetteController"
       fx:id="root"
       spacing="12" fillWidth="true"
-      stylesheets="@/AssociaRicette.css">
+      >
 
     <!-- Top bar -->
     <HBox spacing="10" alignment="CENTER_LEFT">

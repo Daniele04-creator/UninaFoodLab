@@ -10,21 +10,25 @@ import it.unina.foodlab.util.Db;
 import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
+/**
+ * DAO Sessioni.
+ * - Proprietario (ownerCfChef) usato per tutte le operazioni protette.
+ * - Niente stream/lambda/pattern matching; codice lineare.
+ * - Transazioni reali per batch e replace.
+ */
 public class SessioneDao {
 
     private final String ownerCfChef;
 
     public SessioneDao(String ownerCfChef) {
-        if (ownerCfChef == null || ownerCfChef.isBlank())
+        if (ownerCfChef == null || ownerCfChef.trim().isEmpty())
             throw new IllegalArgumentException("CF_Chef mancante per SessioneDao");
         this.ownerCfChef = ownerCfChef.trim();
     }
 
-    // ========================= READ =========================
+    /* ========================= READ ========================= */
 
     public Sessione findById(int id) throws Exception {
         String sql = baseSelect() + " WHERE x.id = ? AND c.fk_cf_chef = ?";
@@ -40,20 +44,22 @@ public class SessioneDao {
 
     public List<Sessione> findByCorso(long corsoId) throws Exception {
         String sql = baseSelect() + " WHERE x.fk_id_corso = ? AND c.fk_cf_chef = ? ORDER BY x.data, x.ora_inizio";
+        List<Sessione> out = new ArrayList<Sessione>();
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, corsoId);
             ps.setString(2, ownerCfChef);
             try (ResultSet rs = ps.executeQuery()) {
-                List<Sessione> out = new ArrayList<>();
                 while (rs.next()) out.add(mapRow(rs));
-                return out;
             }
         }
+        return out;
     }
 
     public List<Sessione> findByCorsoAndDate(long corsoId, LocalDate from, LocalDate to) throws Exception {
-        String sql = baseSelect() + " WHERE x.fk_id_corso=? AND c.fk_cf_chef=? AND x.data BETWEEN ? AND ? ORDER BY x.data, x.ora_inizio";
+        String sql = baseSelect()
+                + " WHERE x.fk_id_corso=? AND c.fk_cf_chef=? AND x.data BETWEEN ? AND ? ORDER BY x.data, x.ora_inizio";
+        List<Sessione> out = new ArrayList<Sessione>();
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, corsoId);
@@ -61,32 +67,32 @@ public class SessioneDao {
             ps.setObject(3, from);
             ps.setObject(4, to);
             try (ResultSet rs = ps.executeQuery()) {
-                List<Sessione> out = new ArrayList<>();
                 while (rs.next()) out.add(mapRow(rs));
-                return out;
             }
         }
+        return out;
     }
 
     public List<Sessione> findAll() throws Exception {
         String sql = baseSelect() + " WHERE c.fk_cf_chef=? ORDER BY x.data, x.ora_inizio";
+        List<Sessione> out = new ArrayList<Sessione>();
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, ownerCfChef);
             try (ResultSet rs = ps.executeQuery()) {
-                List<Sessione> out = new ArrayList<>();
                 while (rs.next()) out.add(mapRow(rs));
-                return out;
             }
         }
+        return out;
     }
 
-    // ========================= WRITE =========================
+    /* ========================= WRITE ========================= */
 
     public int insert(Sessione s) throws Exception {
         ensureCourseOwned(s.getCorso().getIdCorso());
         try (Connection conn = Db.get()) {
-            if (s instanceof SessioneOnline so) {
+            if (s instanceof SessioneOnline) {
+                SessioneOnline so = (SessioneOnline) s;
                 String sql = """
                     INSERT INTO sessione_online (fk_id_corso, data, ora_inizio, ora_fine, piattaforma)
                     VALUES (?,?,?,?,?)
@@ -100,7 +106,8 @@ public class SessioneDao {
                         return rs.getInt(1);
                     }
                 }
-            } else if (s instanceof SessionePresenza sp) {
+            } else if (s instanceof SessionePresenza) {
+                SessionePresenza sp = (SessionePresenza) s;
                 String sql = """
                     INSERT INTO sessione_presenza (fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max)
                     VALUES (?,?,?,?,?,?,?,?,?)
@@ -129,7 +136,8 @@ public class SessioneDao {
         if (!existsForOwner(s.getId())) throw new SQLException("Update negato: sessione non dell'owner");
 
         try (Connection conn = Db.get()) {
-            if (s instanceof SessioneOnline so) {
+            if (s instanceof SessioneOnline) {
+                SessioneOnline so = (SessioneOnline) s;
                 String sql = """
                     UPDATE sessione_online
                        SET fk_id_corso=?, data=?, ora_inizio=?, ora_fine=?, piattaforma=?
@@ -142,7 +150,8 @@ public class SessioneDao {
                     int n = ps.executeUpdate();
                     if (n != 1) throw new SQLException("Update fallito o nessuna riga ONLINE (id=" + s.getId() + ")");
                 }
-            } else if (s instanceof SessionePresenza sp) {
+            } else if (s instanceof SessionePresenza) {
+                SessionePresenza sp = (SessionePresenza) s;
                 String sql = """
                     UPDATE sessione_presenza
                        SET fk_id_corso=?, data=?, ora_inizio=?, ora_fine=?, via=?, num=?, cap=?, aula=?, posti_max=?
@@ -179,7 +188,7 @@ public class SessioneDao {
                 ps.setString(2, ownerCfChef);
                 tot += ps.executeUpdate();
             }
-            // PRESENZA (prima pulisco la tabella ponte)
+            // PRESENZA (prima pulizia tabella ponte)
             try (PreparedStatement ps = conn.prepareStatement("""
                 DELETE FROM sessione_presenza_ricetta WHERE fk_id_sess_pr=?
             """)) {
@@ -198,16 +207,18 @@ public class SessioneDao {
         }
     }
 
-    /** Salvataggio batch in transazione: insert se id==0, altrimenti update. */
+    /** Salvataggio batch in UNICA transazione (usa la stessa connessione). */
     public void saveAll(List<Sessione> sessioni) throws Exception {
         if (sessioni == null || sessioni.isEmpty()) return;
+
         try (Connection conn = Db.get()) {
             boolean old = conn.getAutoCommit();
             conn.setAutoCommit(false);
             try {
-                for (Sessione s : sessioni) {
-                    if (s.getId() == 0) insert(s);
-                    else update(s);
+                for (int i = 0; i < sessioni.size(); i++) {
+                    Sessione s = sessioni.get(i);
+                    if (s.getId() == 0) insertOn(conn, s);
+                    else updateOn(conn, s);
                 }
                 conn.commit();
             } catch (Exception ex) {
@@ -232,19 +243,18 @@ public class SessioneDao {
              WHERE spr.fk_id_sess_pr = ? AND c.fk_cf_chef = ?
              ORDER BY LOWER(r.nome)
         """;
+        List<Ricetta> out = new ArrayList<Ricetta>();
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idSessionePresenza);
             ps.setString(2, ownerCfChef);
             try (ResultSet rs = ps.executeQuery()) {
-                List<Ricetta> out = new ArrayList<>();
                 while (rs.next()) out.add(mapRicetta(rs));
-                return out;
             }
         }
+        return out;
     }
 
-    /** Aggiunge un’associazione (idempotente) tra sessione presenza e ricetta. */
     public void addRicettaToSessionePresenza(int idSessionePresenza, long idRicetta) throws Exception {
         if (!existsPresenzaForOwner(idSessionePresenza))
             throw new SQLException("Operazione negata: sessione non dell'owner");
@@ -262,7 +272,6 @@ public class SessioneDao {
         }
     }
 
-    /** Rimuove una singola ricetta associata alla sessione presenza. */
     public void removeRicettaFromSessionePresenza(int idSessionePresenza, long idRicetta) throws Exception {
         if (!existsPresenzaForOwner(idSessionePresenza))
             throw new SQLException("Operazione negata: sessione non dell'owner");
@@ -279,7 +288,7 @@ public class SessioneDao {
         }
     }
 
-    /** Sostituisce tutte le ricette della sessione pratica (DELETE + INSERT batch). */
+    /** DELETE + INSERT batch per sostituire tutte le ricette (sessione già validata). */
     public void replaceRicetteForSessione(Sessione s, List<Ricetta> ricette) throws Exception {
         if (s == null || s.getId() <= 0) throw new IllegalArgumentException("Sessione non valida");
         if (!existsForOwner(s.getId())) throw new SQLException("Operazione negata: sessione non dell'owner");
@@ -291,14 +300,15 @@ public class SessioneDao {
             conn.setAutoCommit(false);
             try {
                 try (PreparedStatement del = conn.prepareStatement(
-                        "DELETE FROM sessione_presenza_ricetta WHERE fk_id_sess_pr = ?")) {
+                        "DELETE FROM sessione_presenza_ricetta WHERE fk_id_sess_pr=?")) {
                     del.setInt(1, s.getId());
                     del.executeUpdate();
                 }
                 if (ricette != null && !ricette.isEmpty()) {
                     try (PreparedStatement ins = conn.prepareStatement(
                             "INSERT INTO sessione_presenza_ricetta (fk_id_sess_pr, fk_id_ricetta) VALUES (?, ?)")) {
-                        for (Ricetta r : ricette) {
+                        for (int i = 0; i < ricette.size(); i++) {
+                            Ricetta r = ricette.get(i);
                             if (r == null || r.getIdRicetta() <= 0) continue;
                             ins.setInt(1, s.getId());
                             ins.setLong(2, r.getIdRicetta());
@@ -317,7 +327,155 @@ public class SessioneDao {
         }
     }
 
-    // ========================= HELPERS =========================
+    public void replaceRicetteForSessionePresenza(int idSessionePresenza, List<Long> idRicette) throws Exception {
+        if (idSessionePresenza <= 0) throw new IllegalArgumentException("idSessionePresenza non valido");
+
+        String chkSql = """
+            SELECT 1
+              FROM sessione_presenza sp
+              JOIN corso c ON c.id_corso = sp.fk_id_corso
+             WHERE sp."idSessionePresenza"=? AND c.fk_cf_chef=?
+        """;
+        try (Connection conn = Db.get();
+             PreparedStatement ps = conn.prepareStatement(chkSql)) {
+            ps.setInt(1, idSessionePresenza);
+            ps.setString(2, ownerCfChef);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) throw new SQLException("Operazione negata: sessione non dell'owner");
+            }
+        }
+
+        try (Connection conn = Db.get()) {
+            boolean old = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement del = conn.prepareStatement(
+                        "DELETE FROM sessione_presenza_ricetta WHERE fk_id_sess_pr=?")) {
+                    del.setInt(1, idSessionePresenza);
+                    del.executeUpdate();
+                }
+                if (idRicette != null && !idRicette.isEmpty()) {
+                    try (PreparedStatement ins = conn.prepareStatement(
+                            "INSERT INTO sessione_presenza_ricetta (fk_id_sess_pr, fk_id_ricetta) VALUES (?, ?)")) {
+                        for (int i = 0; i < idRicette.size(); i++) {
+                            Long idr = idRicette.get(i);
+                            if (idr == null || idr.longValue() <= 0L) continue;
+                            ins.setInt(1, idSessionePresenza);
+                            ins.setLong(2, idr.longValue());
+                            ins.addBatch();
+                        }
+                        ins.executeBatch();
+                    }
+                }
+                conn.commit();
+            } catch (Exception ex) {
+                conn.rollback();
+                throw ex;
+            } finally {
+                conn.setAutoCommit(old);
+            }
+        }
+    }
+
+    /* ========================= RESCHEDULING (facoltativo) ========================= */
+
+    public void rescheduleByCourse(Corso corso) throws Exception {
+        if (corso == null || corso.getIdCorso() <= 0)  throw new IllegalArgumentException("Corso mancante");
+        if (corso.getDataInizio() == null)             throw new IllegalArgumentException("Data inizio mancante");
+        if (corso.getNumSessioni() <= 0)               throw new IllegalArgumentException("Numero sessioni non valido");
+
+        ensureCourseOwned(corso.getIdCorso());
+
+        List<LocalDate> dates = generateDates(corso.getDataInizio(), corso.getFrequenza(), corso.getNumSessioni());
+        if (dates.isEmpty()) throw new IllegalArgumentException("Frequenza non valida: " + corso.getFrequenza());
+
+        List<Sessione> cur = findByCorso(corso.getIdCorso());
+        // Ordina senza method reference
+        java.util.Collections.sort(cur, new java.util.Comparator<Sessione>() {
+            @Override public int compare(Sessione a, Sessione b) {
+                LocalDate da = a.getData();
+                LocalDate db = b.getData();
+                if (da == null && db == null) return 0;
+                if (da == null) return -1;
+                if (db == null) return 1;
+                return da.compareTo(db);
+            }
+        });
+
+        try (Connection conn = Db.get()) {
+            boolean old = conn.getAutoCommit();
+            conn.setAutoCommit(false);
+            try {
+                // 1) aggiorna le sessioni comuni
+                int common = Math.min(cur.size(), dates.size());
+                for (int i = 0; i < common; i++) {
+                    Sessione s = cur.get(i);
+                    LocalDate nuovaData = dates.get(i);
+                    if (s instanceof SessioneOnline) {
+                        try (PreparedStatement ps = conn.prepareStatement(
+                                "UPDATE sessione_online SET data=? WHERE idsessioneonline=?")) {
+                            ps.setObject(1, nuovaData);
+                            ps.setInt(2, s.getId());
+                            ps.executeUpdate();
+                        }
+                    } else if (s instanceof SessionePresenza) {
+                        try (PreparedStatement ps = conn.prepareStatement(
+                                "UPDATE sessione_presenza SET data=? WHERE \"idSessionePresenza\"=?")) {
+                            ps.setObject(1, nuovaData);
+                            ps.setInt(2, s.getId());
+                            ps.executeUpdate();
+                        }
+                    }
+                }
+
+                // 2) nuove sessioni (default PRESENZA)
+                for (int i = common; i < dates.size(); i++) {
+                    LocalDate d = dates.get(i);
+                    try (PreparedStatement ps = conn.prepareStatement("""
+                        INSERT INTO sessione_presenza
+                            (fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max)
+                        VALUES (?, ?, '10:00', '12:00', NULL, NULL, NULL, NULL, NULL)
+                    """)) {
+                        ps.setLong(1, corso.getIdCorso());
+                        ps.setObject(2, d);
+                        ps.executeUpdate();
+                    }
+                }
+
+                // 3) rimuove eccedenza
+                for (int i = cur.size() - 1; i >= dates.size(); i--) {
+                    Sessione s = cur.get(i);
+                    if (s instanceof SessionePresenza) {
+                        try (PreparedStatement ps1 = conn.prepareStatement(
+                                "DELETE FROM sessione_presenza_ricetta WHERE fk_id_sess_pr=?")) {
+                            ps1.setInt(1, s.getId());
+                            ps1.executeUpdate();
+                        }
+                        try (PreparedStatement ps = conn.prepareStatement(
+                                "DELETE FROM sessione_presenza WHERE \"idSessionePresenza\"=?")) {
+                            ps.setInt(1, s.getId());
+                            ps.executeUpdate();
+                        }
+                    } else { // online
+                        try (PreparedStatement ps = conn.prepareStatement(
+                                "DELETE FROM sessione_online WHERE idsessioneonline=?")) {
+                            ps.setInt(1, s.getId());
+                            ps.executeUpdate();
+                        }
+                    }
+                }
+
+                conn.commit();
+            } catch (Exception ex) {
+                conn.rollback();
+                throw ex;
+            } finally {
+                conn.setAutoCommit(old);
+            }
+        }
+    }
+
+    /* ========================= HELPERS ========================= */
 
     private void bindCommon(PreparedStatement ps, Sessione s) throws SQLException {
         if (s.getCorso() == null || s.getCorso().getIdCorso() <= 0)
@@ -419,19 +577,12 @@ public class SessioneDao {
         }
     }
 
-    private String nullSafe(String s) {
-        return (s == null || s.isBlank()) ? null : s.trim();
-    }
-
-    public String getOwnerCfChef() { return ownerCfChef; }
-
-    /** Verifica che la sessione PRESENZA (id) appartenga a un corso dell'owner. */
     private boolean existsPresenzaForOwner(int idSessionePresenza) throws Exception {
         String sql = """
             SELECT 1
               FROM sessione_presenza sp
               JOIN corso c ON c.id_corso = sp.fk_id_corso
-             WHERE sp."idSessionePresenza" = ? AND c.fk_cf_chef = ?
+             WHERE sp."idSessionePresenza"=? AND c.fk_cf_chef=?
              LIMIT 1
         """;
         try (Connection conn = Db.get();
@@ -444,127 +595,114 @@ public class SessioneDao {
         }
     }
 
-    /** Mapper leggero per Ricetta. */
     private Ricetta mapRicetta(ResultSet rs) throws SQLException {
         Ricetta r = new Ricetta();
         r.setIdRicetta(rs.getLong("id_ricetta"));
         r.setNome(rs.getString("nome"));
         r.setDescrizione(rs.getString("descrizione"));
-        r.setDifficolta(rs.getString("difficolta")); // facile|medio|difficile
+        r.setDifficolta(rs.getString("difficolta"));
         int tp = rs.getInt("tempo_preparazione");
         r.setTempoPreparazione(rs.wasNull() ? 0 : tp);
         return r;
     }
 
-    // ========================= RESCHEDULING (facoltativo) =========================
+    private String nullSafe(String s) {
+        return (s == null || s.trim().isEmpty()) ? null : s.trim();
+    }
 
-    public void rescheduleByCourse(Corso corso) throws Exception {
-        if (corso == null || corso.getIdCorso() <= 0) {
-            throw new IllegalArgumentException("Corso mancante");
-        }
-        if (corso.getDataInizio() == null) {
-            throw new IllegalArgumentException("Data inizio mancante");
-        }
-        if (corso.getNumSessioni() <= 0) {
-            throw new IllegalArgumentException("Numero sessioni non valido");
-        }
+    public String getOwnerCfChef() { return ownerCfChef; }
 
-        ensureCourseOwned(corso.getIdCorso());
+    /* ===== Varianti “on-connection” per transazioni reali ===== */
 
-        // Genera le nuove date senza dipendere da UI o vecchia Scheduling
-        List<LocalDate> dates = generateDates(
-                corso.getDataInizio(),
-                corso.getFrequenza(),
-                corso.getNumSessioni()
-        );
-        if (dates.isEmpty()) {
-            throw new IllegalArgumentException("Frequenza non valida: " + corso.getFrequenza());
-        }
-
-        List<Sessione> cur = findByCorso(corso.getIdCorso());
-        cur.sort(Comparator.comparing(Sessione::getData));
-
-        try (Connection conn = Db.get()) {
-            boolean old = conn.getAutoCommit();
-            conn.setAutoCommit(false);
-            try {
-                // 1) aggiorna le sessioni comuni
-                int common = Math.min(cur.size(), dates.size());
-                for (int i = 0; i < common; i++) {
-                    Sessione s = cur.get(i);
-                    LocalDate nuovaData = dates.get(i);
-                    if (s instanceof SessioneOnline) {
-                        try (PreparedStatement ps = conn.prepareStatement(
-                                "UPDATE sessione_online SET data=? WHERE idsessioneonline=?")) {
-                            ps.setObject(1, nuovaData);
-                            ps.setInt(2, s.getId());
-                            ps.executeUpdate();
-                        }
-                    } else if (s instanceof SessionePresenza) {
-                        try (PreparedStatement ps = conn.prepareStatement(
-                                "UPDATE sessione_presenza SET data=? WHERE \"idSessionePresenza\"=?")) {
-                            ps.setObject(1, nuovaData);
-                            ps.setInt(2, s.getId());
-                            ps.executeUpdate();
-                        }
-                    }
+    private int insertOn(Connection conn, Sessione s) throws Exception {
+        if (s instanceof SessioneOnline) {
+            SessioneOnline so = (SessioneOnline) s;
+            String sql = """
+                INSERT INTO sessione_online (fk_id_corso, data, ora_inizio, ora_fine, piattaforma)
+                VALUES (?,?,?,?,?)
+                RETURNING idsessioneonline
+            """;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                bindCommon(ps, s);
+                ps.setString(5, nullSafe(so.getPiattaforma()));
+                try (ResultSet rs = ps.executeQuery()) {
+                    rs.next();
+                    int id = rs.getInt(1);
+                    s.setId(id); // se presente nel modello
+                    return id;
                 }
-
-                // 2) aggiunge eventuali nuove sessioni (qui default PRESENZA)
-                for (int i = common; i < dates.size(); i++) {
-                    LocalDate d = dates.get(i);
-                    try (PreparedStatement ps = conn.prepareStatement("""
-                        INSERT INTO sessione_presenza
-                            (fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max)
-                        VALUES (?, ?, '10:00', '12:00', NULL, NULL, NULL, NULL, NULL)
-                    """)) {
-                        ps.setLong(1, corso.getIdCorso());
-                        ps.setObject(2, d);
-                        ps.executeUpdate();
-                    }
-                }
-
-                // 3) rimuove l’eccedenza se il nuovo piano ha meno date
-                for (int i = cur.size() - 1; i >= dates.size(); i--) {
-                    Sessione s = cur.get(i);
-                    if (s instanceof SessionePresenza) {
-                        try (PreparedStatement ps1 = conn.prepareStatement(
-                                "DELETE FROM sessione_presenza_ricetta WHERE fk_id_sess_pr=?")) {
-                            ps1.setInt(1, s.getId());
-                            ps1.executeUpdate();
-                        }
-                        try (PreparedStatement ps = conn.prepareStatement(
-                                "DELETE FROM sessione_presenza WHERE \"idSessionePresenza\"=?")) {
-                            ps.setInt(1, s.getId());
-                            ps.executeUpdate();
-                        }
-                    } else { // online
-                        try (PreparedStatement ps = conn.prepareStatement(
-                                "DELETE FROM sessione_online WHERE idsessioneonline=?")) {
-                            ps.setInt(1, s.getId());
-                            ps.executeUpdate();
-                        }
-                    }
-                }
-
-                conn.commit();
-            } catch (Exception ex) {
-                conn.rollback();
-                throw ex;
-            } finally {
-                conn.setAutoCommit(old);
             }
+        } else if (s instanceof SessionePresenza) {
+            SessionePresenza sp = (SessionePresenza) s;
+            String sql = """
+                INSERT INTO sessione_presenza (
+                    fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max
+                ) VALUES (?,?,?,?,?,?,?,?,?)
+                RETURNING "idSessionePresenza"
+            """;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                bindCommon(ps, s);
+                ps.setString(5, nullSafe(sp.getVia()));
+                ps.setString(6, nullSafe(sp.getNum()));
+                if (sp.getCap() == 0) ps.setNull(7, Types.INTEGER); else ps.setInt(7, sp.getCap());
+                ps.setString(8, nullSafe(sp.getAula()));
+                if (sp.getPostiMax() == 0) ps.setNull(9, Types.INTEGER); else ps.setInt(9, sp.getPostiMax());
+                try (ResultSet rs = ps.executeQuery()) {
+                    rs.next();
+                    int id = rs.getInt(1);
+                    s.setId(id); // se presente nel modello
+                    return id;
+                }
+            }
+        } else {
+            throw new SQLException("Tipo sessione non supportato: " + s.getClass());
         }
     }
 
-    /* =========================
-       Helper locali (no UI deps)
-       ========================= */
+    private void updateOn(Connection conn, Sessione s) throws Exception {
+        if (s.getId() <= 0) throw new IllegalArgumentException("id sessione mancante");
+        // Nota: in transazione assumiamo che il chiamante abbia già validato ownership.
+
+        if (s instanceof SessioneOnline) {
+            SessioneOnline so = (SessioneOnline) s;
+            String sql = """
+                UPDATE sessione_online
+                   SET fk_id_corso=?, data=?, ora_inizio=?, ora_fine=?, piattaforma=?
+                 WHERE idsessioneonline=?
+            """;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                bindCommon(ps, s);
+                ps.setString(5, nullSafe(so.getPiattaforma()));
+                ps.setInt(6, s.getId());
+                ps.executeUpdate();
+            }
+        } else if (s instanceof SessionePresenza) {
+            SessionePresenza sp = (SessionePresenza) s;
+            String sql = """
+                UPDATE sessione_presenza
+                   SET fk_id_corso=?, data=?, ora_inizio=?, ora_fine=?, via=?, num=?, cap=?, aula=?, posti_max=?
+                 WHERE "idSessionePresenza"=?
+            """;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                bindCommon(ps, s);
+                ps.setString(5, nullSafe(sp.getVia()));
+                ps.setString(6, nullSafe(sp.getNum()));
+                if (sp.getCap() == 0) ps.setNull(7, Types.INTEGER); else ps.setInt(7, sp.getCap());
+                ps.setString(8, nullSafe(sp.getAula()));
+                if (sp.getPostiMax() == 0) ps.setNull(9, Types.INTEGER); else ps.setInt(9, sp.getPostiMax());
+                ps.setInt(10, s.getId());
+                ps.executeUpdate();
+            }
+        } else {
+            throw new SQLException("Tipo sessione non supportato: " + s.getClass());
+        }
+    }
+
+    /* ========================= Frequenze (helper) ========================= */
 
     private static String canonicalizeFreq(String s) {
         if (s == null) return "";
         String x = s.trim().toLowerCase(java.util.Locale.ITALIAN);
-        // ammesse: giornaliero, ogni 2 giorni, settimanale, mensile
         if (x.equals("ogni 2 giorni") || x.equals("ogni due giorni")) return "ogni 2 giorni";
         if (x.equals("settimanale")) return "settimanale";
         if (x.equals("mensile")) return "mensile";
@@ -572,7 +710,7 @@ public class SessioneDao {
     }
 
     private static List<LocalDate> generateDates(LocalDate inizio, String freq, int num) {
-        ArrayList<LocalDate> out = new ArrayList<>();
+        ArrayList<LocalDate> out = new ArrayList<LocalDate>();
         if (inizio == null || num <= 0) return out;
 
         String f = canonicalizeFreq(freq);
@@ -581,116 +719,24 @@ public class SessioneDao {
         LocalDate d = inizio;
         for (int i = 0; i < num; i++) {
             out.add(d);
-            switch (f) {
-                case "ogni 2 giorni" -> d = d.plusDays(2);
-                case "settimanale"   -> d = d.plusDays(7);
-                case "mensile"       -> d = d.plusMonths(1);
-            }
+            if ("ogni 2 giorni".equals(f)) d = d.plusDays(2);
+            else if ("settimanale".equals(f)) d = d.plusDays(7);
+            else if ("mensile".equals(f)) d = d.plusMonths(1);
         }
         return out;
     }
-
     
-    public void replaceRicetteForSessionePresenza(int idSessionePresenza, java.util.List<Long> idRicette) throws Exception {
-        if (idSessionePresenza <= 0) throw new IllegalArgumentException("idSessionePresenza non valido");
+ // dentro SessioneDao
+    public void replaceForCorso(long corsoId, java.util.List<it.unina.foodlab.model.Sessione> nuove) throws Exception {
+        // Verifica che il corso appartenga all'owner
+        ensureCourseOwned(corsoId);
 
-        // Verifica che la sessione appartenga a un corso dell'owner
-        String chkSql = """
-            SELECT 1
-              FROM sessione_presenza sp
-              JOIN corso c ON c.id_corso = sp.fk_id_corso
-             WHERE sp."idSessionePresenza"=? AND c.fk_cf_chef=?
-        """;
-        try (java.sql.Connection conn = it.unina.foodlab.util.Db.get();
-             java.sql.PreparedStatement ps = conn.prepareStatement(chkSql)) {
-            ps.setInt(1, idSessionePresenza);
-            ps.setString(2, ownerCfChef);
-            try (java.sql.ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) throw new java.sql.SQLException("Operazione negata: sessione non dell'owner");
-            }
-        }
-
-        // Transazione: DELETE tutte le associazioni + INSERT delle nuove (se presenti)
         try (java.sql.Connection conn = it.unina.foodlab.util.Db.get()) {
             boolean old = conn.getAutoCommit();
             conn.setAutoCommit(false);
             try {
-                try (java.sql.PreparedStatement del = conn.prepareStatement(
-                    "DELETE FROM sessione_presenza_ricetta WHERE fk_id_sess_pr=?")) {
-                    del.setInt(1, idSessionePresenza);
-                    del.executeUpdate();
-                }
-
-                if (idRicette != null && !idRicette.isEmpty()) {
-                    try (java.sql.PreparedStatement ins = conn.prepareStatement(
-                        "INSERT INTO sessione_presenza_ricetta (fk_id_sess_pr, fk_id_ricetta) VALUES (?, ?)")) {
-                        for (Long idr : idRicette) {
-                            if (idr == null || idr <= 0) continue;
-                            ins.setInt(1, idSessionePresenza);
-                            ins.setLong(2, idr);
-                            ins.addBatch();
-                        }
-                        ins.executeBatch();
-                    }
-                }
-
-                conn.commit();
-            } catch (Exception ex) {
-                conn.rollback();
-                throw ex;
-            } finally {
-                conn.setAutoCommit(old);
-            }
-        }
-    }
-    public void updateOnline(it.unina.foodlab.model.SessioneOnline s) throws Exception {
-        try (Connection conn = it.unina.foodlab.util.Db.get();
-             PreparedStatement ps = conn.prepareStatement("""
-                UPDATE sessione_online
-                   SET data = ?, ora_inizio = ?, ora_fine = ?, piattaforma = ?
-                 WHERE idsessioneonline = ?
-             """)) {
-            ps.setObject(1, s.getData());
-            ps.setObject(2, s.getOraInizio());
-            ps.setObject(3, s.getOraFine());
-            ps.setString(4, s.getPiattaforma());
-            ps.setInt(5, s.getId());
-            int n = ps.executeUpdate();
-            if (n != 1) throw new SQLException("Sessione online non aggiornata (id=" + s.getId() + ")");
-        }
-    }
-
-    public void updatePresenza(it.unina.foodlab.model.SessionePresenza s) throws Exception {
-        try (Connection conn = it.unina.foodlab.util.Db.get();
-             PreparedStatement ps = conn.prepareStatement("""
-                UPDATE sessione_presenza
-                   SET data = ?, ora_inizio = ?, ora_fine = ?, via = ?, num = ?, cap = ?, aula = ?, posti_max = ?
-                 WHERE "idSessionePresenza" = ?
-             """)) {
-            ps.setObject(1, s.getData());
-            ps.setObject(2, s.getOraInizio());
-            ps.setObject(3, s.getOraFine());
-            ps.setString(4, s.getVia());
-            ps.setString(5, s.getNum());
-            ps.setInt(6, s.getCap());          // INT NOT NULL
-            ps.setString(7, s.getAula());
-            ps.setInt(8, s.getPostiMax());     // INT NOT NULL
-            ps.setInt(9, s.getId());
-            int n = ps.executeUpdate();
-            if (n != 1) throw new SQLException("Sessione presenza non aggiornata (id=" + s.getId() + ")");
-        }
-    }
-    
-    /** Sostituisce TUTTE le sessioni di un corso con la lista data (DELETE + INSERT in transazione). */
-    public void replaceForCorso(long corsoId, List<Sessione> nuove) throws Exception {
-        ensureCourseOwned(corsoId);
-
-        try (Connection conn = Db.get()) {
-            boolean old = conn.getAutoCommit();
-            conn.setAutoCommit(false);
-            try {
-                // 1) Elimina ricette collegate alle sessioni PRESENZA del corso
-                try (PreparedStatement ps = conn.prepareStatement("""
+                // 1) Elimina le associazioni ricette delle sessioni in presenza del corso
+                try (java.sql.PreparedStatement ps = conn.prepareStatement("""
                     DELETE FROM sessione_presenza_ricetta
                      WHERE fk_id_sess_pr IN (
                            SELECT sp."idSessionePresenza"
@@ -702,87 +748,43 @@ public class SessioneDao {
                     ps.executeUpdate();
                 }
 
-                // 2) Elimina sessioni del corso (ONLINE e PRESENZA)
-                try (PreparedStatement ps = conn.prepareStatement("""
-                    DELETE FROM sessione_online WHERE fk_id_corso = ?
-                """)) {
+                // 2) Elimina tutte le sessioni del corso (online e presenza)
+                try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                        "DELETE FROM sessione_online WHERE fk_id_corso = ?")) {
                     ps.setLong(1, corsoId);
                     ps.executeUpdate();
                 }
-                try (PreparedStatement ps = conn.prepareStatement("""
-                    DELETE FROM sessione_presenza WHERE fk_id_corso = ?
-                """)) {
+                try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                        "DELETE FROM sessione_presenza WHERE fk_id_corso = ?")) {
                     ps.setLong(1, corsoId);
                     ps.executeUpdate();
                 }
 
-                // 3) Inserisce le nuove (se presenti)
+                // 3) Inserisce le nuove sessioni (se presenti) RIUSANDO la stessa connessione/tx
                 if (nuove != null) {
-                    for (Sessione s : nuove) {
-                        // normalizza corso/id
+                    for (it.unina.foodlab.model.Sessione s : nuove) {
+                        if (s == null) continue;
+
+                        // Normalizza il riferimento al corso
                         if (s.getCorso() == null || s.getCorso().getIdCorso() != corsoId) {
-                            Corso c = new Corso();
+                            it.unina.foodlab.model.Corso c = new it.unina.foodlab.model.Corso();
                             c.setIdCorso(corsoId);
                             s.setCorso(c); // assicurati che esista setCorso(...) nel modello
                         }
-                        insertOn(conn, s); // usa la stessa connessione/tx
+
+                        // Usa il metodo helper che inserisce su una connessione esistente
+                        insertOn(conn, s);
                     }
                 }
 
                 conn.commit();
-                conn.setAutoCommit(old);
             } catch (Exception ex) {
                 conn.rollback();
-                conn.setAutoCommit(old);
                 throw ex;
+            } finally {
+                conn.setAutoCommit(old);
             }
         }
     }
-
-    /** INSERT su connessione esistente (evita di spezzare la transazione). */
-    private int insertOn(Connection conn, Sessione s) throws Exception {
-        // riusa le stesse validazioni di bindCommon
-        if (s instanceof SessioneOnline so) {
-            String sql = """
-                INSERT INTO sessione_online (fk_id_corso, data, ora_inizio, ora_fine, piattaforma)
-                VALUES (?,?,?,?,?)
-                RETURNING idsessioneonline
-            """;
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                bindCommon(ps, s); // 1..4
-                ps.setString(5, nullSafe(so.getPiattaforma()));
-                try (ResultSet rs = ps.executeQuery()) {
-                    rs.next();
-                    int id = rs.getInt(1);
-                    s.setId(id); // se hai il setter
-                    return id;
-                }
-            }
-        } else if (s instanceof SessionePresenza sp) {
-            String sql = """
-                INSERT INTO sessione_presenza (
-                    fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max
-                ) VALUES (?,?,?,?,?,?,?,?,?)
-                RETURNING "idSessionePresenza"
-            """;
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                bindCommon(ps, s); // 1..4
-                ps.setString(5, nullSafe(sp.getVia()));
-                ps.setString(6, nullSafe(sp.getNum()));
-                if (sp.getCap() == 0) ps.setNull(7, Types.INTEGER); else ps.setInt(7, sp.getCap());
-                ps.setString(8, nullSafe(sp.getAula()));
-                if (sp.getPostiMax() == 0) ps.setNull(9, Types.INTEGER); else ps.setInt(9, sp.getPostiMax());
-                try (ResultSet rs = ps.executeQuery()) {
-                    rs.next();
-                    int id = rs.getInt(1);
-                    s.setId(id); // se hai il setter
-                    return id;
-                }
-            }
-        } else {
-            throw new SQLException("Tipo sessione non supportato: " + s.getClass());
-        }
-    }
-
 
 }

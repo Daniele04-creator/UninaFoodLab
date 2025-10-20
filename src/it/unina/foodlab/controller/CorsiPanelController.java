@@ -9,16 +9,15 @@ import it.unina.foodlab.model.Ricetta;
 import it.unina.foodlab.model.Sessione;
 import it.unina.foodlab.model.SessioneOnline;
 import it.unina.foodlab.model.SessionePresenza;
-
-import it.unina.foodlab.controller.AssociaRicetteController;
-
-import javafx.scene.control.Tooltip;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -32,40 +31,30 @@ import javafx.scene.layout.Region;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Callback;
 
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.Predicate;
 
+/**
+ * Gestione elenco corsi con filtri, CRUD, wizard sessioni,
+ * associazione ricette a sessioni in presenza e anteprima sessioni.
+ */
 public class CorsiPanelController {
 
-    public static final String APP_CSS = "/app.css"; //lop
     private static final String ALL_OPTION = "Tutte";
     private static final int FILTERS_BADGE_MAX_CHARS = 32;
+
     private static final String LABEL_ARG  = "Argomento";
     private static final String LABEL_FREQ = "Frequenza";
     private static final String LABEL_CHEF = "Chef";
     private static final String LABEL_ID   = "ID";
     private static final String LABEL_PERIODO = "Periodo";
- // in cima alla classe
-    private RicettaDao ricettaDao;
 
-    private String formatFilterLabel(String base, String value) {
-        return base + ": " + (isBlank(value) ? "(tutte)" : value);
-    }
-
-    private String formatDateRangeLabel(LocalDate from, LocalDate to) {
-        if (from == null && to == null) return LABEL_PERIODO + ": (nessuno)";
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM");
-        String l = (from != null) ? df.format(from) : "…";
-        String r = (to   != null) ? df.format(to)   : "…";
-        return LABEL_PERIODO + ": " + l + "–" + r;
-    }
-
-    // --- TOP BAR ---
+    /* ----------- TOP BAR ----------- */
     @FXML private MenuButton btnFilters;
     @FXML private MenuItem miFiltroArg;
     @FXML private MenuItem miFiltroFreq;
@@ -74,12 +63,10 @@ public class CorsiPanelController {
     @FXML private DatePicker dpFrom;
     @FXML private DatePicker dpTo;
     @FXML private Button btnApplyDate;
-
-    // pulisci filtri INSIDE menu
     @FXML private Button btnClearInMenu;
     @FXML private Button btnRefresh, btnReport;
 
-    // --- TABELLA ---
+    /* ----------- TABELLA ----------- */
     @FXML private TableView<Corso> table;
     @FXML private TableColumn<Corso, Long> colId;
     @FXML private TableColumn<Corso, String> colArg;
@@ -88,123 +75,136 @@ public class CorsiPanelController {
     @FXML private TableColumn<Corso, LocalDate> colFine;
     @FXML private TableColumn<Corso, String> colChef;
 
-    // --- BOTTOM BAR ---
+    /* ----------- BOTTOM BAR ----------- */
     @FXML private Button btnNew, btnEdit, btnDelete, btnAssocRicette;
 
-    // --- DATI ---
-    private final ObservableList<Corso> backing  = FXCollections.observableArrayList();
-    private final FilteredList<Corso> filtered   = new FilteredList<>(backing, c -> true);
-    private final SortedList<Corso>   sorted     = new SortedList<>(filtered);
+    /* ----------- DATI/STATE ----------- */
+    private final ObservableList<Corso> backing = FXCollections.observableArrayList();
+    private final FilteredList<Corso> filtered  = new FilteredList<Corso>(backing, c -> true);
+    private final SortedList<Corso>   sorted    = new SortedList<Corso>(filtered);
 
     private CorsoDao corsoDao;
     private SessioneDao sessioneDao;
+    private RicettaDao ricettaDao;
 
-    // --- STATO FILTRI ---
+    /* Filtri correnti */
     private String filtroArg   = null;
     private String filtroFreq  = null;
-    private String filtroChef  = null;  // etichetta completa
-    private String filtroId    = null;  // stringa id ESATTA
+    private String filtroChef  = null;
+    private String filtroId    = null;
     private LocalDate dateFrom = null;
     private LocalDate dateTo   = null;
 
-
+    /* ================== INIT ================== */
     @FXML
-private void initialize() {
-    initTableColumns();
+    private void initialize() {
+        initTableColumns();
+        table.setItems(sorted);
+        sorted.comparatorProperty().bind(table.comparatorProperty());
 
-    table.setItems(sorted);
-    sorted.comparatorProperty().bind(table.comparatorProperty());
-
-    // --- MENU FILTRI ---
-    miFiltroArg.setOnAction(e -> {
-        String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
-        filtroArg = normalizeAllToNull(scelto);
-        refilter();
-        updateFiltersUI();
-    });
-
-    miFiltroFreq.setOnAction(e -> {
-        String scelto = askChoice("Filtro Frequenza", "Seleziona frequenza", distinctFrequenze(), filtroFreq);
-        filtroFreq = normalizeAllToNull(scelto);
-        refilter();
-        updateFiltersUI();
-    });
-
-    miFiltroChef.setOnAction(e -> {
-        String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
-        filtroChef = normalizeAllToNull(scelto);
-        refilter();
-        updateFiltersUI();
-    });
-
-    miFiltroId.setOnAction(e -> {
-        String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
-        filtroId = normalizeAllToNull(scelto);
-        refilter();
-        updateFiltersUI();
-    });
-
-    btnApplyDate.setOnAction(e -> {
-        dateFrom = dpFrom.getValue();
-        dateTo   = dpTo.getValue();
-        refilter();
-        updateFiltersUI();
-    });
-
-    btnClearInMenu.setOnAction(e -> {
-        filtroArg = filtroFreq = filtroChef = filtroId = null;
-        dateFrom = dateTo = null;
-        dpFrom.setValue(null);
-        dpTo.setValue(null);
-        refilter();
-        updateFiltersUI();
-    });
-
-    btnRefresh.setOnAction(e -> reload());
-    btnReport.setOnAction(e -> openReportMode());
-
-    // --- Abilitazione bottoni CRUD ---
-    table.getSelectionModel().selectedItemProperty().addListener((obs, ov, sel) -> {
-        boolean has = sel != null;
-        boolean own = isOwnedByLoggedChef(sel);
-        btnEdit.setDisable(!has || !own);
-        btnDelete.setDisable(!has || !own);
-        btnAssocRicette.setDisable(!has || !own);
-    });
-
-    // Doppio click: viewer
-    table.setRowFactory(tv -> {
-        TableRow<Corso> row = new TableRow<>();
-        row.setOnMouseClicked(e -> {
-            if (!row.isEmpty() && e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
-                openSessioniPreview(row.getItem());
+        /* Menu filtri */
+        miFiltroArg.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) {
+                String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
+                filtroArg = normalizeAllToNull(scelto);
+                refilter(); updateFiltersUI();
             }
         });
-        return row;
-    });
+        miFiltroFreq.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) {
+                String scelto = askChoice("Filtro Frequenza", "Seleziona frequenza", distinctFrequenze(), filtroFreq);
+                filtroFreq = normalizeAllToNull(scelto);
+                refilter(); updateFiltersUI();
+            }
+        });
+        miFiltroChef.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) {
+                String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
+                filtroChef = normalizeAllToNull(scelto);
+                refilter(); updateFiltersUI();
+            }
+        });
+        miFiltroId.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) {
+                String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
+                filtroId = normalizeAllToNull(scelto);
+                refilter(); updateFiltersUI();
+            }
+        });
 
-    // Bottoni CRUD
-    btnNew.setOnAction(e -> onNew());
-    btnEdit.setOnAction(e -> onEdit());
-    btnDelete.setOnAction(e -> onDelete());
-    btnAssocRicette.setOnAction(e -> onAssociateRecipes());
+        btnApplyDate.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) {
+                dateFrom = dpFrom.getValue();
+                dateTo   = dpTo.getValue();
+                refilter(); updateFiltersUI();
+            }
+        });
+        btnClearInMenu.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) {
+                clearAllFilters();
+            }
+        });
 
-    // Stato iniziale UI filtri
-    updateFiltersUI();
+        btnRefresh.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) { reload(); }
+        });
+        btnReport.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) { openReportMode(); }
+        });
 
-    // Imposta dimensioni minime e ridimensionamento finestra principale
-    Platform.runLater(() -> {
-        Stage stage = (Stage) table.getScene().getWindow();
-        if (stage != null) {
-            stage.setMinWidth(1000);  // larghezza minima
-            stage.setMinHeight(600);  // altezza minima
-            stage.setWidth(1200);     // larghezza iniziale
-            stage.setHeight(800);     // altezza iniziale
-            stage.centerOnScreen();
-        }
-    });
-}
+        /* Abilitazione bottoni in base alla selezione */
+        table.getSelectionModel().selectedItemProperty().addListener((obs, ov, sel) -> {
+            boolean has = sel != null;
+            boolean own = isOwnedByLoggedChef(sel);
+            btnEdit.setDisable(!has || !own);
+            btnDelete.setDisable(!has || !own);
+            btnAssocRicette.setDisable(!has || !own);
+        });
 
+        /* Doppio click = anteprima sessioni */
+        table.setRowFactory(new Callback<TableView<Corso>, TableRow<Corso>>() {
+            @Override public TableRow<Corso> call(TableView<Corso> tv) {
+                final TableRow<Corso> row = new TableRow<Corso>();
+                row.setOnMouseClicked(e -> {
+                    if (!row.isEmpty() && e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
+                        openSessioniPreview(row.getItem());
+                    }
+                });
+                return row;
+            }
+        });
+
+        /* CRUD */
+        btnNew.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) { onNew(); }
+        });
+        btnEdit.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) { onEdit(); }
+        });
+        btnDelete.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) { onDelete(); }
+        });
+        btnAssocRicette.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent event) { onAssociateRecipes(); }
+        });
+
+        updateFiltersUI();
+
+        /* Dimensioni finestra principali iniziali/minime */
+        Platform.runLater(new Runnable() {
+            @Override public void run() {
+                if (table == null || table.getScene() == null) return;
+                Stage stage = (Stage) table.getScene().getWindow();
+                if (stage != null) {
+                    stage.setMinWidth(1000);
+                    stage.setMinHeight(600);
+                    stage.setWidth(1200);
+                    stage.setHeight(800);
+                    stage.centerOnScreen();
+                }
+            }
+        });
+    }
 
     public void setDaos(CorsoDao corsoDao, SessioneDao sessioneDao) {
         this.corsoDao = corsoDao;
@@ -212,7 +212,7 @@ private void initialize() {
         if (this.ricettaDao == null) this.ricettaDao = new RicettaDao();
         reload();
     }
-    
+
     public void setDaos(CorsoDao corsoDao, SessioneDao sessioneDao, RicettaDao ricettaDao) {
         this.corsoDao = corsoDao;
         this.sessioneDao = sessioneDao;
@@ -220,13 +220,14 @@ private void initialize() {
         reload();
     }
 
+    /* ================== TABELLA ================== */
     private void initTableColumns() {
-        colId.setCellValueFactory(new PropertyValueFactory<>("idCorso"));
-        colArg.setCellValueFactory(new PropertyValueFactory<>("argomento"));
-        colFreq.setCellValueFactory(new PropertyValueFactory<>("frequenza"));
+        colId.setCellValueFactory(new PropertyValueFactory<Corso, Long>("idCorso"));
+        colArg.setCellValueFactory(new PropertyValueFactory<Corso, String>("argomento"));
+        colFreq.setCellValueFactory(new PropertyValueFactory<Corso, String>("frequenza"));
 
-        colInizio.setCellValueFactory(new PropertyValueFactory<>("dataInizio"));
-        colInizio.setCellFactory(tc -> new TableCell<>() {
+        colInizio.setCellValueFactory(new PropertyValueFactory<Corso, LocalDate>("dataInizio"));
+        colInizio.setCellFactory(tc -> new TableCell<Corso, LocalDate>() {
             { setAlignment(Pos.CENTER); }
             @Override protected void updateItem(LocalDate item, boolean empty) {
                 super.updateItem(item, empty);
@@ -234,8 +235,8 @@ private void initialize() {
             }
         });
 
-        colFine.setCellValueFactory(new PropertyValueFactory<>("dataFine"));
-        colFine.setCellFactory(tc -> new TableCell<>() {
+        colFine.setCellValueFactory(new PropertyValueFactory<Corso, LocalDate>("dataFine"));
+        colFine.setCellFactory(tc -> new TableCell<Corso, LocalDate>() {
             { setAlignment(Pos.CENTER); }
             @Override protected void updateItem(LocalDate item, boolean empty) {
                 super.updateItem(item, empty);
@@ -243,13 +244,17 @@ private void initialize() {
             }
         });
 
-        colChef.setCellValueFactory(cd -> Bindings.createStringBinding(() -> {
-            Corso c = cd.getValue();
-            if (c == null || c.getChef() == null) return "";
-            Chef ch = c.getChef();
-            String full = ((nz(ch.getNome())) + " " + (nz(ch.getCognome()))).trim();
-            return full.isEmpty() ? nz(ch.getCF_Chef()) : full;
-        }));
+        colChef.setCellValueFactory(cd ->
+                Bindings.createStringBinding(() -> {
+                    Corso c = cd.getValue();
+                    if (c == null || c.getChef() == null) return "";
+                    Chef ch = c.getChef();
+                    String nome = nz(ch.getNome());
+                    String cogn = nz(ch.getCognome());
+                    String full = (nome + " " + cogn).trim();
+                    return full.isEmpty() ? nz(ch.getCF_Chef()) : full;
+                })
+        );
 
         table.getSortOrder().add(colInizio);
         colInizio.setSortType(TableColumn.SortType.DESCENDING);
@@ -259,7 +264,7 @@ private void initialize() {
         if (corsoDao == null) return;
         try {
             List<Corso> list = corsoDao.findAll();
-            if (list == null) list = Collections.emptyList();
+            if (list == null) list = Collections.<Corso>emptyList();
             backing.setAll(list);
             refilter();
             updateFiltersUI();
@@ -268,37 +273,52 @@ private void initialize() {
         }
     }
 
-    /** Applica tutti i filtri correnti allo stream dei corsi. */
+    /* ================== FILTRI ================== */
     private void refilter() {
-        Predicate<Corso> p = c -> {
-            if (c == null) return false;
+        filtered.setPredicate(new java.util.function.Predicate<Corso>() {
+            @Override public boolean test(Corso c) {
+                if (c == null) return false;
 
-            if (!matchesEqIgnoreCase(c.getArgomento(), filtroArg)) return false;
-            if (!matchesContainsIgnoreCase(c.getFrequenza(), filtroFreq)) return false;
+                if (!matchesEqIgnoreCase(c.getArgomento(), filtroArg)) return false;
+                if (!matchesContainsIgnoreCase(c.getFrequenza(), filtroFreq)) return false;
 
-            if (!isBlank(filtroChef)) {
-                String chefLabel = chefLabelOf(c.getChef());
-                if (!matchesEqIgnoreCase(chefLabel, filtroChef)) return false;
+                if (!isBlank(filtroChef)) {
+                    String chefLabel = chefLabelOf(c.getChef());
+                    if (!matchesEqIgnoreCase(chefLabel, filtroChef)) return false;
+                }
+
+                if (!isBlank(filtroId)) {
+                    String idS = String.valueOf(c.getIdCorso());
+                    if (!idS.equals(filtroId)) return false;
+                }
+
+                LocalDate din = c.getDataInizio();
+                LocalDate dfi = c.getDataFine();
+
+                if (dateFrom != null) {
+                    // escludi corsi che finiscono prima dell'intervallo
+                    if (dfi != null && dfi.isBefore(dateFrom)) return false;
+                    if (dfi == null && din != null && din.isBefore(dateFrom)) return false;
+                }
+                if (dateTo != null) {
+                    // escludi corsi che iniziano dopo l'intervallo
+                    if (din != null && din.isAfter(dateTo)) return false;
+                }
+
+                return true;
             }
-
-            if (!isBlank(filtroId)) {
-                String idS = String.valueOf(c.getIdCorso());
-                if (!idS.equals(filtroId)) return false;
-            }
-
-            LocalDate din = c.getDataInizio();
-            LocalDate dfi = c.getDataFine();
-            if (dateFrom != null && din != null && din.isBefore(dateFrom) && (dfi == null || dfi.isBefore(dateFrom)))
-                return false;
-            if (dateTo != null && din != null && din.isAfter(dateTo) && (dfi == null || dfi.isAfter(dateTo)))
-                return false;
-
-            return true;
-        };
-
-        filtered.setPredicate(p);
+        });
     }
 
+    private void clearAllFilters() {
+        filtroArg = filtroFreq = filtroChef = filtroId = null;
+        dateFrom = dateTo = null;
+        if (dpFrom != null) dpFrom.setValue(null);
+        if (dpTo != null) dpTo.setValue(null);
+        refilter(); updateFiltersUI();
+    }
+
+    /* ================== REPORT ================== */
     private void openReportMode() {
         if (corsoDao == null) {
             showError("DAO non inizializzato. Effettua il login.");
@@ -312,12 +332,11 @@ private void initialize() {
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/Report.fxml"));
-            loader.setControllerFactory(type -> {
-                if (type == ReportController.class) return new ReportController(cf);
-                try {
-                    return type.getDeclaredConstructor().newInstance();
-                } catch (Exception e) {
-                    throw new RuntimeException("Impossibile creare controller: " + type, e);
+            loader.setControllerFactory(new Callback<Class<?>, Object>() {
+                @Override public Object call(Class<?> type) {
+                    if (type == ReportController.class) return new ReportController(cf);
+                    try { return type.getDeclaredConstructor().newInstance(); }
+                    catch (Exception e) { throw new RuntimeException("Impossibile creare controller: " + type, e); }
                 }
             });
 
@@ -329,8 +348,7 @@ private void initialize() {
             Scene scene = stage.getScene();
             if (scene == null) {
                 scene = new Scene(reportRoot, 1000, 600);
-                URL css = getClass().getResource(APP_CSS);
-                if (css != null) scene.getStylesheets().add(css.toExternalForm());
+                
                 stage.setScene(scene);
             } else {
                 scene.setRoot(reportRoot);
@@ -343,23 +361,23 @@ private void initialize() {
         }
     }
 
-    /** Modifica: apre wizard sessioni già popolato; al salvataggio fa replace. */
+    /* ================== EDIT / NEW / DELETE ================== */
     private void onEdit() {
-        Corso sel = table.getSelectionModel().getSelectedItem();
+        final Corso sel = table.getSelectionModel().getSelectedItem();
         if (sel == null) return;
 
         if (!isOwnedByLoggedChef(sel)) {
             new Alert(Alert.AlertType.WARNING,
-                    "Puoi modificare solo i corsi che appartengono al tuo profilo.")
-                .showAndWait();
+                    "Puoi modificare solo i corsi che appartengono al tuo profilo.").showAndWait();
             return;
         }
 
-        javafx.concurrent.Task<List<Sessione>> loadTask = new javafx.concurrent.Task<>() {
-            @Override protected List<Sessione> call() throws Exception {
-                return sessioneDao.findByCorso(sel.getIdCorso());
-            }
-        };
+        final javafx.concurrent.Task<List<Sessione>> loadTask =
+                new javafx.concurrent.Task<List<Sessione>>() {
+                    @Override protected List<Sessione> call() throws Exception {
+                        return sessioneDao.findByCorso(sel.getIdCorso());
+                    }
+                };
 
         loadTask.setOnSucceeded(ev -> {
             List<Sessione> esistenti = loadTask.getValue();
@@ -367,19 +385,18 @@ private void initialize() {
                 FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/SessioniWizard.fxml"));
                 DialogPane pane = fx.load();
                 SessioniWizardController ctrl = fx.getController();
-                ctrl.initWithCorsoAndExisting(sel, esistenti != null ? esistenti : java.util.Collections.emptyList());
+                ctrl.initWithCorsoAndExisting(sel, esistenti != null ? esistenti : Collections.<Sessione>emptyList());
 
                 if (pane.getButtonTypes().isEmpty()) {
                     pane.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
                 }
 
-                URL css = getClass().getResource(APP_CSS);
-                if (css != null) pane.getStylesheets().add(css.toExternalForm());
+               
+                
 
-                // Avvolgi in ScrollPane per contenuti grandi
-                Node currentContent = pane.getContent();
-                if (currentContent instanceof Region regionContent) {
-                    ScrollPane sc = new ScrollPane(regionContent);
+                Node content = pane.getContent();
+                if (content instanceof Region) {
+                    ScrollPane sc = new ScrollPane(content);
                     sc.setFitToWidth(true);
                     sc.setFitToHeight(true);
                     sc.setPannable(true);
@@ -388,16 +405,15 @@ private void initialize() {
                     pane.setContent(sc);
                 }
 
-                Dialog<List<Sessione>> dlg = new Dialog<>();
-                dlg.setTitle("Modifica sessioni - " + (sel.getArgomento() == null ? "" : sel.getArgomento()));
+                Dialog<List<Sessione>> dlg = new Dialog<List<Sessione>>();
+                dlg.setTitle("Modifica sessioni - " + safe(sel.getArgomento()));
                 dlg.setDialogPane(pane);
-
-                // Dimensione preferita iniziale
                 pane.setPrefSize(1200, 800);
 
                 dlg.setOnShown(e2 -> {
                     Window w = dlg.getDialogPane().getScene().getWindow();
-                    if (w instanceof Stage stg) {
+                    if (w instanceof Stage) {
+                        Stage stg = (Stage) w;
                         stg.setResizable(true);
                         stg.setWidth(1600);
                         stg.setHeight(800);
@@ -408,28 +424,28 @@ private void initialize() {
                 });
 
                 dlg.setResultConverter(bt ->
-                    (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
-                        ? ctrl.buildResult()
-                        : null
+                        (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
+                                ? ctrl.buildResult()
+                                : null
                 );
 
-                dlg.showAndWait().ifPresent(result -> {
-                    if (result != null) {
-                        javafx.concurrent.Task<Void> replaceTask = new javafx.concurrent.Task<>() {
-                            @Override protected Void call() throws Exception {
-                                sessioneDao.replaceForCorso(sel.getIdCorso(), result);
-                                return null;
-                            }
-                        };
-                        replaceTask.setOnSucceeded(ev2 -> showInfo("Sessioni aggiornate: "));
-                        replaceTask.setOnFailed(ev2 -> {
-                            Throwable ex2 = replaceTask.getException();
-                            showError("Errore salvataggio sessioni: " + (ex2 != null ? ex2.getMessage() : "sconosciuto"));
-                            if (ex2 != null) ex2.printStackTrace();
-                        });
-                        new Thread(replaceTask, "replace-sessioni").start();
-                    }
-                });
+                Optional<List<Sessione>> res = dlg.showAndWait();
+                if (res.isPresent() && res.get() != null) {
+                    final List<Sessione> result = res.get();
+                    final javafx.concurrent.Task<Void> replaceTask = new javafx.concurrent.Task<Void>() {
+                        @Override protected Void call() throws Exception {
+                            sessioneDao.replaceForCorso(sel.getIdCorso(), result);
+                            return null;
+                        }
+                    };
+                    replaceTask.setOnSucceeded(ev2 -> showInfo("Sessioni aggiornate."));
+                    replaceTask.setOnFailed(ev2 -> {
+                        Throwable ex2 = replaceTask.getException();
+                        showError("Errore salvataggio sessioni: " + (ex2 != null ? ex2.getMessage() : "sconosciuto"));
+                        if (ex2 != null) ex2.printStackTrace();
+                    });
+                    new Thread(replaceTask, "replace-sessioni").start();
+                }
 
             } catch (Exception e) {
                 showError("Errore apertura wizard sessioni: " + e.getMessage());
@@ -446,77 +462,175 @@ private void initialize() {
         new Thread(loadTask, "load-sessioni").start();
     }
 
-   public void onNew() {
-    try {
-        FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/CorsiEditorDialog.fxml"));
-        DialogPane pane = fx.load();
+    public void onNew() {
+        try {
+            FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/CorsiEditorDialog.fxml"));
+            DialogPane pane = fx.load();
 
-        CorsoEditorDialogController ctrl = fx.getController();
-        ctrl.setCorso(null);
+            CorsoEditorDialogController ctrl = fx.getController();
+            ctrl.setCorso(null);
 
-        Dialog<Corso> dialog = new Dialog<>();
-        dialog.setTitle("Nuovo Corso");
-        dialog.setDialogPane(pane);
-        dialog.setResizable(true);
+            Dialog<Corso> dialog = new Dialog<Corso>();
+            dialog.setTitle("Nuovo Corso");
+            dialog.setDialogPane(pane);
+            dialog.setResizable(true);
 
-        dialog.setResultConverter(bt -> {
-            if (bt == null) return null;
-            // accetta SOLO il bottone "Crea" del controller
-            return (bt == ctrl.getCreateButtonType()) ? ctrl.getResult() : null;
-        });
+            dialog.setResultConverter(bt -> {
+                if (bt == null) return null;
+                return (bt == ctrl.getCreateButtonType()) ? ctrl.getResult() : null;
+            });
 
-        Optional<Corso> res = dialog.showAndWait();
-        if (res.isEmpty()) {
-            // Utente ha annullato il primo dialog -> NON creare nulla
-            return;
+            Optional<Corso> res = dialog.showAndWait();
+            if (!res.isPresent()) return; // annullato
+
+            Corso nuovo = res.get();
+
+            // associa l'attuale chef
+            if (corsoDao != null) {
+                String cfChef = corsoDao.getOwnerCfChef();
+                if (cfChef != null && cfChef.trim().length() > 0) {
+                    Chef chef = new Chef();
+                    chef.setCF_Chef(cfChef);
+                    nuovo.setChef(chef);
+                }
+            }
+
+            Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo);
+            if (!sessOpt.isPresent()) return; // annullato
+
+            List<Sessione> sessions = sessOpt.get();
+            if (sessions == null || sessions.isEmpty()) return; // niente sessioni => non creare
+
+            try {
+                long id = corsoDao.insertWithSessions(nuovo, sessions);
+                nuovo.setIdCorso(id);
+                backing.add(nuovo);
+                table.getSelectionModel().select(nuovo);
+                updateFiltersUI();
+            } catch (Exception saveEx) {
+                showError("Salvataggio corso/sessioni fallito: " + saveEx.getMessage());
+                saveEx.printStackTrace();
+            }
+
+        } catch (Exception ex) {
+            showError("Errore apertura editor corso: " + ex.getMessage());
+            ex.printStackTrace();
         }
+    }
 
-        Corso nuovo = res.get();
+    private void onDelete() {
+        final Corso sel = table.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
 
-        // Associa automaticamente l'attuale chef (se presente)
-        if (corsoDao != null) {
-            String cfChef = corsoDao.getOwnerCfChef();
-            if (cfChef != null && !cfChef.isBlank()) {
-                Chef chef = new Chef();
-                chef.setCF_Chef(cfChef);
-                nuovo.setChef(chef);
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION, "Eliminare il corso: " + sel.getArgomento() + " ?");
+       
+
+        Optional<ButtonType> resp = a.showAndWait();
+        if (resp.isPresent() && resp.get() == ButtonType.OK) {
+            try {
+                corsoDao.delete(sel.getIdCorso());
+                backing.remove(sel);
+                updateFiltersUI();
+            } catch (Exception ex) {
+                showError("Impossibile eliminare il corso: " + ex.getMessage());
             }
         }
-
-        // Wizard delle sessioni
-        Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo);
-        if (sessOpt.isEmpty()) {
-            // Utente ha annullato il wizard -> NON creare nulla
-            return;
-        }
-
-        List<Sessione> sessions = sessOpt.get();
-        if (sessions == null || sessions.isEmpty()) {
-            // Nessuna sessione confermata -> NON creare nulla
-            return;
-        }
-
-        // Salvataggio atomico corso + sessioni
-        try {
-            long id = corsoDao.insertWithSessions(nuovo, sessions);
-            nuovo.setIdCorso(id);
-
-            // Aggiorna UI
-            backing.add(nuovo);
-            table.getSelectionModel().select(nuovo);
-            updateFiltersUI();
-
-        } catch (Exception saveEx) {
-            showError("Salvataggio corso/sessioni fallito: " + saveEx.getMessage());
-            saveEx.printStackTrace();
-        }
-
-    } catch (Exception ex) {
-        showError("Errore apertura editor corso: " + ex.getMessage());
-        ex.printStackTrace();
     }
-}
 
+    /* ================== ASSOCIA RICETTE ================== */
+    private void onAssociateRecipes() {
+        Corso sel = table.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+
+        if (!isOwnedByLoggedChef(sel)) {
+            new Alert(Alert.AlertType.WARNING,
+                    "Puoi modificare solo i corsi che appartengono al tuo profilo.").showAndWait();
+            return;
+        }
+
+        try {
+            // 1) sessioni in presenza
+            List<Sessione> tutte = sessioneDao.findByCorso(sel.getIdCorso());
+            List<SessionePresenza> presenze = new ArrayList<SessionePresenza>();
+            if (tutte != null) {
+                for (int i = 0; i < tutte.size(); i++) {
+                    Sessione s = tutte.get(i);
+                    if (s instanceof SessionePresenza) presenze.add((SessionePresenza) s);
+                }
+            }
+            if (presenze.isEmpty()) { showInfo("Il corso non ha sessioni in presenza."); return; }
+
+            // 2) scegli la sessione target se > 1
+            SessionePresenza target = (presenze.size() == 1) ? presenze.get(0) : choosePresenza(presenze).orElse(null);
+            if (target == null) return;
+
+            // 3) dati dialog
+            if (ricettaDao == null) ricettaDao = new RicettaDao();
+            List<Ricetta> tutteLeRicette = ricettaDao.findAll();
+            List<Ricetta> ricetteGiaAssociate = sessioneDao.findRicetteBySessionePresenza(target.getId());
+
+            // 4) carica dialog associazione
+            URL url = AssociaRicetteController.class.getResource("/it/unina/foodlab/ui/AssociaRicette.fxml");
+            if (url == null) throw new IllegalStateException("FXML non trovato: /it/unina/foodlab/ui/AssociaRicette.fxml");
+
+            FXMLLoader fx = new FXMLLoader(url);
+            fx.setControllerFactory(new Callback<Class<?>, Object>() {
+                @Override public Object call(Class<?> t) {
+                    if (t == AssociaRicetteController.class) {
+                        return new AssociaRicetteController(
+                                sessioneDao,
+                                target.getId(),
+                                (tutteLeRicette != null ? tutteLeRicette : Collections.<Ricetta>emptyList()),
+                                (ricetteGiaAssociate != null ? ricetteGiaAssociate : Collections.<Ricetta>emptyList())
+                        );
+                    }
+                    try { return t.getDeclaredConstructor().newInstance(); }
+                    catch (Exception e) { throw new RuntimeException("Impossibile creare controller: " + t, e); }
+                }
+            });
+
+            fx.load();
+            AssociaRicetteController dlg = fx.getController();
+
+            Optional<List<Long>> result = dlg.showAndWait();
+            dlg.salvaSeConfermato(result);
+
+        } catch (Exception e) {
+            showError("Errore associazione ricette: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private Optional<SessionePresenza> choosePresenza(List<SessionePresenza> presenze) {
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
+
+        Map<String, SessionePresenza> map = new LinkedHashMap<String, SessionePresenza>();
+        for (int i = 0; i < presenze.size(); i++) {
+            SessionePresenza sp = presenze.get(i);
+            String data = (sp.getData() != null) ? df.format(sp.getData()) : "";
+            String orari = (sp.getOraInizio() != null ? tf.format(sp.getOraInizio()) : "") +
+                    "-" +
+                    (sp.getOraFine() != null ? tf.format(sp.getOraFine()) : "");
+            String indirizzo = joinNonEmpty(" ",
+                    nz(sp.getVia()), nz(sp.getNum()), nz(sp.getCap())).trim();
+            String base = (data + "  " + orari + "  " + indirizzo).trim();
+
+            String key = base;
+            int suffix = 2;
+            while (map.containsKey(key)) { key = base + " (" + (suffix++) + ")"; }
+            map.put(key, sp);
+        }
+
+        ChoiceDialog<String> d = new ChoiceDialog<String>(firstKeyOr(map, ""), map.keySet());
+        
+        d.setTitle("Seleziona la sessione in presenza");
+        d.setHeaderText("Scegli la sessione a cui associare le ricette");
+        d.setContentText(null);
+
+        Optional<String> pick = d.showAndWait();
+        return pick.isPresent() ? Optional.of(map.get(pick.get())) : Optional.<SessionePresenza>empty();
+    }
 
     private Optional<List<Sessione>> openSessioniWizard(Corso corso) {
         try {
@@ -526,10 +640,9 @@ private void initialize() {
             SessioniWizardController ctrl = fx.getController();
             ctrl.initWithCorso(corso);
 
-            // Avvolgi il contenuto in uno ScrollPane (per contenuti grandi)
-            Node currentContent = pane.getContent();
-            if (currentContent instanceof Region regionContent) {
-                ScrollPane sc = new ScrollPane(regionContent);
+            Node content = pane.getContent();
+            if (content instanceof Region) {
+                ScrollPane sc = new ScrollPane(content);
                 sc.setFitToWidth(true);
                 sc.setFitToHeight(true);
                 sc.setPannable(true);
@@ -538,16 +651,15 @@ private void initialize() {
                 pane.setContent(sc);
             }
 
-            Dialog<List<Sessione>> dlg = new Dialog<>();
+            Dialog<List<Sessione>> dlg = new Dialog<List<Sessione>>();
             dlg.setTitle("Configura sessioni del corso");
             dlg.setDialogPane(pane);
-
-            // Dimensione iniziale
             pane.setPrefSize(1200, 800);
 
             dlg.setOnShown(e2 -> {
                 Window w = dlg.getDialogPane().getScene().getWindow();
-                if (w instanceof Stage stg) {
+                if (w instanceof Stage) {
+                    Stage stg = (Stage) w;
                     stg.setResizable(true);
                     stg.setWidth(1600);
                     stg.setHeight(800);
@@ -557,8 +669,7 @@ private void initialize() {
                 }
             });
 
-            URL css = getClass().getResource(APP_CSS);
-            if (css != null) pane.getStylesheets().add(css.toExternalForm());
+            
 
             dlg.setResultConverter(bt ->
                     (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE)
@@ -570,267 +681,87 @@ private void initialize() {
         } catch (Exception ex) {
             showError("Errore apertura wizard sessioni: " + ex.getMessage());
             ex.printStackTrace();
-            return Optional.empty();
+            return Optional.<List<Sessione>>empty();
         }
     }
 
-    private void onDelete() {
-        Corso sel = table.getSelectionModel().getSelectedItem();
-        if (sel == null) return;
-
-        Alert a = new Alert(Alert.AlertType.CONFIRMATION,
-                "Eliminare il corso: " + sel.getArgomento() + " ?");
-        URL css = getClass().getResource(APP_CSS);
-        if (css != null) {
-            a.getDialogPane().getStylesheets().add(css.toExternalForm());
-        }
-        a.showAndWait().filter(bt -> bt == ButtonType.OK).ifPresent(bt -> {
-            try {
-                corsoDao.delete(sel.getIdCorso());
-                backing.remove(sel);
-                updateFiltersUI();
-            } catch (Exception ex) {
-                showError("Impossibile eliminare il corso: " + ex.getMessage());
-            }
-        });
-    }
-
-    /** ====== NUOVO: associa ricette alle sessioni in presenza ====== */
-   /** ====== Associa ricette alle sessioni in presenza (con FXMLLoader + ControllerFactory) ====== */
-private void onAssociateRecipes() {
-    Corso sel = table.getSelectionModel().getSelectedItem();
-    if (sel == null) return;
-
-    if (!isOwnedByLoggedChef(sel)) {
-        new Alert(Alert.AlertType.WARNING,
-                "Puoi modificare solo i corsi che appartengono al tuo profilo.")
-            .showAndWait();
-        return;
-    }
-
-    try {
-        // 1) Recupera le sessioni in presenza del corso
-        List<SessionePresenza> presenze = new ArrayList<>();
-        List<Sessione> tutte = sessioneDao.findByCorso(sel.getIdCorso());
-        if (tutte != null) {
-            for (Sessione s : tutte) {
-                if (s instanceof SessionePresenza sp) presenze.add(sp);
-            }
-        }
-
-        if (presenze.isEmpty()) {
-            showInfo("Il corso non ha sessioni in presenza.");
-            return;
-        }
-
-        // 2) Se più di una, chiedi quale sessione associare
-        SessionePresenza target = (presenze.size() == 1)
-                ? presenze.get(0)
-                : choosePresenza(presenze).orElse(null);
-
-        if (target == null) return; // annullato
-
-        // 3) Dati per il dialog: tutte le ricette + già collegate
-        if (ricettaDao == null) ricettaDao = new RicettaDao(); // fallback
-        List<Ricetta> tutteLeRicette = ricettaDao.findAll();
-        List<Ricetta> ricetteGiaAssociate =
-                sessioneDao.findRicetteBySessionePresenza(target.getId());
-
-        // 4) Carica l'FXML con fx:controller=it.unina.foodlab.controller.AssociaRicetteController
-        var url = AssociaRicetteController.class.getResource("/it/unina/foodlab/ui/AssociaRicette.fxml");
-        if (url == null) throw new IllegalStateException("FXML non trovato: /it/unina/foodlab/ui/AssociaRicette.fxml");
-
-        FXMLLoader fx = new FXMLLoader(url);
-        fx.setControllerFactory(t -> {
-            if (t == AssociaRicetteController.class) {
-                return new AssociaRicetteController(
-                        sessioneDao,
-                        target.getId(),
-                        (tutteLeRicette != null ? tutteLeRicette : java.util.Collections.emptyList()),
-                        (ricetteGiaAssociate != null ? ricetteGiaAssociate : java.util.Collections.emptyList())
-                );
-            }
-            try {
-                return t.getDeclaredConstructor().newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException("Impossibile creare controller: " + t, e);
-            }
-        });
-
-        // NB: qui non ci serve 'root', ci basta che il controller venga creato e inizializzato
-        fx.load();
-        AssociaRicetteController dlg = fx.getController();
-
-        Optional<List<Long>> result = dlg.showAndWait();
-        dlg.salvaSeConfermato(result);
-
-    } catch (Exception e) {
-        showError("Errore associazione ricette: " + e.getMessage());
-        e.printStackTrace();
-    }
-}
-
-
-    /** Dialog per scegliere una sessione in presenza quando sono > 1. */
-    private Optional<SessionePresenza> choosePresenza(List<SessionePresenza> presenze) {
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
-
-        Map<String, SessionePresenza> map = new LinkedHashMap<>();
-        for (SessionePresenza sp : presenze) {
-            String data = sp.getData() != null ? df.format(sp.getData()) : "";
-            String orari = (sp.getOraInizio() != null ? tf.format(sp.getOraInizio()) : "") +
-                           "-" +
-                           (sp.getOraFine() != null ? tf.format(sp.getOraFine()) : "");
-            String indirizzo = joinNonEmpty(" ",
-                    nz(sp.getVia()), nz(sp.getNum()),
-                    nz(sp.getCap())
-            ).trim();
-            String label = String.format("%s  %s  %s", data, orari, indirizzo).trim();
-            // Evita chiavi duplicate
-            String key = label;
-            int suffix = 2;
-            while (map.containsKey(key)) key = label + " (" + (suffix++) + ")";
-            map.put(key, sp);
-        }
-
-        ChoiceDialog<String> d = new ChoiceDialog<>(map.keySet().iterator().next(), map.keySet());
-        URL css = getClass().getResource(APP_CSS);
-        if (css != null) {
-            d.getDialogPane().getStylesheets().add(css.toExternalForm());
-        }
-
-        d.setTitle("Seleziona la sessione in presenza");
-        d.setHeaderText("Scegli la sessione a cui associare le ricette");
-        d.setContentText(null);
-
-        Optional<String> pick = d.showAndWait();
-        return pick.map(map::get);
-    }
-
-    private void showSessioniDialog(Corso corso) {
-        if (corso == null || sessioneDao == null) return;
-
+    /* ================== ANTEPRIMA SESSIONI ================== */
+    private void openSessioniPreview(Corso corso) {
+        if (corso == null) return;
         try {
-            List<Sessione> sessioni = sessioneDao.findByCorso(corso.getIdCorso());
-            Dialog<Void> dlg = new Dialog<>();
-            dlg.setTitle("Sessioni - " + (corso.getArgomento() != null ? corso.getArgomento() : ""));
+            FXMLLoader l = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/SessioniPreview.fxml"));
+            DialogPane pane = l.load();
+            SessioniPreviewController ctrl = l.getController();
 
-            DialogPane pane = new DialogPane();
-            pane.getButtonTypes().add(ButtonType.CLOSE);
+            long id = corso.getIdCorso();
+            List<Sessione> sessions = sessioneDao.findByCorso(id);
+            ctrl.init(corso, sessions);
 
-            if (sessioni == null || sessioni.isEmpty()) {
-                pane.setContent(new Label("Questo corso non ha sessioni."));
-            } else {
-                ListView<String> list = new ListView<>();
-                DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
-
-                for (Sessione s : sessioni) {
-                    LocalDate d = s.getData();
-                    LocalTime i = s.getOraInizio();
-                    LocalTime f = s.getOraFine();
-
-                    String modalita = s.getModalita() != null ? s.getModalita() : "";
-
-                    String sede = "";
-                    if (s instanceof SessionePresenza sp) {
-                        String via = nz(sp.getVia());
-                        String num = nz(sp.getNum());
-                        String cap = nz(sp.getCap());
-                        String indirizzo = (via + (num.isBlank() ? "" : " " + num)).trim();
-                        sede = joinNonEmpty(" - ", indirizzo, cap);
-                    } else if (s instanceof SessioneOnline so) {
-                        String piattaforma = nz(so.getPiattaforma());
-                        sede = piattaforma;
-                    }
-
-                    String riga = String.format("[%s] %s  %s-%s  %s",
-                            modalita,
-                            d != null ? df.format(d) : "",
-                            i != null ? tf.format(i) : "",
-                            f != null ? tf.format(f) : "",
-                            sede);
-
-                    list.getItems().add(riga.trim());
-                }
-
-                list.setPrefSize(600, 350);
-                pane.setContent(list);
-            }
-
-            URL css = getClass().getResource(APP_CSS);
-            if (css != null) pane.getStylesheets().add(css.toExternalForm());
-
+            Dialog<Void> dlg = new Dialog<Void>();
+            dlg.setTitle("Sessioni — " + safe(corso.getArgomento()));
             dlg.setDialogPane(pane);
             dlg.initOwner(table.getScene().getWindow());
             dlg.initModality(Modality.WINDOW_MODAL);
+
+           
             dlg.showAndWait();
 
         } catch (Exception ex) {
-            showError("Errore apertura sessioni: " + ex.getMessage());
+            ex.printStackTrace();
+            new Alert(Alert.AlertType.ERROR,
+                    "Errore apertura anteprima sessioni:\n" + ex.getMessage()).showAndWait();
         }
     }
-    
-   // Campo o dipendenza nel controller // o come lo istanzi di solito
 
-private void openSessioniPreview(Corso corso) {
-    try {
-        FXMLLoader l = new FXMLLoader(getClass().getResource(
-            "/it/unina/foodlab/ui/SessioniPreview.fxml"
-        ));
-        DialogPane pane = l.load();
-        SessioniPreviewController ctrl = l.getController();
+    /* ================== HELPERS ================== */
 
-        // PRENDI LE SESSIONI DAL DAO usando l'ID del corso
-        long id = corso.getIdCorso();
-        List<Sessione> sessions = sessioneDao.findByCorso(id); // <--- adattalo al tuo DAO
-
-        ctrl.init(corso, sessions);
-
-        Dialog<Void> dlg = new Dialog<>();
-        dlg.setTitle("Sessioni — " + corso.getArgomento()); // o getTitolo se ce l’hai
-        dlg.setDialogPane(pane);
-        dlg.initOwner(table.getScene().getWindow());
-        dlg.showAndWait();
-
-    } catch (Exception ex) {
-        ex.printStackTrace();
-        new Alert(Alert.AlertType.ERROR,
-            "Errore apertura anteprima sessioni:\n" + ex.getMessage()).showAndWait();
-    }
-}
-
-
-    
-    
-
+    private static String safe(String s) { return s == null ? "" : s; }
     /* ---------------- Helpers dataset & UI ---------------- */
 
-    private static String nz(String s) { return s == null ? "" : s; }
-    private static String joinNonEmpty(String sep, String... parts) {
-        return Arrays.stream(parts)
-                .filter(p -> p != null && !p.isBlank())
-                .collect(java.util.stream.Collectors.joining(sep));
+    private static String nz(String s) {
+        return (s == null) ? "" : s;
     }
 
-    private static String nz(int n) { return n > 0 ? String.valueOf(n) : ""; }
+    private static String nz(int n) {
+        // restituisce "" se 0 o negativo, altrimenti il numero
+        return (n > 0) ? String.valueOf(n) : "";
+    }
+
+    private static String nz(long n) {
+        return (n > 0L) ? String.valueOf(n) : "";
+    }
+
+    /** join di parti non vuote senza usare stream/lambda */
+    private static String joinNonEmpty(String sep, String... parts) {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        if (parts != null) {
+            for (int i = 0; i < parts.length; i++) {
+                String p = parts[i];
+                if (p != null && !p.trim().isEmpty()) {
+                    if (!first) sb.append(sep);
+                    sb.append(p.trim());
+                    first = false;
+                }
+            }
+        }
+        return sb.toString();
+    }
+
 
     private void showError(String msg) {
         Alert a = new Alert(Alert.AlertType.ERROR);
         a.setHeaderText("Errore");
         a.setContentText(msg);
+        
         a.showAndWait();
     }
 
     private void showInfo(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION);
-        URL css = getClass().getResource(APP_CSS);
-        if (css != null) {
-            a.getDialogPane().getStylesheets().add(css.toExternalForm());
-        }
         a.setHeaderText(null);
         a.setContentText(msg);
+       
         a.showAndWait();
     }
 
@@ -840,7 +771,7 @@ private void openSessioniPreview(Corso corso) {
         return !isBlank(owner) && c.getChef().getCF_Chef().equalsIgnoreCase(owner);
     }
 
-    private static boolean isBlank(String s) { return s == null || s.isBlank(); }
+    private static boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
     private static boolean matchesEqIgnoreCase(String value, String filter) {
         if (isBlank(filter)) return true;
         return value != null && value.equalsIgnoreCase(filter);
@@ -850,39 +781,33 @@ private void openSessioniPreview(Corso corso) {
         return value != null && value.toLowerCase().contains(filter.toLowerCase());
     }
 
-    /** Aggiorna il testo del MenuButton + tooltip + etichette voci. */
     private void updateFiltersUI() {
         updateFiltersBadge();
         updateFiltersMenuLabels();
     }
 
-    /** Badge compatto e tooltip completo sul bottone Filtri. */
     private void updateFiltersBadge() {
-        List<String> parts = new ArrayList<>();
-
-        if (!isBlank(filtroArg))  parts.add("Arg=" + filtroArg);
-        if (!isBlank(filtroFreq)) parts.add("Freq=" + filtroFreq);
-        if (!isBlank(filtroChef)) parts.add("Chef=" + filtroChef);
-        if (!isBlank(filtroId))   parts.add("ID=" + filtroId);
-
+        StringBuilder sb = new StringBuilder();
+        appendIf(sb, !isBlank(filtroArg), "Arg=" + filtroArg);
+        appendIf(sb, !isBlank(filtroFreq), "Freq=" + filtroFreq);
+        appendIf(sb, !isBlank(filtroChef), "Chef=" + filtroChef);
+        appendIf(sb, !isBlank(filtroId), "ID=" + filtroId);
         if (dateFrom != null || dateTo != null) {
-            parts.add(formatDateRange(dateFrom, dateTo));
+            appendIf(sb, true, formatDateRange(dateFrom, dateTo));
         }
 
-        if (parts.isEmpty()) {
+        if (sb.length() == 0) {
             btnFilters.setText("Filtri");
             btnFilters.setTooltip(null);
             return;
         }
 
-        String fullSummary = String.join(", ", parts);
-        String shown = ellipsize(fullSummary, FILTERS_BADGE_MAX_CHARS);
-
+        String full = sb.toString();
+        String shown = ellipsize(full, FILTERS_BADGE_MAX_CHARS);
         btnFilters.setText("Filtri (" + shown + ")");
-        btnFilters.setTooltip(new Tooltip("Filtri attivi: " + fullSummary));
+        btnFilters.setTooltip(new Tooltip("Filtri attivi: " + full));
     }
 
-    /** Aggiorna i testi delle voci del menu Filtri. */
     private void updateFiltersMenuLabels() {
         miFiltroArg.setText(  formatFilterLabel(LABEL_ARG,  filtroArg));
         miFiltroFreq.setText( formatFilterLabel(LABEL_FREQ, filtroFreq));
@@ -890,66 +815,81 @@ private void openSessioniPreview(Corso corso) {
         miFiltroId.setText(   formatFilterLabel(LABEL_ID,   filtroId));
     }
 
-    /** "01/10–31/10" con puntini se un estremo manca. */
+    private static void appendIf(StringBuilder sb, boolean cond, String piece) {
+        if (!cond) return;
+        if (sb.length() > 0) sb.append(", ");
+        sb.append(piece);
+    }
+
+    private String formatFilterLabel(String base, String value) {
+        return base + ": " + (isBlank(value) ? "(tutte)" : value);
+    }
+
     private String formatDateRange(LocalDate from, LocalDate to) {
         DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM");
-        String left  = (from != null) ? df.format(from) : "…";
-        String right = (to   != null) ? df.format(to)   : "…";
-        return left + "–" + right;
+        String l = (from != null) ? df.format(from) : "…";
+        String r = (to   != null) ? df.format(to)   : "…";
+        return l + "–" + r;
     }
 
-    /** Taglia a maxLen caratteri aggiungendo "…" se necessario. */
     private String ellipsize(String s, int maxLen) {
         if (s == null || s.length() <= maxLen) return s;
-        return s.substring(0, Math.max(0, maxLen - 1)) + "…";
+        int take = Math.max(0, maxLen - 1);
+        return s.substring(0, take) + "…";
     }
 
-    /* ---------------- Distinte & ChoiceDialog ---------------- */
-
     private List<String> distinctArgomenti() {
-        Set<String> s = new HashSet<>();
-        for (Corso c : backing) {
-            String a = c.getArgomento();
-            if (a != null && !a.isBlank()) s.add(a.trim());
+        Set<String> s = new HashSet<String>();
+        for (int i = 0; i < backing.size(); i++) {
+            Corso c = backing.get(i);
+            String a = (c != null) ? c.getArgomento() : null;
+            if (a != null && a.trim().length() > 0) s.add(a.trim());
         }
-        List<String> out = new ArrayList<>(s);
-        out.sort(String.CASE_INSENSITIVE_ORDER);
-        out.add(0, ALL_OPTION);
-        return out;
+        return sortedWithAllOption(s);
     }
 
     private List<String> distinctFrequenze() {
-        Set<String> s = new HashSet<>();
-        for (Corso c : backing) {
-            String f = c.getFrequenza();
-            if (f != null && !f.isBlank()) s.add(f.trim());
+        Set<String> s = new HashSet<String>();
+        for (int i = 0; i < backing.size(); i++) {
+            Corso c = backing.get(i);
+            String f = (c != null) ? c.getFrequenza() : null;
+            if (f != null && f.trim().length() > 0) s.add(f.trim());
         }
-        List<String> out = new ArrayList<>(s);
-        out.sort(String.CASE_INSENSITIVE_ORDER);
-        out.add(0, ALL_OPTION);
-        return out;
+        return sortedWithAllOption(s);
     }
 
     private List<String> distinctChefLabels() {
-        Set<String> s = new HashSet<>();
-        for (Corso c : backing) {
-            s.add(chefLabelOf(c.getChef()));
+        Set<String> s = new HashSet<String>();
+        for (int i = 0; i < backing.size(); i++) {
+            Corso c = backing.get(i);
+            s.add(chefLabelOf(c != null ? c.getChef() : null));
         }
         s.remove("");
-        List<String> out = new ArrayList<>(s);
-        out.sort(String.CASE_INSENSITIVE_ORDER);
-        out.add(0, ALL_OPTION);
-        return out;
+        return sortedWithAllOption(s);
     }
 
     private List<String> distinctIdLabels() {
-        List<String> ids = new ArrayList<>();
-        for (Corso c : backing) {
-            ids.add(String.valueOf(c.getIdCorso()));
+        List<String> ids = new ArrayList<String>();
+        for (int i = 0; i < backing.size(); i++) {
+            Corso c = backing.get(i);
+            if (c != null) ids.add(String.valueOf(c.getIdCorso()));
         }
-        ids.sort(Comparator.comparingLong(Long::parseLong));
+        Collections.sort(ids, new Comparator<String>() {
+            @Override public int compare(String a, String b) {
+                long la = Long.parseLong(a);
+                long lb = Long.parseLong(b);
+                return Long.compare(la, lb);
+            }
+        });
         ids.add(0, ALL_OPTION);
         return ids;
+    }
+
+    private List<String> sortedWithAllOption(Set<String> set) {
+        List<String> out = new ArrayList<String>(set);
+        Collections.sort(out, String.CASE_INSENSITIVE_ORDER);
+        out.add(0, ALL_OPTION);
+        return out;
     }
 
     private String chefLabelOf(Chef ch) {
@@ -958,7 +898,6 @@ private void openSessioniPreview(Corso corso) {
         return full.isEmpty() ? nz(ch.getCF_Chef()) : full;
     }
 
-    /** Dialog a tendina riutilizzabile con pre-selezione case-insensitive. */
     private String askChoice(String title, String header, List<String> options, String preselect) {
         if (options == null || options.isEmpty()) {
             showInfo("Nessuna opzione disponibile.");
@@ -966,34 +905,28 @@ private void openSessioniPreview(Corso corso) {
         }
         String def = options.get(0); // "Tutte"
         if (!isBlank(preselect)) {
-            for (String opt : options) {
-                if (opt.equalsIgnoreCase(preselect)) {
-                    def = opt;
-                    break;
-                }
+            for (int i = 0; i < options.size(); i++) {
+                String opt = options.get(i);
+                if (opt.equalsIgnoreCase(preselect)) { def = opt; break; }
             }
         }
 
-        ChoiceDialog<String> d = new ChoiceDialog<>(def, options);
+        ChoiceDialog<String> d = new ChoiceDialog<String>(def, options);
         d.setTitle(title);
         d.setHeaderText(header);
         d.setContentText(null);
-        
-        Scene scene = d.getDialogPane().getScene();
-        if (scene != null) {
-            URL css = getClass().getResource(APP_CSS);
-                scene.getStylesheets().add(css.toExternalForm());
-        }
-        
+
         Optional<String> res = d.showAndWait();
-        return res.orElse(null);
+        return res.isPresent() ? res.get() : null;
     }
 
-    /** Converte l'opzione "Tutte" in null (nessun filtro). */
     private String normalizeAllToNull(String value) {
         if (value == null) return null;
         return ALL_OPTION.equalsIgnoreCase(value.trim()) ? null : value.trim();
     }
-    
-    
+
+    private static String firstKeyOr(Map<String, SessionePresenza> map, String fallback) {
+        for (String k : map.keySet()) return k;
+        return fallback;
+    }
 }

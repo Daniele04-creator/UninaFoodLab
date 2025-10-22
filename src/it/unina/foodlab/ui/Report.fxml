@@ -1,93 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
 
 <BorderPane fx:id="root"
             xmlns="http://javafx.com/javafx/21.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.unina.foodlab.controller.ReportController"
-          
-            prefWidth="1000.0" prefHeight="600.0">
+            prefWidth="1000.0" prefHeight="600.0"
+            style="-fx-background-color:#272b35; -fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;">
 
-    <!-- padding generale -->
-    <padding>
-        <Insets top="12" right="12" bottom="12" left="12"/>
-    </padding>
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
 
-    <!-- TOP: toolbar -->
+    <!-- TOP -->
     <top>
-    <VBox spacing="8" alignment="CENTER_LEFT">
-        <children>
-            <!-- Riga 1: Indietro + Logo -->
-            <HBox spacing="8" alignment="CENTER_LEFT">
-                <children>
-                    <Button fx:id="btnIndietro"
-                            style="-fx-graphic: url('/icons/arrow-88-16.png'); -fx-content-display: graphic-only;"/>
-                    <ImageView fitHeight="52" preserveRatio="true">
-                        <image>
-                            <Image url="@/icons/Report-Logo.png"/>
-                        </image>
-                    </ImageView>
-                </children>
-            </HBox>
+        <VBox spacing="8" alignment="CENTER_LEFT"
+              style="-fx-background-color:#2e3440; -fx-background-radius:8; -fx-padding:8;">
+            <children>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <children>
+                        <Button fx:id="btnIndietro"
+                                style="-fx-background-color:#3b4252; -fx-text-fill:#eceff4; -fx-background-radius:6;
+                                       -fx-graphic: url('/icons/arrow-88-16.png'); -fx-content-display: graphic-only; -fx-padding:8 10;"/>
+                        <ImageView fitHeight="46" preserveRatio="true">
+                            <image><Image url="@/icons/Report-Logo.png"/></image>
+                        </ImageView>
+                    </children>
+                </HBox>
 
-            <!-- Riga 2: Label + DatePicker + Bottone -->
-            <HBox spacing="8" alignment="CENTER_LEFT">
-                <children>
-                    <Label text="Scegli una data del mese:"/>
-                    <DatePicker fx:id="dpMese" showWeekNumbers="false"/>
-                    <Button fx:id="btnGenera" text="Genera Report"/>
-                </children>
-            </HBox>
-        </children>
-        <padding>
-            <Insets top="8" right="8" bottom="8" left="8"/>
-        </padding>
-    </VBox>
-</top>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Scegli una data del mese:" style="-fx-text-fill:#eceff4;"/>
+                        <DatePicker fx:id="dpMese" showWeekNumbers="false"
+                                    style="-fx-background-color:#3b4252; -fx-background-radius:6; -fx-text-fill:#eceff4;"/>
+                        <Button fx:id="btnGenera" text="Genera Report"
+                                style="-fx-background-color:#5e81ac; -fx-text-fill:#eceff4; -fx-background-radius:6; -fx-padding:8 12; -fx-font-weight:bold;"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </top>
 
+    <!-- CENTER -->
+    <center>
+        <VBox spacing="12" fillWidth="true">
+            <children>
+                <Label fx:id="lblTitolo" text="Report Mensile"
+                       style="-fx-text-fill:#eceff4; -fx-font-weight:bold; -fx-font-size:16px;"/>
+                <Separator/>
 
-    <!-- CENTER: titolo + card con griglia valori -->
- <center>
-    <VBox spacing="12" fillWidth="true"> <!-- spacing maggiore -->
-        <children>
-            <Label fx:id="lblTitolo" text="Report Mensile" styleClass="card-title"/>
-            <Separator/>
+                <VBox fx:id="cardValori" fillWidth="true"
+                      style="-fx-background-color:#2e3440; -fx-background-radius:8; -fx-padding:16; -fx-border-color:#3b4252; -fx-border-radius:8;">
+                    <children>
+                        <GridPane fx:id="gridValori" hgap="12" vgap="12">
+                            <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+                        </GridPane>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </center>
 
-            <!-- Card unica per tutti i valori -->
-            <VBox fx:id="cardValori" styleClass="card" fillWidth="true" maxWidth="Infinity">
-                <padding>
-                    <Insets top="16" right="16" bottom="16" left="16"/>
-                </padding>
-                <children>
-                    <GridPane fx:id="gridValori" hgap="12" vgap="12"> <!-- vgap maggiore per spacing -->
-                        <padding>
-                            <Insets top="8" right="8" bottom="8" left="8"/>
-                        </padding>
-                    </GridPane>
-                </children>
-            </VBox>
-
-        </children>
-        <padding>
-            <Insets top="8" right="8" bottom="8" left="8"/>
-        </padding>
-    </VBox>
-</center>
-
-
-    <!-- RIGHT: grafici in scroll -->
+    <!-- RIGHT -->
     <right>
-        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" prefWidth="540.0">
+        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" prefWidth="540.0"
+                    style="-fx-background:#2e3440; -fx-background-insets:0; -fx-background-color:transparent;">
             <content>
-                <VBox fx:id="rightCharts" spacing="12" fillWidth="true">
-                    <padding>
-                        <Insets top="8" right="8" bottom="8" left="8"/>
-                    </padding>
+                <VBox fx:id="rightCharts" spacing="12" fillWidth="true"
+                      style="-fx-padding:8;">
                 </VBox>
             </content>
         </ScrollPane>

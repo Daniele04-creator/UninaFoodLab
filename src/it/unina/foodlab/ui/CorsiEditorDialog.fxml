@@ -1,91 +1,142 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Cursor?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ButtonType?>
-<?import javafx.scene.control.ChoiceBox?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DatePicker?>
-<?import javafx.scene.control.DialogPane?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Spinner?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.SVGPath?>
 
-<!-- 
-  Come nel tuo esempio, colleghiamo un foglio di stile esterno. 
-  Tutta la "magia" dello stile avverrà lì. 
--->
-<DialogPane fx:id="dialogPane" prefWidth="540.0"  styleClass="dialog-pane-root"
-            xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="it.unina.foodlab.controller.CorsoEditorDialogController">
+<DialogPane fx:id="dialogPane" prefWidth="560"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="it.unina.foodlab.controller.CorsoEditorDialogController"
+            style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
+                   -fx-background-radius:12; -fx-border-radius:12;
+                   -fx-border-color: rgba(255,255,255,0.06); -fx-border-width:1;
+                   -fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;">
 
     <header>
-        <VBox alignment="CENTER" spacing="8.0" styleClass="dialog-header">
+        <VBox alignment="CENTER" spacing="6"
+              style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
+                     -fx-background-radius:12 12 0 0; -fx-padding:16 20;">
             <children>
-                <Label text="Crea Nuovo Corso" styleClass="header-title"/>
-                <Label text="Configura i dettagli del corso" styleClass="header-subtitle"/>
+                <Label text="Crea Nuovo Corso"
+                       style="-fx-text-fill:#a7f3d0; -fx-font-weight:900; -fx-font-size:18px;"/>
+                <Label text="Configura i dettagli del corso"
+                       style="-fx-text-fill:#e9f5ec; -fx-opacity:0.85;"/>
             </children>
-            <padding><Insets bottom="20.0" left="28.0" right="28.0" top="24.0"/></padding>
         </VBox>
     </header>
 
     <content>
-        <GridPane hgap="16.0" vgap="18.0">
-            <padding><Insets bottom="28.0" left="28.0" right="28.0" top="24.0"/></padding>
+        <GridPane hgap="16" vgap="16" style="-fx-padding:20;">
             <children>
-                <Label text="Argomento" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                <HBox alignment="CENTER_LEFT" spacing="10" styleClass="input-container" GridPane.columnIndex="1" GridPane.rowIndex="0">
+
+                <!-- ARGOMENTO -->
+                <Label text="Argomento"
+                       style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"
+                       GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      GridPane.rowIndex="0" GridPane.columnIndex="1">
                     <children>
-                        <StackPane styleClass="icon-pane"><SVGPath fill="#b9c2d0" content="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></StackPane>
-                        <ComboBox fx:id="cbArg" promptText="Seleziona argomento" HBox.hgrow="ALWAYS" styleClass="transparent-input"/>
-                        <Button fx:id="btnAddArg" styleClass="icon-button">
-                            <graphic><SVGPath content="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" styleClass="icon-svg"/></graphic>
+                        <StackPane minWidth="18" minHeight="18" maxWidth="18" maxHeight="18">
+                            <SVGPath fill="#93a5be"
+                                     content="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                        </StackPane>
+
+                        <ComboBox fx:id="cbArg" promptText="Seleziona argomento" HBox.hgrow="ALWAYS"
+                                  style="-fx-background-color:#2b3438; -fx-control-inner-background:#2b3438;
+                                         -fx-text-fill:#e9f5ec; -fx-prompt-text-fill: rgba(233,245,236,0.70);
+                                         -fx-background-radius:10; -fx-border-color: rgba(255,255,255,0.06);
+                                         -fx-border-radius:10; -fx-padding:4 8;"/>
+
+                        <Button fx:id="btnAddArg" focusTraversable="false"
+                                style="-fx-background-color:#2b3438; -fx-background-radius:10; -fx-padding:6;">
+                            <graphic>
+                                <SVGPath fill="#e9f5ec"
+                                         content="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </graphic>
                             <cursor><Cursor fx:constant="HAND"/></cursor>
+                            <tooltip><Tooltip text="Aggiungi argomento"/></tooltip>
                         </Button>
                     </children>
                 </HBox>
 
-                <Label text="Frequenza" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                <HBox alignment="CENTER_LEFT" spacing="10" styleClass="input-container" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <!-- FREQUENZA -->
+                <Label text="Frequenza"
+                       style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"
+                       GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      GridPane.rowIndex="1" GridPane.columnIndex="1">
                     <children>
-                        <StackPane styleClass="icon-pane"><SVGPath fill="#b9c2d0" content="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></StackPane>
-                        <ChoiceBox fx:id="cbFreq" HBox.hgrow="ALWAYS" styleClass="transparent-input"/>
+                        <StackPane minWidth="18" minHeight="18" maxWidth="18" maxHeight="18">
+                            <SVGPath fill="#93a5be"
+                                     content="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+                        </StackPane>
+                        <ChoiceBox fx:id="cbFreq"
+                                   style="-fx-background-color:#2b3438; -fx-background-radius:10;
+                                          -fx-text-fill:#e9f5ec; -fx-padding:4 10;"/>
                     </children>
                 </HBox>
 
-                <Label text="Data Inizio" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
-                <HBox alignment="CENTER_LEFT" spacing="10" styleClass="input-container" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                <!-- DATA INIZIO -->
+                <Label text="Data Inizio"
+                       style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"
+                       GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      GridPane.rowIndex="2" GridPane.columnIndex="1">
                     <children>
-                        <StackPane styleClass="icon-pane"><SVGPath fill="#b9c2d0" content="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></StackPane>
-                        <DatePicker fx:id="dpInizio" promptText="Seleziona data" HBox.hgrow="ALWAYS" showWeekNumbers="false" styleClass="transparent-input"/>
+                        <StackPane minWidth="18" minHeight="18" maxWidth="18" maxHeight="18">
+                            <SVGPath fill="#93a5be"
+                                     content="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zM19 19H5V8h14z"/>
+                        </StackPane>
+                        <DatePicker fx:id="dpInizio" promptText="Seleziona data"
+                                    showWeekNumbers="false" HBox.hgrow="ALWAYS"
+                                    style="-fx-background-color:#2b3438; -fx-control-inner-background:#2b3438;
+                                           -fx-text-fill:#e9f5ec; -fx-prompt-text-fill: rgba(233,245,236,0.70);
+                                           -fx-background-radius:10; -fx-border-color: rgba(255,255,255,0.06);
+                                           -fx-border-radius:10; -fx-padding:4 8;"/>
                     </children>
                 </HBox>
 
-                <Label text="Sessioni" styleClass="form-label" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
-                     <children>
-                        <HBox alignment="CENTER_LEFT" spacing="10" styleClass="input-container" HBox.hgrow="ALWAYS">
+                <!-- SESSIONI -->
+                <Label text="Sessioni"
+                       style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"
+                       GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <HBox spacing="10" GridPane.rowIndex="3" GridPane.columnIndex="1">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="10" HBox.hgrow="ALWAYS"
+                              style="-fx-background-color: transparent;">
                             <children>
-                                <StackPane styleClass="icon-pane"><SVGPath fill="#b9c2d0" content="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></StackPane>
-                                <Spinner fx:id="spNumSess" editable="true" HBox.hgrow="ALWAYS" styleClass="transparent-input-spinner"/>
+                                <StackPane minWidth="18" minHeight="18" maxWidth="18" maxHeight="18">
+                                    <SVGPath fill="#93a5be"
+                                             content="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                </StackPane>
+                                <Spinner fx:id="spNumSess" editable="true" HBox.hgrow="ALWAYS"
+                                         style="-fx-background-color:#2b3438; -fx-control-inner-background:#2b3438;
+                                                -fx-text-fill:#e9f5ec; -fx-background-radius:10;
+                                                -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius:10;"/>
                             </children>
                         </HBox>
-                        <HBox alignment="CENTER_LEFT" styleClass="readonly-container" HBox.hgrow="NEVER">
-                             <children>
-                                <Label text="Fine:  " styleClass="readonly-label"/><Label fx:id="lblFine" text="—" styleClass="readonly-value"/>
-                             </children>
+
+                        <HBox alignment="CENTER_LEFT" spacing="6"
+                              style="-fx-background-color: rgba(255,255,255,0.04);
+                                     -fx-background-radius:10; -fx-padding:4 8;">
+                            <children>
+                                <Label text="Fine:" style="-fx-text-fill:#9fb6aa;"/>
+                                <Label fx:id="lblFine" text="—" style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;"/>
+                            </children>
                         </HBox>
-                     </children>
+                    </children>
                 </HBox>
+
             </children>
+            <columnConstraints>
+                <ColumnConstraints percentWidth="32"/>
+                <ColumnConstraints percentWidth="68"/>
+            </columnConstraints>
         </GridPane>
     </content>
-    
+
     <buttonTypes>
         <ButtonType fx:id="createButtonType" buttonData="OK_DONE" text="Crea Corso"/>
         <ButtonType fx:id="cancelButtonType" buttonData="CANCEL_CLOSE" text="Annulla"/>

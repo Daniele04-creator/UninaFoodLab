@@ -6,23 +6,26 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane fx:id="root"
-            xmlns="http://javafx.com/javafx/21.0.1"
+            xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.unina.foodlab.controller.ReportController"
             prefWidth="1000.0" prefHeight="600.0"
-            style="-fx-background-color:#272b35; -fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;">
-
-    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+            style="-fx-background-color: linear-gradient(to bottom,#0e1114,#0b1014);
+                   -fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;">
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
 
     <!-- TOP -->
     <top>
         <VBox spacing="8" alignment="CENTER_LEFT"
-              style="-fx-background-color:#2e3440; -fx-background-radius:8; -fx-padding:8;">
+              style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
+                     -fx-background-radius:12; -fx-padding:12;">
             <children>
                 <HBox spacing="8" alignment="CENTER_LEFT">
                     <children>
                         <Button fx:id="btnIndietro"
-                                style="-fx-background-color:#3b4252; -fx-text-fill:#eceff4; -fx-background-radius:6;
+                                style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10;
                                        -fx-graphic: url('/icons/arrow-88-16.png'); -fx-content-display: graphic-only; -fx-padding:8 10;"/>
                         <ImageView fitHeight="46" preserveRatio="true">
                             <image><Image url="@/icons/Report-Logo.png"/></image>
@@ -30,32 +33,39 @@
                     </children>
                 </HBox>
 
-                <HBox spacing="8" alignment="CENTER_LEFT">
+                <HBox spacing="10" alignment="CENTER_LEFT">
                     <children>
-                        <Label text="Scegli una data del mese:" style="-fx-text-fill:#eceff4;"/>
+                        <Label text="Scegli una data del mese:"
+                               style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;"/>
                         <DatePicker fx:id="dpMese" showWeekNumbers="false"
-                                    style="-fx-background-color:#3b4252; -fx-background-radius:6; -fx-text-fill:#eceff4;"/>
-                        <Button fx:id="btnGenera" text="Genera Report"
-                                style="-fx-background-color:#5e81ac; -fx-text-fill:#eceff4; -fx-background-radius:6; -fx-padding:8 12; -fx-font-weight:bold;"/>
+                                    style="-fx-background-color:#2b3438; -fx-background-radius:10;
+                                           -fx-text-fill:#e9f5ec; -fx-prompt-text-fill: rgba(233,245,236,0.70);
+                                           -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius:10;"/>
+                        <Button fx:id="btnGenera" text="Crea"
+                                style="-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;
+                                       -fx-background-radius:10; -fx-padding:8 14;"/>
                     </children>
                 </HBox>
             </children>
         </VBox>
     </top>
 
-    <!-- CENTER -->
+    <!-- CENTER: titolo + card riepilogo -->
     <center>
         <VBox spacing="12" fillWidth="true">
             <children>
                 <Label fx:id="lblTitolo" text="Report Mensile"
-                       style="-fx-text-fill:#eceff4; -fx-font-weight:bold; -fx-font-size:16px;"/>
-                <Separator/>
+                       style="-fx-text-fill:#e9f5ec; -fx-font-weight:800; -fx-font-size:18px;"/>
+                <Separator style="-fx-background-color: rgba(255,255,255,0.06); -fx-opacity:1;"/>
 
                 <VBox fx:id="cardValori" fillWidth="true"
-                      style="-fx-background-color:#2e3440; -fx-background-radius:8; -fx-padding:16; -fx-border-color:#3b4252; -fx-border-radius:8;">
+                      style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
+                             -fx-background-radius:12; -fx-border-color: rgba(255,255,255,0.06);
+                             -fx-border-radius:12; -fx-padding:16;">
                     <children>
-                        <GridPane fx:id="gridValori" hgap="12" vgap="12">
-                            <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+                        <GridPane fx:id="gridValori" hgap="16" vgap="10">
+                            <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
+                            <!-- Righe aggiunte da controller -->
                         </GridPane>
                     </children>
                 </VBox>
@@ -63,16 +73,14 @@
         </VBox>
     </center>
 
-    <!-- RIGHT -->
+    <!-- RIGHT: grafici -->
     <right>
         <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" prefWidth="540.0"
-                    style="-fx-background:#2e3440; -fx-background-insets:0; -fx-background-color:transparent;">
+                    style="-fx-background-color: transparent; -fx-background-insets:0;">
             <content>
                 <VBox fx:id="rightCharts" spacing="12" fillWidth="true"
-                      style="-fx-padding:8;">
-                </VBox>
+                      style="-fx-padding:8;"/>
             </content>
         </ScrollPane>
     </right>
-
 </BorderPane>

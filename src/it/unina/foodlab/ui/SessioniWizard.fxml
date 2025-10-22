@@ -3,11 +3,14 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<DialogPane xmlns:fx="http://javafx.com/fxml/1"
+<DialogPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.unina.foodlab.controller.SessioniWizardController"
             fx:id="dialogPane"
-            prefWidth="1000" prefHeight="650"
-            style="-fx-background-color:#2e3440; -fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;">
+            prefWidth="1100" prefHeight="700"
+            style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
+                   -fx-border-color: rgba(255,255,255,0.06);
+                   -fx-background-radius:12; -fx-border-radius:12;
+                   -fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;">
 
     <buttonTypes>
         <ButtonType text="Annulla"  buttonData="CANCEL_CLOSE" fx:id="cancelButtonType"/>
@@ -15,52 +18,60 @@
     </buttonTypes>
 
     <content>
-        <VBox spacing="10">
+        <!-- ★ sfondo scuro sull'area content per eliminare il bordo bianco -->
+        <VBox spacing="12" fillWidth="true" style="-fx-background-color:#20282b;">
             <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
 
             <Label text="Imposta modalità e dettagli per ciascuna sessione:"
-                   style="-fx-text-fill:#eceff4; -fx-font-weight:bold;"/>
+                   style="-fx-text-fill:#e9f5ec; -fx-font-weight:800;"/>
 
-            <TableView fx:id="table" editable="true" prefHeight="-1.0" maxHeight="Infinity"
-                       style="-fx-background-color:#2e3440; -fx-control-inner-background:#2e3440; -fx-text-background-color:#eceff4;
-                              -fx-border-color:#3b4252; -fx-border-radius:8; -fx-background-radius:8;">
-                <VBox.vgrow><Priority fx:constant="ALWAYS"/></VBox.vgrow>
+            <TableView fx:id="table" editable="true"
+                       VBox.vgrow="ALWAYS"
+                       style="-fx-background-color:#20282b; -fx-control-inner-background:#20282b; -fx-text-background-color:#e9f5ec;
+                              -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius:12; -fx-background-radius:12;
+                              -fx-table-cell-border-color: rgba(255,255,255,0.06);
+                              -fx-table-header-border-color: rgba(255,255,255,0.06);
+                              -fx-selection-bar: transparent; -fx-selection-bar-non-focused: transparent;">
                 <columnResizePolicy>
                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
                 </columnResizePolicy>
 
                 <columns>
-                    <TableColumn fx:id="cData"        text="Data"         prefWidth="130" minWidth="130"/>
-                    <TableColumn fx:id="cInizio"      text="Inizio"       prefWidth="140" minWidth="140"/>
-                    <TableColumn fx:id="cFine"        text="Fine"         prefWidth="140" minWidth="140"/>
-                    <TableColumn fx:id="cTipo"        text="Modalità"     prefWidth="160" minWidth="160"/>
-                    <TableColumn fx:id="cPiattaforma" text="Piattaforma"  prefWidth="180" minWidth="180"/>
-                    <TableColumn fx:id="cVia"         text="Via"          prefWidth="200" minWidth="200"/>
-                    <TableColumn fx:id="cNum"         text="Num"          prefWidth="80"  minWidth="80"/>
-                    <TableColumn fx:id="cCap"         text="CAP"          prefWidth="110" minWidth="110"/>
-                    <TableColumn fx:id="cAula"        text="Aula"         prefWidth="120" minWidth="120"/>
-                    <TableColumn fx:id="cPosti"       text="Posti"        prefWidth="100" minWidth="100"/>
+                    <TableColumn fx:id="cData"        text="Data"         prefWidth="150" minWidth="140"/>
+                    <TableColumn fx:id="cInizio"      text="Inizio"       prefWidth="150" minWidth="140"/>
+                    <TableColumn fx:id="cFine"        text="Fine"         prefWidth="150" minWidth="140"/>
+                    <TableColumn fx:id="cTipo"        text="Modalità"     prefWidth="170" minWidth="160"/>
+                    <TableColumn fx:id="cPiattaforma" text="Piattaforma"  prefWidth="190" minWidth="180"/>
+                    <TableColumn fx:id="cVia"         text="Via"          prefWidth="200" minWidth="180"/>
+                    <TableColumn fx:id="cNum"         text="Num"          prefWidth="90"  minWidth="80"/>
+                    <TableColumn fx:id="cCap"         text="CAP"          prefWidth="120" minWidth="110"/>
+                    <TableColumn fx:id="cAla"         text="Aula"         prefWidth="140" minWidth="120"/>
+                    <TableColumn fx:id="cPosti"       text="Posti"        prefWidth="110" minWidth="100"/>
                 </columns>
 
                 <placeholder>
                     <Label text="Nessuna sessione. Usa 'Nuovo' per creare una riga."
-                           style="-fx-text-fill: rgba(236,239,244,0.85);"/>
+                           style="-fx-text-fill: rgba(233,245,236,0.85);"/>
                 </placeholder>
             </TableView>
 
             <!-- Barra comandi -->
-            <HBox spacing="10" alignment="CENTER" style="-fx-padding: 4 0 0 0;">
+            <HBox spacing="10" alignment="CENTER" style="-fx-padding: 6 0 0 0;">
                 <children>
-                    <Button fx:id="btnAdd" text="Nuovo"
-                            style="-fx-background-color:#5e81ac; -fx-text-fill:#eceff4; -fx-background-radius:6; -fx-padding:8 12;
+                    <!-- ★ collega l'handler -->
+                    <Button fx:id="btnAdd" text="Nuovo" onAction="#onNuovo"
+                            style="-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;
+                                   -fx-background-radius:10; -fx-padding:8 14;
                                    -fx-graphic: url('/icons/plus-16.png'); -fx-content-display: left;">
-                        <tooltip><Tooltip text="Nuovo"/></tooltip>
+                        <tooltip><Tooltip text="Aggiungi una nuova riga"/></tooltip>
                         <graphicTextGap>8</graphicTextGap>
                     </Button>
-                    <Button fx:id="btnRemove" text="Rimuovi"
-                            style="-fx-background-color:#d46a6a; -fx-text-fill:#fff; -fx-background-radius:6; -fx-padding:8 12;
+                    <!-- ★ collega l'handler -->
+                    <Button fx:id="btnRemove" text="Rimuovi" onAction="#onRimuovi"
+                            style="-fx-background-color:#ef4444; -fx-text-fill:#fff; -fx-font-weight:800;
+                                   -fx-background-radius:10; -fx-padding:8 14;
                                    -fx-graphic: url('/icons/trash-2-16.png'); -fx-content-display: left;">
-                        <tooltip><Tooltip text="Rimuovi"/></tooltip>
+                        <tooltip><Tooltip text="Rimuovi la riga selezionata"/></tooltip>
                         <graphicTextGap>8</graphicTextGap>
                     </Button>
                 </children>

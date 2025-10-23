@@ -32,6 +32,8 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.StringConverter;
+import javafx.animation.RotateTransition;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.time.LocalDate;
@@ -46,6 +48,9 @@ public class CorsiPanelController {
 
     private static final String ALL_OPTION = "Tutte";
     private static final int FILTERS_BADGE_MAX_CHARS = 32;
+ // in CorsiPanelController
+    private final javafx.collections.ObservableList<String> argomentiCondivisi =
+            javafx.collections.FXCollections.observableArrayList();
 
     /* ----------- TOP BAR ----------- */
     @FXML private MenuButton btnFilters;
@@ -131,7 +136,11 @@ public class CorsiPanelController {
         updateFiltersUI();
 
         // Azioni
-        btnRefresh.setOnAction(e -> reload());
+        btnRefresh.setOnAction(e -> {
+            playRefreshAnimation(btnRefresh); // 🔄 effetto visivo
+            reload();                         // tua logica di ricarica
+        });
+
         btnReport.setOnAction(e -> openReportMode());
         btnNew.setOnAction(e -> onNew());
         btnEdit.setOnAction(e -> onEdit());
@@ -441,6 +450,17 @@ private void initTableColumns() {
     }
 }
 
+   /** Effetto rotazione dell'icona del bottone refresh per dare feedback visivo. */
+   private void playRefreshAnimation(Button btn) {
+       if (btn == null) return;
+       RotateTransition rt = new RotateTransition(Duration.millis(600), btn);
+       rt.setFromAngle(0);
+       rt.setToAngle(360);
+       rt.setCycleCount(1);
+       rt.setAutoReverse(false);
+       rt.play();
+   }
+
 
     // tooltip su ogni riga (argomento + periodo + chef)
     private void installRowFactory() {
@@ -607,17 +627,192 @@ private void initTableColumns() {
         return full.isEmpty() ? nz(ch.getCF_Chef()) : full;
     }
 
-    private String askChoice(String title, String header, List<String> options, String preselect) {
-        if (options == null || options.isEmpty()) { showInfo("Nessuna opzione disponibile."); return null; }
-        String def = options.get(0);
-        if (!isBlank(preselect)) for (String opt : options) if (opt.equalsIgnoreCase(preselect)) { def = opt; break; }
-        ChoiceDialog<String> d = new ChoiceDialog<>(def, options);
-        d.setTitle(title);
-        d.setHeaderText(header);
-        d.setContentText(null);
-        Optional<String> res = d.showAndWait();
-        return res.orElse(null);
+    /** Dialog dark coerente con l'app: restituisce la scelta o null se Annulla/chiuso. */
+private String askChoice(String title, String header, List<String> options, String preselect) {
+    if (options == null || options.isEmpty()) {
+        showInfo("Nessuna opzione disponibile.");
+        return null;
     }
+
+    // Dialog base
+    Dialog<String> dlg = new Dialog<>();
+    dlg.setTitle(title);
+    dlg.setHeaderText(header);
+
+    // Bottoni
+    ButtonType OK = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+    ButtonType CANCEL = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
+    dlg.getDialogPane().getButtonTypes().setAll(OK, CANCEL);
+
+    // Contenuto: combobox + padding
+    ComboBox<String> cb = new ComboBox<>(FXCollections.observableArrayList(options));
+    cb.setEditable(false);
+    // preselect (case insensitive)
+    String def = options.get(0);
+    if (preselect != null) {
+        for (String opt : options) {
+            if (opt.equalsIgnoreCase(preselect)) { def = opt; break; }
+        }
+    }
+    cb.getSelectionModel().select(def);
+
+    // Layout semplice
+    HBox box = new HBox(10, cb);
+    box.setPadding(new Insets(6, 0, 0, 0));
+    dlg.getDialogPane().setContent(box);
+
+    // Applica stile dark coerente
+    styleDarkDialog(dlg.getDialogPane());
+    styleDarkCombo(cb);
+    styleDarkButtons(dlg.getDialogPane(), OK, CANCEL);
+
+    // Mostra e ritorna
+    dlg.setResultConverter(bt -> (bt == OK) ? cb.getValue() : null);
+    Optional<String> res = dlg.showAndWait();
+    return res.orElse(null);
+}
+
+/** Stile dark per il DialogPane + header/scrollbar + rimozione focus blu. */
+private void styleDarkDialog(DialogPane pane) {
+    pane.setStyle(
+        "-fx-background-color:#20282b;" +
+        "-fx-background-radius:12;" +
+        "-fx-border-color: rgba(255,255,255,0.08);" +
+        "-fx-border-radius:12;" +
+        "-fx-border-width:1;" +
+        "-fx-padding:14;" +
+        "-fx-focus-color: transparent;" +
+        "-fx-faint-focus-color: transparent;" +
+        "-fx-accent: transparent;"
+    );
+    // header
+    Node header = pane.lookup(".header-panel");
+    if (header != null) {
+        header.setStyle("-fx-background-color: transparent; -fx-padding: 0 0 8 0;");
+        Node lbl = header.lookup(".label");
+        if (lbl instanceof Label l) {
+            l.setStyle("-fx-text-fill:#e9f5ec; -fx-font-weight:800; -fx-font-size:14.5px;");
+        }
+    }
+    // contenuto
+    Node content = pane.lookup(".content");
+    if (content instanceof Region r) {
+        r.setStyle("-fx-background-color: transparent; -fx-text-fill:#e9f5ec;");
+    }
+}
+
+/** Stile dark per ComboBox (niente alone blu). */
+private void styleDarkCombo(ComboBox<String> cb) {
+    // base: sfondo/padding/bordo + disattiva il blu di focus
+    cb.setStyle(
+        "-fx-background-color:#2e3845;" +
+        "-fx-control-inner-background:#2e3845;" +
+        "-fx-background-radius:8;" +
+        "-fx-border-color:#3a4657;" +
+        "-fx-border-radius:8;" +
+        "-fx-padding: 4 10 4 10;" +
+        "-fx-focus-color: transparent;" +
+        "-fx-faint-focus-color: transparent;" +
+        "-fx-accent: transparent;" +
+        "-fx-opacity:1;"
+    );
+    cb.setDisable(false);
+
+    // ===== 1) BUTTON CELL (testo visibile quando la combo è chiusa) =====
+    cb.setButtonCell(new ListCell<>() {
+        @Override protected void updateItem(String item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setText(null);
+                setStyle("-fx-background-color: transparent;");
+            } else {
+                setText(item);
+                setStyle("-fx-text-fill:#e5e7eb; -fx-font-weight:700; -fx-background-color: transparent;");
+            }
+        }
+    });
+
+    // ===== 2) CELLE DEL POPUP (lista aperta) =====
+    cb.setCellFactory(lv -> new ListCell<>() {
+        @Override protected void updateItem(String item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setText(null);
+                setStyle("-fx-background-color: transparent;");
+            } else {
+                setText(item);
+                setStyle("-fx-text-fill:#e9f5ec; -fx-font-weight:700; -fx-background-color: transparent;");
+            }
+        }
+    });
+
+    // ===== 3) Popup list scura coerente =====
+    cb.showingProperty().addListener((obs, was, is) -> {
+        if (is) {
+            // prova a raggiungere la ListView del popup e i suoi elementi
+            Scene sc = cb.getScene();
+            if (sc != null) {
+                for (Node n : sc.getRoot().lookupAll(".list-view")) {
+                    n.setStyle(
+                        "-fx-background-color:#20282b;" +
+                        "-fx-control-inner-background:#20282b;" +
+                        "-fx-text-fill:#e9f5ec;" +
+                        "-fx-background-insets:0;" +
+                        "-fx-focus-color: transparent;" +
+                        "-fx-faint-focus-color: transparent;" +
+                        "-fx-accent: transparent;"
+                    );
+                }
+                for (Node n : sc.getRoot().lookupAll(".list-cell")) {
+                    // fallback nel caso la cellFactory non agganci tutto
+                    n.setStyle("-fx-text-fill:#e9f5ec; -fx-background-color: transparent;");
+                }
+            }
+        }
+    });
+
+    // ===== 4) Editor (non usato perché non editable, ma per sicurezza) =====
+    if (cb.getEditor() != null) {
+        cb.getEditor().setStyle(
+            "-fx-background-color: transparent; -fx-text-fill:#e5e7eb;" +
+            "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-accent: transparent;"
+        );
+    }
+}
+/** Stile dark per i bottoni del dialog (OK verde, Annulla neutro). */
+private void styleDarkButtons(DialogPane pane, ButtonType okType, ButtonType cancelType) {
+    Button ok = (Button) pane.lookupButton(okType);
+    if (ok != null) {
+        ok.setStyle(
+            "-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
+            "-fx-background-radius:10; -fx-padding:6 14;"
+        );
+        ok.setOnMouseEntered(e -> ok.setStyle(
+            "-fx-background-color:#16a56e; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
+            "-fx-background-radius:10; -fx-padding:6 14;"
+        ));
+        ok.setOnMouseExited(e -> ok.setStyle(
+            "-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
+            "-fx-background-radius:10; -fx-padding:6 14;"
+        ));
+    }
+    Button cancel = (Button) pane.lookupButton(cancelType);
+    if (cancel != null) {
+        cancel.setStyle(
+            "-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec;" +
+            "-fx-background-radius:10; -fx-padding:6 14;"
+        );
+        cancel.setOnMouseEntered(e -> cancel.setStyle(
+            "-fx-background-color:#374047; -fx-text-fill:#e9f5ec;" +
+            "-fx-background-radius:10; -fx-padding:6 14;"
+        ));
+        cancel.setOnMouseExited(e -> cancel.setStyle(
+            "-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec;" +
+            "-fx-background-radius:10; -fx-padding:6 14;"
+        ));
+    }
+}
+
 
     private String normalizeAllToNull(String value) {
         if (value == null) return null;
@@ -744,56 +939,75 @@ private void initTableColumns() {
     }
 
     public void onNew() {
-        try {
-            FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/CorsiEditorDialog.fxml"));
-            DialogPane pane = fx.load();
+    try {
+        // Carica FXML del dialog corso
+        FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/CorsiEditorDialog.fxml"));
 
-            CorsoEditorDialogController ctrl = fx.getController();
-            ctrl.setCorso(null);
+        // Aggiorna e binda la lista condivisa degli argomenti
+        refreshArgomentiCondivisi();
+        DialogPane pane = fx.load();
 
-            Dialog<Corso> dialog = new Dialog<>();
-            dialog.setTitle("Nuovo Corso");
-            dialog.setDialogPane(pane);
-            dialog.setResizable(true);
+        CorsoEditorDialogController ctrl = fx.getController();
+        ctrl.bindArgomenti(argomentiCondivisi);
+        ctrl.setCorso(null);
 
-            dialog.setResultConverter(bt -> (bt == null) ? null : (bt == ctrl.getCreateButtonType() ? ctrl.getResult() : null));
+        // Dialog corso
+        Dialog<Corso> dialog = new Dialog<>();
+        dialog.setTitle("Nuovo Corso");
+        dialog.setDialogPane(pane);
+        dialog.setResizable(true);
 
-            Optional<Corso> res = dialog.showAndWait();
-            if (!res.isPresent()) return;
+        dialog.setResultConverter(bt -> (bt != null && bt == ctrl.getCreateButtonType()) ? ctrl.getResult() : null);
 
-            Corso nuovo = res.get();
+        Optional<Corso> res = dialog.showAndWait();
+        if (!res.isPresent()) return;
 
-            if (corsoDao != null) {
-                String cfChef = corsoDao.getOwnerCfChef();
-                if (cfChef != null && !cfChef.trim().isEmpty()) {
-                    Chef chef = new Chef();
-                    chef.setCF_Chef(cfChef);
-                    nuovo.setChef(chef);
-                }
+        Corso nuovo = res.get();
+
+        // Assegna lo chef proprietario
+        if (corsoDao != null) {
+            String cfChef = corsoDao.getOwnerCfChef();
+            if (cfChef != null && !cfChef.trim().isEmpty()) {
+                Chef chef = new Chef();
+                chef.setCF_Chef(cfChef);
+                nuovo.setChef(chef);
             }
-
-            Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo);
-            if (!sessOpt.isPresent()) return;
-
-            List<Sessione> sessions = sessOpt.get();
-            if (sessions == null || sessions.isEmpty()) return;
-
-            try {
-                long id = corsoDao.insertWithSessions(nuovo, sessions);
-                nuovo.setIdCorso(id);
-                backing.add(nuovo);
-                table.getSelectionModel().select(nuovo);
-                updateFiltersUI();
-            } catch (Exception saveEx) {
-                showError("Salvataggio corso/sessioni fallito: " + saveEx.getMessage());
-                saveEx.printStackTrace();
-            }
-
-        } catch (Exception ex) {
-            showError("Errore apertura editor corso: " + ex.getMessage());
-            ex.printStackTrace();
         }
+
+        // Apri il wizard delle sessioni già con N righe (N = num sessioni scelte)
+        Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo, nuovo.getNumSessioni());
+        if (!sessOpt.isPresent()) return;
+
+        List<Sessione> sessions = sessOpt.get();
+        if (sessions == null || sessions.isEmpty()) return;
+
+        // Salva corso + sessioni
+        try {
+            long id = corsoDao.insertWithSessions(nuovo, sessions);
+            nuovo.setIdCorso(id);
+
+            // Aggiorna tabella e seleziona il nuovo corso
+            backing.add(nuovo);
+            table.getSelectionModel().select(nuovo);
+            updateFiltersUI();
+
+            // Allinea la lista argomenti condivisa se necessario
+            String arg = nuovo.getArgomento();
+            if (arg != null && !arg.isBlank() && !argomentiCondivisi.contains(arg)) {
+                argomentiCondivisi.add(arg);
+                FXCollections.sort(argomentiCondivisi);
+            }
+        } catch (Exception saveEx) {
+            showError("Salvataggio corso/sessioni fallito: " + saveEx.getMessage());
+            saveEx.printStackTrace();
+        }
+
+    } catch (Exception ex) {
+        showError("Errore apertura editor corso: " + ex.getMessage());
+        ex.printStackTrace();
     }
+}
+
 
     private void onDelete() {
         final Corso sel = table.getSelectionModel().getSelectedItem();
@@ -1077,23 +1291,39 @@ private void initTableColumns() {
         return item;
     }
 
-    private void styleDatePickerInline(DatePicker dp) {
-        if (dp == null) return;
-        final String TEXT_LIGHT = "#e5e7eb";
-        dp.setEditable(false);
-        dp.setStyle(
-        	    "-fx-background-color: #2e3845; -fx-background-radius:8; -fx-text-fill:#e5e7eb;" +
-        	    "-fx-control-inner-background: #2e3845; -fx-prompt-text-fill: rgba(255,255,255,0.6);" +
-        	    "-fx-border-color: #3a4657; -fx-border-radius:8; -fx-padding: 2 8 2 8;" +
-        	    // spegne focus blu del DatePicker
-        	    "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-accent: transparent;"
-        	);
-        if (dp.getEditor() != null) {
-            dp.getEditor().setStyle("-fx-background-color: transparent; -fx-text-fill:#e5e7eb;" +
-                    "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-accent: transparent;");
-        }
+   private void styleDatePickerInline(DatePicker dp) {
+    if (dp == null) return;
+    final String TEXT_LIGHT = "#e5e7eb";   // colore testo chiaro
+    final String BG        = "#2e3845";   // sfondo chiaro ma sufficiente
+    final String BORDER    = "#3a4657";
 
+    dp.setEditable(false);
+    dp.setStyle(
+        "-fx-background-color: " + BG + ";" +
+        "-fx-control-inner-background: " + BG + ";" +
+        "-fx-text-fill: " + TEXT_LIGHT + ";" +
+        "-fx-prompt-text-fill: rgba(255,255,255,0.6);" +
+        "-fx-background-radius:8;" +
+        "-fx-border-color: " + BORDER + ";" +
+        "-fx-border-radius:8;" +
+        "-fx-padding: 2 8 2 8;" +
+        "-fx-focus-color: transparent;" +
+        "-fx-faint-focus-color: transparent;" +
+        "-fx-accent: transparent;"
+    );
+
+    if (dp.getEditor() != null) {
+        dp.getEditor().setStyle(
+            "-fx-background-color: transparent;" +
+            "-fx-text-fill: " + TEXT_LIGHT + ";" +
+            "-fx-prompt-text-fill: rgba(255,255,255,0.6);" +
+            "-fx-focus-color: transparent;" +
+            "-fx-faint-focus-color: transparent;" +
+            "-fx-accent: transparent;"
+        );
     }
+}
+
 
     private CustomMenuItem separatorItem() {
         CustomMenuItem sep = new CustomMenuItem();
@@ -1336,6 +1566,60 @@ private void initTableColumns() {
             return Optional.empty();
         }
     }
+    
+ // OVERLOAD: apre il wizard con N righe “vuote”
+    private Optional<List<Sessione>> openSessioniWizard(Corso corso, int initialRows) {
+        try {
+            FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/SessioniWizard.fxml"));
+            DialogPane pane = fx.load();
+
+            SessioniWizardController ctrl = fx.getController();
+
+            // se N > 0 pre-popoliamo, altrimenti init normale
+            if (initialRows > 0) {
+                ctrl.initWithCorsoAndBlank(corso, initialRows); // <— metodo che aggiungi nel wizard
+            } else {
+                ctrl.initWithCorso(corso);
+            }
+
+            Node content = pane.getContent();
+            if (content instanceof Region) {
+                ScrollPane sc = new ScrollPane(content);
+                sc.setFitToWidth(true);
+                sc.setFitToHeight(true);
+                sc.setPannable(true);
+                sc.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                sc.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                pane.setContent(sc);
+            }
+
+            Dialog<List<Sessione>> dlg = new Dialog<>();
+            dlg.setTitle("Configura sessioni del corso");
+            dlg.setDialogPane(pane);
+            pane.setPrefSize(1200, 800);
+            dlg.setOnShown(e2 -> {
+                Window w = dlg.getDialogPane().getScene().getWindow();
+                if (w instanceof Stage stg) {
+                    stg.setResizable(true);
+                    stg.setWidth(1600);
+                    stg.setHeight(800);
+                    stg.setMinWidth(1500);
+                    stg.setMinHeight(650);
+                    stg.centerOnScreen();
+                }
+            });
+
+            dlg.setResultConverter(bt ->
+                    (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE) ? ctrl.buildResult() : null);
+
+            return dlg.showAndWait();
+        } catch (Exception ex) {
+            showError("Errore apertura wizard sessioni: " + ex.getMessage());
+            ex.printStackTrace();
+            return Optional.empty();
+        }
+    }
+
 
     private Optional<SessionePresenza> choosePresenza(List<SessionePresenza> presenze) {
         DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -1390,6 +1674,19 @@ private void initTableColumns() {
     private static String nz(int n) {
         return (n > 0) ? String.valueOf(n) : "";
     }
+    
+    private void refreshArgomentiCondivisi() {
+        try {
+            // implementa in CorsoDao: SELECT DISTINCT argomento FROM corso ORDER BY argomento
+            java.util.List<String> distinct = corsoDao.findDistinctArgomenti();
+            argomentiCondivisi.setAll(distinct != null ? distinct : java.util.Collections.emptyList());
+        } catch (Exception ex) {
+            // fallback: lascia la lista com’è
+        }
+    }
+    
+
+
 
 
     private String iconPathList()     { return "M3 5h14v2H3V5zm0 4h14v2H3V9zm0 4h10v2H3v-2z"; }

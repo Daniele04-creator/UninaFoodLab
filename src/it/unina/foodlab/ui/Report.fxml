@@ -35,15 +35,13 @@
 
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <children>
-                        <Label text="Scegli una data del mese:"
-                               style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;"/>
-                        <DatePicker fx:id="dpMese" showWeekNumbers="false"
-                                    style="-fx-background-color:#2b3438; -fx-background-radius:10;
-                                           -fx-text-fill:#e9f5ec; -fx-prompt-text-fill: rgba(233,245,236,0.70);
-                                           -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius:10;"/>
-                        <Button fx:id="btnGenera" text="Crea"
-                                style="-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;
-                                       -fx-background-radius:10; -fx-padding:8 14;"/>
+                       
+                       <HBox spacing="8" alignment="CENTER_LEFT">
+    <Label text="Seleziona mese:" style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;"/>
+    <ComboBox fx:id="cbMese" promptText="Mese" prefWidth="140"/>
+    <ComboBox fx:id="cbAnno" promptText="Anno" prefWidth="100"/>
+    <Button fx:id="btnCrea" text="Crea" style="-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800; -fx-background-radius:10;"/>
+</HBox>
                     </children>
                 </HBox>
             </children>
@@ -75,12 +73,11 @@
 
     <!-- RIGHT: grafici -->
     <right>
-        <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" prefWidth="540.0"
-                    style="-fx-background-color: transparent; -fx-background-insets:0;">
-            <content>
-                <VBox fx:id="rightCharts" spacing="12" fillWidth="true"
-                      style="-fx-padding:8;"/>
-            </content>
-        </ScrollPane>
+        <ScrollPane fx:id="spCharts" fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" prefWidth="540.0"
+            style="-fx-background-color: transparent; -fx-background-insets:0;">
+    <content>
+        <VBox fx:id="rightCharts" spacing="12" fillWidth="true" style="-fx-padding:8;"/>
+    </content>
+</ScrollPane>
     </right>
 </BorderPane>

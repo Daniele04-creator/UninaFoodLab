@@ -16,11 +16,11 @@ import java.util.Optional;
 
 public class CorsoEditorDialogController {
 
-    /* ButtonType definiti nel FXML */
+    /* ===== ButtonType definiti nel FXML ===== */
     @FXML private ButtonType createButtonType;
     @FXML private ButtonType cancelButtonType;
 
-    /* UI */
+    /* ===== UI ===== */
     @FXML private ComboBox<String> cbArg;
     @FXML private Button btnAddArg;
     @FXML private ChoiceBox<String> cbFreq;
@@ -29,70 +29,74 @@ public class CorsoEditorDialogController {
     @FXML private Label lblFine;
     @FXML private DialogPane dialogPane;
 
-    /* Stato */
+    /* ===== Stato ===== */
     private boolean edit;
     private Corso original;
 
+    /* ===== Formato date UI ===== */
+    private static final DateTimeFormatter UI_DF = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     @FXML
     private void initialize() {
-        // Dati di base
-        cbArg.setEditable(false);
-        cbArg.setItems(FXCollections.observableArrayList(
-                "Cucina Asiatica","Pasticceria","Panificazione","Vegetariano",
-                "Street Food","Dolci al cucchiaio","Cucina Mediterranea",
-                "Finger Food","Fusion","Vegan"
-        ));
-        cbFreq.setItems(FXCollections.observableArrayList(
-                "settimanale","ogni 2 giorni","bisettimanale","mensile"
-        ));
-        spNumSess.setValueFactory(new IntegerSpinnerValueFactory(1, 365, 5));
-        spNumSess.setEditable(true);
-        spNumSess.focusedProperty().addListener((obs, was, is) -> { if (!is) spNumSess.increment(0); });
+        /* --- Dati di base --- */
+    	if (cbArg != null && (cbArg.getItems() == null || cbArg.getItems().isEmpty())) {
+    	    // Se NON è stata bindata dal chiamante, fornisci una lista di default una sola volta
+    	    cbArg.setItems(FXCollections.observableArrayList(
+    	        "Cucina Asiatica","Pasticceria","Panificazione","Vegetariano",
+    	        "Street Food","Dolci al cucchiaio","Cucina Mediterranea",
+    	        "Finger Food","Fusion","Vegan"
+    	    ));
+    	}
 
-        // DatePicker dark + default
+        if (cbFreq != null) {
+            cbFreq.setItems(FXCollections.observableArrayList(
+                    "settimanale","ogni 2 giorni","bisettimanale","mensile"
+            ));
+        }
+        if (spNumSess != null) {
+            spNumSess.setValueFactory(new IntegerSpinnerValueFactory(1, 365, 5));
+            spNumSess.setEditable(true);
+            // Commit valore quando perdi il focus
+            spNumSess.focusedProperty().addListener((obs, was, is) -> { if (!is) spNumSess.increment(0); });
+        }
+
+        /* --- DatePicker dark + default --- */
         tintDatePickerDark(dpInizio);
-        dpInizio.setValue(LocalDate.now().plusDays(7));
-        cbFreq.setValue("settimanale");
-        updateDataFine();
+        if (dpInizio != null) dpInizio.setValue(LocalDate.now().plusDays(7));
+        if (cbFreq != null) cbFreq.setValue("settimanale");
+        updateDataFine(); // calcolo iniziale
 
-        // Recalcolo "Fine"
-        cbFreq.valueProperty().addListener((o,a,b) -> updateDataFine());
-        dpInizio.valueProperty().addListener((o,a,b) -> updateDataFine());
-        spNumSess.valueProperty().addListener((o,a,b) -> updateDataFine());
+        /* --- Ricalcolo "Fine" su ogni variazione --- */
+        if (cbFreq != null) cbFreq.valueProperty().addListener((o,a,b) -> updateDataFine());
+        if (dpInizio != null) dpInizio.valueProperty().addListener((o,a,b) -> updateDataFine());
+        if (spNumSess != null) spNumSess.valueProperty().addListener((o,a,b) -> updateDataFine());
 
-        // Pulsante + argomento (solo icona)
-        btnAddArg.setText("");
-        btnAddArg.setMnemonicParsing(false);
-        btnAddArg.setTooltip(new Tooltip("Aggiungi argomento"));
-        
-     // 1) Collega il pulsante "+" alla logica di inserimento nuovo argomento
-        btnAddArg.setOnAction(e -> addNewArgomento());
+        /* --- Pulsante + argomento --- */
+        if (btnAddArg != null) {
+            btnAddArg.setText("");
+            btnAddArg.setMnemonicParsing(false);
+            btnAddArg.setTooltip(new Tooltip("Aggiungi argomento"));
+            btnAddArg.setOnAction(e -> addNewArgomento());
+        }
 
-        // 2) Rendi sempre leggibili le scelte di ComboBox/ChoiceBox
-        installComboDarkCells(cbArg, "#e9f5ec", "#2b3438");  // testo chiaro + bg scuro popup
-        forceChoiceBoxLabelColor(cbFreq, "#e9f5ec");         // forza il label della ChoiceBox
+        /* --- Leggibilità ComboBox/ChoiceBox --- */
+        installComboDarkCells(cbArg, "#e9f5ec", "#2b3438");
+        forceChoiceBoxLabelColor(cbFreq, "#e9f5ec");
+        if (cbArg != null) cbArg.setOpacity(1.0);
+        if (cbFreq != null) cbFreq.setOpacity(1.0);
 
-        // opzionale: se il display-area sembrasse ancora slavato, forza l’opacità a 1
-        cbArg.setOpacity(1.0);
-        cbFreq.setOpacity(1.0);
-
-        // 3) Mostra il calendario cliccando sul campo e NASCONDI il bottone-icona di destra
+        /* --- DatePicker: nascondi freccia, apri on-click --- */
         hideDatePickerArrow(dpInizio);
-        dpInitoShowOnClick(dpInizio); // apre il popup cliccando sul campo
+        showDatePickerOnClick(dpInizio);
 
-        // 4) Stile scuro per le frecce dello spinner (niente bianco)
-        styleSpinnerArrowsDark(spNumSess, "#2b3438" /*bg*/, "#e9f5ec" /*freccia*/);
-        
-        cbArg.focusedProperty().addListener((o, was, is) ->
-        cbArg.setStyle(cbArg.getStyle() + (is ? "; -fx-border-color:#1fb57a; -fx-border-width:1;" : ""))
-    );
-    cbFreq.focusedProperty().addListener((o, was, is) ->
-        cbFreq.setStyle(cbFreq.getStyle() + (is ? "; -fx-border-color:#1fb57a; -fx-border-width:1;" : ""))
-    );
+        /* --- Spinner: frecce scure --- */
+        styleSpinnerArrowsDark(spNumSess, "#2b3438", "#e9f5ec");
 
+        /* --- Focus ring verde (senza accumulare stile) --- */
+        installFocusBorder(cbArg);
+        installFocusBorder(cbFreq);
 
-
-        // Stile dei bottoni del Dialog (verde & grigio)
+        /* --- Stile bottoni dialog --- */
         Platform.runLater(() -> {
             Button okBtn = (Button) dialogPane.lookupButton(createButtonType);
             if (okBtn != null) {
@@ -110,77 +114,91 @@ public class CorsoEditorDialogController {
         });
     }
 
-    /* ==== API ==== */
+    /* ===== API ===== */
 
     public void setCorso(Corso corso) {
         this.original = corso;
         this.edit = (corso != null);
-        if (edit) {
-            cbArg.setValue(corso.getArgomento());
-            cbFreq.setValue(corso.getFrequenza());
-            spNumSess.getValueFactory().setValue(corso.getNumSessioni());
-            dpInizio.setValue(corso.getDataInizio());
-            lblFine.setText(formatOrDash(corso.getDataFine()));
+        if (edit && corso != null) {
+            if (cbArg != null) cbArg.setValue(corso.getArgomento());
+            if (cbFreq != null) cbFreq.setValue(corso.getFrequenza());
+            if (spNumSess != null && spNumSess.getValueFactory() != null)
+                spNumSess.getValueFactory().setValue(corso.getNumSessioni());
+            if (dpInizio != null) dpInizio.setValue(corso.getDataInizio());
+            if (lblFine != null) lblFine.setText(formatOrDash(corso.getDataFine()));
         }
     }
 
     public Corso getResult() {
         Corso c = edit ? clone(original) : new Corso();
-        c.setArgomento(cbArg.getValue());
-        c.setFrequenza(cbFreq.getValue());
-        c.setDataInizio(dpInizio.getValue());
-        c.setNumSessioni(spNumSess.getValue());
+        c.setArgomento(cbArg != null ? cbArg.getValue() : null);
+        c.setFrequenza(cbFreq != null ? cbFreq.getValue() : null);
+        c.setDataInizio(dpInizio != null ? dpInizio.getValue() : null);
+        c.setNumSessioni(safeSpinnerValue());
         c.setDataFine(computeDataFine(c.getDataInizio(), c.getFrequenza(), c.getNumSessioni()));
         return c;
     }
 
     public ButtonType getCreateButtonType() { return createButtonType; }
 
-    /* ==== Logica ==== */
+    /* ===== Logica ===== */
 
-    private void addNewArgomento() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Nuovo Argomento");
-        dialog.setHeaderText("Inserisci il nuovo argomento");
-        dialog.setContentText("Argomento:");
+  private void addNewArgomento() {
+    TextInputDialog dialog = new TextInputDialog();
+    dialog.setTitle("Nuovo Argomento");
+    dialog.setHeaderText("Inserisci il nuovo argomento");
+    dialog.setContentText("Argomento:");
 
-        // Tema scuro coerente
-        DialogPane pane = dialog.getDialogPane();
-        pane.setStyle("-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b); " +
-                      "-fx-border-color: rgba(255,255,255,0.06); -fx-border-width:1; -fx-border-radius:12; -fx-background-radius:12;");
-        styleButtonsIn(pane);
+    // Tema scuro coerente con l'app
+    styleTextInputDark(dialog);
+    styleDarkTextField(dialog.getEditor(), "Es. Pasticceria avanzata");
 
-        Optional<String> res = dialog.showAndWait();
-        if (res.isEmpty()) return;
-        String trimmed = res.get().trim();
+    Optional<String> res = dialog.showAndWait();
+    if (res.isEmpty()) return;
+    String trimmed = res.get().trim();
 
-        // validazione semplice: solo lettere e spazi
-        if (trimmed.isEmpty() || !trimmed.matches("[a-zA-ZÀ-ÖØ-öø-ÿ ]+")) {
-            Alert a = new Alert(Alert.AlertType.WARNING, "L'argomento deve contenere solo lettere e spazi.", ButtonType.OK);
-            styleAlert(a);
-            a.showAndWait();
-            return;
-        }
-        if (cbArg.getItems().contains(trimmed)) {
-            Alert a = new Alert(Alert.AlertType.INFORMATION, "L'argomento \"" + trimmed + "\" esiste già.", ButtonType.OK);
-            styleAlert(a);
-            a.showAndWait();
-            return;
-        }
-        cbArg.getItems().add(trimmed);
-        FXCollections.sort(cbArg.getItems());
-        cbArg.setValue(trimmed);
+    // === Validazione semplice: solo lettere e spazi ===
+    if (trimmed.isEmpty() || !trimmed.matches("[a-zA-ZÀ-ÖØ-öø-ÿ ]+")) {
+        showWarningDark("Avvertenza", "L'argomento deve contenere solo lettere e spazi.");
+        return;
     }
+
+    // === Se esiste già, mostra info ===
+    javafx.collections.ObservableList<String> target =
+            (argomentiShared != null ? argomentiShared : cbArg.getItems());
+    if (target.contains(trimmed)) {
+        showWarningDark("Informazione", "L'argomento \"" + trimmed + "\" esiste già.");
+        return;
+    }
+
+    // === Aggiungi alla lista condivisa o locale ===
+    target.add(trimmed);
+    FXCollections.sort(target);
+    cbArg.setItems(target);
+    cbArg.setValue(trimmed);
+}
+
+
 
     private void updateDataFine() {
-        lblFine.setText(formatOrDash(
-                computeDataFine(dpInizio.getValue(), cbFreq.getValue(), safeSpinnerValue())
-        ));
+        if (lblFine == null) return;
+        LocalDate fine = computeDataFine(
+                (dpInizio != null) ? dpInizio.getValue() : null,
+                (cbFreq != null) ? cbFreq.getValue() : null,
+                safeSpinnerValue()
+        );
+        lblFine.setText(formatOrDash(fine));
     }
+
     private int safeSpinnerValue() {
-        Integer v = spNumSess.getValue(); return v == null ? 0 : v;
+        if (spNumSess == null) return 0;
+        Integer v = spNumSess.getValue();
+        return (v == null) ? 0 : v;
     }
-    private static String formatOrDash(LocalDate d) { return d == null ? "—" : d.toString(); }
+
+    private String formatOrDash(LocalDate d) {
+        return (d == null) ? "—" : UI_DF.format(d);
+    }
 
     private static LocalDate computeDataFine(LocalDate inizio, String frequenza, int numSessioni) {
         if (inizio == null || numSessioni <= 0) return null;
@@ -193,8 +211,10 @@ public class CorsoEditorDialogController {
             default              -> inizio.plusWeeks(steps); // settimanale
         };
     }
+
     private static Corso clone(Corso src) {
         Corso c = new Corso();
+        if (src == null) return c;
         c.setIdCorso(src.getIdCorso());
         c.setArgomento(src.getArgomento());
         c.setFrequenza(src.getFrequenza());
@@ -205,21 +225,21 @@ public class CorsoEditorDialogController {
         return c;
     }
 
-    /* ==== Validazione ==== */
+    /* ===== Validazione ===== */
+
     private boolean isFormValid() {
-        return cbArg.getValue() != null && !cbArg.getValue().isBlank()
-            && cbFreq.getValue() != null
-            && dpInizio.getValue() != null
+        return cbArg != null && cbArg.getValue() != null && !cbArg.getValue().isBlank()
+            && cbFreq != null && cbFreq.getValue() != null
+            && dpInizio != null && dpInizio.getValue() != null
             && safeSpinnerValue() > 0;
     }
 
     private void showValidationMessage() {
-        Alert a = new Alert(Alert.AlertType.WARNING, "Compila correttamente tutti i campi.", ButtonType.OK);
-        styleAlert(a);
-        a.showAndWait();
+        showWarningDark("Avvertenza", "Compila correttamente tutti i campi.");
     }
 
-    /* ==== Stile helpers (senza CSS esterno) ==== */
+
+    /* ===== Stile helpers (senza CSS esterno) ===== */
 
     private void tintDatePickerDark(DatePicker dp) {
         if (dp == null) return;
@@ -227,9 +247,11 @@ public class CorsoEditorDialogController {
         dp.setEditable(false);
         dp.setStyle("-fx-background-color:#2b3438; -fx-control-inner-background:#2b3438;" +
                     "-fx-text-fill:#e9f5ec; -fx-prompt-text-fill: rgba(233,245,236,0.70); " +
-                    "-fx-background-radius:10; -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius:10; -fx-padding:4 8;");
+                    "-fx-background-radius:10; -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius:10; -fx-padding:4 8;" +
+                    "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-accent: transparent;");
         if (dp.getEditor() != null) {
-            dp.getEditor().setStyle("-fx-background-color: transparent; -fx-text-fill:#e9f5ec;");
+            dp.getEditor().setStyle("-fx-background-color: transparent; -fx-text-fill:#e9f5ec;" +
+                                    "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-accent: transparent;");
         }
         // popup scuro
         dp.setOnShowing(ev -> Platform.runLater(() -> {
@@ -256,22 +278,20 @@ public class CorsoEditorDialogController {
         styleButtonsIn(p);
         p.setMinWidth(420);
     }
-    
+
     /** Forza celle scure e testo chiaro su una ComboBox (display + popup). */
     private static void installComboDarkCells(ComboBox<String> combo, String textColorHex, String popupBgHex) {
         if (combo == null) return;
 
-        // cella del "display area"
         combo.setButtonCell(new ListCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty ? "" : item);
                 setTextFill(javafx.scene.paint.Color.web(textColorHex));
-                setStyle("-fx-background-color: transparent; -fx-font-weight: 700;"); // più leggibile
+                setStyle("-fx-background-color: transparent; -fx-font-weight: 700;");
             }
         });
 
-        // celle del popup
         combo.setCellFactory(list -> new ListCell<>() {
             @Override protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -281,36 +301,32 @@ public class CorsoEditorDialogController {
             }
         });
 
-        // forziamo l'opacità del controllo (evita effetto "disabled")
         combo.setOpacity(1.0);
     }
 
     /** Le ChoiceBox non hanno buttonCell: forziamo il colore del label interno. */
     private static void forceChoiceBoxLabelColor(ChoiceBox<String> cb, String textColorHex) {
         if (cb == null) return;
-        cb.setStyle(cb.getStyle() + "; -fx-opacity: 1.0;"); // evita look disabilitato
+        cb.setStyle("-fx-opacity: 1.0;"); // evita look disabilitato
 
-        // Applica subito dopo la creazione della skin
         cb.skinProperty().addListener((obs, oldSkin, newSkin) -> tweakChoiceBoxLabel(cb, textColorHex));
-        // e ogni volta che cambia il valore, riapplica (alcune skin ricreano il label)
         cb.getSelectionModel().selectedIndexProperty().addListener((o, ov, nv) -> tweakChoiceBoxLabel(cb, textColorHex));
 
-        // prima applicazione post-layout
-        javafx.application.Platform.runLater(() -> tweakChoiceBoxLabel(cb, textColorHex));
+        Platform.runLater(() -> tweakChoiceBoxLabel(cb, textColorHex));
     }
 
     private static void tweakChoiceBoxLabel(ChoiceBox<String> cb, String textColorHex) {
         Node lblNode = cb.lookup(".label");
         if (lblNode instanceof Labeled l) {
             l.setTextFill(javafx.scene.paint.Color.web(textColorHex));
-            l.setStyle("-fx-text-fill:" + textColorHex + "; -fx-font-weight: 700;"); // più contrasto
+            l.setStyle("-fx-text-fill:" + textColorHex + "; -fx-font-weight: 700;");
         }
     }
 
-    /** Nasconde il pulsante a destra del DatePicker (lasciamo solo l’icona a sinistra nell’HBox). */
+    /** Nasconde il pulsante a destra del DatePicker. */
     private static void hideDatePickerArrow(DatePicker dp) {
         if (dp == null) return;
-        javafx.application.Platform.runLater(() -> {
+        Platform.runLater(() -> {
             Node arrowBtn = dp.lookup(".arrow-button");
             if (arrowBtn instanceof Region r) {
                 r.setVisible(false);
@@ -322,17 +338,13 @@ public class CorsoEditorDialogController {
         });
     }
 
-    /** Cliccando sul campo del DatePicker si apre il popup calendario. */
-    private static void dpInitoShowOnClick(DatePicker dp) {
+    /** Apre il calendario al click/enter. */
+    private static void showDatePickerOnClick(DatePicker dp) {
         if (dp == null) return;
-        dp.setOnMouseClicked(ev -> {
-            if (!dp.isShowing()) dp.show();
-        });
-        // anche con TAB->Enter
+        dp.setOnMouseClicked(ev -> { if (!dp.isShowing()) dp.show(); });
         dp.setOnKeyPressed(ev -> {
             switch (ev.getCode()) {
-                case ENTER:
-                case SPACE:
+                case ENTER: case SPACE:
                     if (!dp.isShowing()) dp.show();
                     break;
                 default: break;
@@ -340,10 +352,10 @@ public class CorsoEditorDialogController {
         });
     }
 
-    /** Rende scure le frecce di uno Spinner (senza CSS esterno). */
+    /** Spinner dark: pulsanti e frecce. */
     private static void styleSpinnerArrowsDark(Spinner<?> sp, String btnBgHex, String arrowColorHex) {
         if (sp == null) return;
-        javafx.application.Platform.runLater(() -> {
+        Platform.runLater(() -> {
             Node incBtn = sp.lookup(".increment-arrow-button");
             Node decBtn = sp.lookup(".decrement-arrow-button");
             if (incBtn instanceof Region r1) r1.setStyle("-fx-background-color:" + btnBgHex + "; -fx-background-radius:8;");
@@ -355,9 +367,152 @@ public class CorsoEditorDialogController {
             if (decArrow instanceof Region a2) a2.setStyle("-fx-background-color:" + arrowColorHex + ";");
         });
     }
-    
-    
-    
 
+    /** Bordo verde su focus, senza accumulare stili. */
+    private static void installFocusBorder(Control c) {
+        if (c == null) return;
+        final String base = "-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10; -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius:10;";
+        c.setStyle(base);
+        c.focusedProperty().addListener((o, was, is) -> {
+            c.setStyle(is
+                    ? base + " -fx-border-color:#1fb57a; -fx-border-width:1;"
+                    : base);
+        });
+    }
     
+    /** Alert WARNING scuro, coerente con l’app, senza header chiaro né icona. */
+    private void showWarningDark(String titolo, String messaggio) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(titolo);
+        alert.setHeaderText(null);        // niente header testuale
+        alert.setGraphic(null);           // rimuove icona triangolo e riquadro bianco
+
+        // contenuto: label scura e leggibile
+        Label content = new Label(messaggio);
+        content.setWrapText(true);
+        content.setStyle("-fx-text-fill:#e9f5ec; -fx-font-size:13px; -fx-font-weight:700;");
+        alert.getDialogPane().setContent(content);
+
+        // stile dark sul DialogPane (sfondo, bordi, padding, NESSUN blu di focus)
+        DialogPane pane = alert.getDialogPane();
+        pane.setStyle(
+            "-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);" +
+            "-fx-background-radius:12;" +
+            "-fx-border-color: rgba(255,255,255,0.08);" +
+            "-fx-border-radius:12;" +
+            "-fx-border-width:1;" +
+            "-fx-padding:14;" +
+            "-fx-focus-color: transparent;" +
+            "-fx-faint-focus-color: transparent;" +
+            "-fx-accent: transparent;"
+        );
+
+        // elimina l’header-panel (che è chiaro) e qualsiasi grafica residua
+        Node header = pane.lookup(".header-panel");
+        if (header != null) header.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+
+        Node graphicContainer = pane.lookup(".graphic-container");
+        if (graphicContainer != null) graphicContainer.setStyle("-fx-background-color: transparent;");
+
+        // bottoni in stile brand
+        for (ButtonType bt : alert.getButtonTypes()) {
+            Button b = (Button) pane.lookupButton(bt);
+            if (b != null) {
+                b.setStyle(
+                    "-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
+                    "-fx-background-radius:10; -fx-padding:8 16;"
+                );
+                b.setOnMouseEntered(e -> b.setStyle(
+                    "-fx-background-color:#16a56e; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
+                    "-fx-background-radius:10; -fx-padding:8 16;"
+                ));
+                b.setOnMouseExited(e -> b.setStyle(
+                    "-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
+                    "-fx-background-radius:10; -fx-padding:8 16;"
+                ));
+            }
+        }
+
+        // larghezza minima così non taglia il testo
+        pane.setMinWidth(460);
+
+        alert.showAndWait();
+    }
+
+    /** Applica tema dark al TextInputDialog (sfondo, header, icona, bottoni). */
+    private void styleTextInputDark(TextInputDialog dlg) {
+        dlg.setHeaderText(null);   // niente header chiaro
+        dlg.setGraphic(null);      // rimuove l'icona blu di default
+
+        DialogPane pane = dlg.getDialogPane();
+        pane.setStyle(
+            "-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);" +
+            "-fx-background-radius:12;" +
+            "-fx-border-color: rgba(255,255,255,0.08);" +
+            "-fx-border-radius:12;" +
+            "-fx-border-width:1;" +
+            "-fx-padding:14;" +
+            "-fx-focus-color: transparent;" +
+            "-fx-faint-focus-color: transparent;" +
+            "-fx-accent: transparent;"
+        );
+        pane.setMinWidth(460);
+
+        // Header e contenitore grafico trasparenti (se presenti)
+        Node header = pane.lookup(".header-panel");
+        if (header != null) header.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+
+        Node graphic = pane.lookup(".graphic-container");
+        if (graphic != null) graphic.setStyle("-fx-background-color: transparent;");
+
+        // Etichetta del contentText (es. "Argomento:")
+        Node contentLbl = pane.lookup(".content.label");
+        if (contentLbl instanceof Label l) {
+            l.setStyle("-fx-text-fill:#e9f5ec; -fx-font-weight:700; -fx-font-size:13px;");
+        }
+
+        // Bottoni brand
+        for (ButtonType bt : pane.getButtonTypes()) {
+            Button b = (Button) pane.lookupButton(bt);
+            if (b == null) continue;
+            if (bt.getButtonData().isDefaultButton()) {
+                b.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800; -fx-background-radius:10; -fx-padding:8 16;");
+                b.setOnMouseEntered(e -> b.setStyle("-fx-background-color:#16a56e; -fx-text-fill:#0a1410; -fx-font-weight:800; -fx-background-radius:10; -fx-padding:8 16;"));
+                b.setOnMouseExited (e -> b.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800; -fx-background-radius:10; -fx-padding:8 16;"));
+            } else {
+                b.setStyle("-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-font-weight:700; -fx-background-radius:10; -fx-padding:8 16;");
+                b.setOnMouseEntered(e -> b.setStyle("-fx-background-color:#374047; -fx-text-fill:#e9f5ec; -fx-font-weight:700; -fx-background-radius:10; -fx-padding:8 16;"));
+                b.setOnMouseExited (e -> b.setStyle("-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-font-weight:700; -fx-background-radius:10; -fx-padding:8 16;"));
+            }
+        }
+    }
+
+    /** Campo testo scuro, senza alone blu, con prompt leggibile. */
+    private void styleDarkTextField(TextField tf, String prompt) {
+        if (tf == null) return;
+        tf.setPromptText(prompt);
+        tf.setStyle(
+            "-fx-background-color:#2e3845;" +
+            "-fx-control-inner-background:#2e3845;" +
+            "-fx-text-fill:#e9f5ec;" +
+            "-fx-prompt-text-fill: rgba(255,255,255,0.65);" +
+            "-fx-background-radius:8;" +
+            "-fx-border-color:#3a4657;" +
+            "-fx-border-radius:8;" +
+            "-fx-padding:6 10;" +
+            "-fx-focus-color: transparent;" +
+            "-fx-faint-focus-color: transparent;" +
+            "-fx-accent: transparent;"
+        );
+    }
+    
+ // nel controller del dialog
+    private javafx.collections.ObservableList<String> argomentiShared;
+
+    public void bindArgomenti(javafx.collections.ObservableList<String> shared) {
+        this.argomentiShared = shared;
+        if (cbArg != null) cbArg.setItems(shared);
+    }
+
+
 }

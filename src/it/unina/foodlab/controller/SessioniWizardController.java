@@ -115,18 +115,25 @@ public class SessioniWizardController {
     public List<Sessione> buildResult() { return new ArrayList<>(model); }
 
     /* ====== Pulsanti barra comandi (collega onAction nell’FXML) ====== */
-    @FXML
-    private void onNuovo(ActionEvent e) {
-        SessioneOnline s = new SessioneOnline();
-        s.setCorso(corso);
-        s.setData(LocalDate.now());
-        s.setOraInizio(LocalTime.of(0, 0));
-        s.setOraFine(LocalTime.of(0, 15));
-        try { s.setPiattaforma(""); } catch (Throwable ignore) {}
-        model.add(s);
-        table.getSelectionModel().select(model.size() - 1);
-        table.scrollTo(model.size() - 1);
+   @FXML
+private void onNuovo(ActionEvent e) {
+    // Data suggerita: +1 step rispetto all'ultima riga, altrimenti null
+    LocalDate suggested = null;
+    if (!model.isEmpty()) {
+        Sessione last = model.get(model.size()-1);
+        LocalDate lastDate = last.getData();
+        if (lastDate != null) {
+            suggested = computeNthDate(lastDate, corso != null ? corso.getFrequenza() : null, 1);
+        }
     }
+    SessionePresenza s = new SessionePresenza(); // default in presenza
+    s.setCorso(corso);
+    s.setData(suggested);       // solo data, niente orari/campi
+    model.add(s);
+    table.getSelectionModel().select(model.size() - 1);
+    table.scrollTo(model.size() - 1);
+}
+
 
     @FXML
     private void onRimuovi(ActionEvent e) {
@@ -181,9 +188,9 @@ public class SessioniWizardController {
             switch (kind) {
                 case FieldKind.K_VIA:   return safe(sp.getVia());
                 case FieldKind.K_NUM:   return safe(sp.getNum());
-                case FieldKind.K_CAP:   return String.valueOf(sp.getCap());
+                case FieldKind.K_CAP:   return (sp.getCap() <= 0 ? "" : String.valueOf(sp.getCap()));
                 case FieldKind.K_AULA:  return safe(sp.getAula());             // <-- se è getAula(), cambia qui
-                case FieldKind.K_POSTI: return String.valueOf(sp.getPostiMax());  // <-- se è getPostiMax(), cambia qui
+                case FieldKind.K_POSTI: return (sp.getPostiMax() <= 0 ? "" : String.valueOf(sp.getPostiMax()));
                 default: return "";
             }
         }
@@ -373,9 +380,6 @@ private final class TipoCell extends TableCell<Sessione, String> {
             } else if ("In presenza".equalsIgnoreCase(combo.getValue()) && !(s instanceof SessionePresenza)) {
                 SessionePresenza sp = new SessionePresenza();
                 sp.setCorso(corso); sp.setData(d); sp.setOraInizio(oi); sp.setOraFine(of);
-                sp.setVia(""); sp.setNum(""); sp.setCap(0);
-                sp.setAula("");  // usa setAula("") se nel tuo modello è Aula
-                sp.setPostiMax(0); // usa setPostiMax(0) se il tuo modello usa PostiMax
                 getTableView().getItems().set(idx, sp);
             }
             getTableView().refresh();
@@ -617,5 +621,44 @@ private final class TipoCell extends TableCell<Sessione, String> {
             r.setStyle((r.getStyle() == null ? "" : r.getStyle()) + "; -fx-background-insets:0; -fx-padding:0;");
         }
     }
+    
+
+    /** Inizializza con N righe “vuote” ma con DATA proposta da dataInizio + frequenza. */
+    public void initWithCorsoAndBlank(Corso c, int initialRows) {
+        initWithCorso(c);             // imposta corso e items=model
+        addBlankRows(c, initialRows); // crea N righe con sola data
+    }
+
+    /** Crea N righe, solo DATA precompilata. */
+    private void addBlankRows(Corso c, int n) {
+        if (n <= 0) return;
+        LocalDate start = (c != null) ? c.getDataInizio() : null;
+        String    freq  = (c != null) ? c.getFrequenza()  : null;
+        for (int i = 0; i < n; i++) {
+            SessionePresenza sp = new SessionePresenza();     // default "in presenza"
+            sp.setCorso(c);
+            sp.setData(computeNthDate(start, freq, i));       // << data proposta
+            // NON impostiamo orari/via/num/cap/aula/posti: restano null/vuoti
+            model.add(sp);
+        }
+        if (!model.isEmpty()) {
+            table.getSelectionModel().select(model.size()-1);
+            table.scrollTo(model.size()-1);
+        }
+    }
+
+    /** Calcola la i-esima data partendo da start e frequenza corso. */
+    private LocalDate computeNthDate(LocalDate start, String freq, int index) {
+        if (start == null) return null;
+        int steps = index; // 0-based
+        String f = (freq == null) ? "" : freq.trim().toLowerCase(java.util.Locale.ROOT);
+        return switch (f) {
+            case "ogni 2 giorni" -> start.plusDays(2L * steps);
+            case "bisettimanale" -> start.plusWeeks(2L * steps);
+            case "mensile"       -> start.plusMonths(steps);
+            default              -> start.plusWeeks(steps); // settimanale
+        };
+    }
+
 
 }

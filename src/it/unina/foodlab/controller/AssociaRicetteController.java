@@ -1,30 +1,27 @@
 package it.unina.foodlab.controller;
 
 import it.unina.foodlab.dao.SessioneDao;
+import it.unina.foodlab.dao.RicettaDao;
 import it.unina.foodlab.model.Ricetta;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 
-import java.io.InputStream;
 import java.util.*;
 
 /**
@@ -73,7 +70,15 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 
         setTitle("Associa ricette alla sessione (id=" + idSessionePresenza + ")");
         getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
-        setResultConverter(bt -> (bt == ButtonType.OK) ? new ArrayList<Long>(selectedIds) : null);
+        setResultConverter(new Callback<ButtonType, List<Long>>() {
+            @Override
+            public List<Long> call(ButtonType bt) {
+                if (bt == ButtonType.OK) {
+                    return new ArrayList<Long>(selectedIds);
+                }
+                return null;
+            }
+        });
     }
 
     /* ===================== Initialize ===================== */
@@ -82,8 +87,6 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         // Contenuto del dialog
         getDialogPane().setContent(root);
         getDialogPane().setStyle("-fx-background-color: transparent;");
-
-        // Bottoni dialog coerenti col tema
         styleDialogButtons();
 
         // Filtro difficoltà
@@ -94,12 +97,11 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         // Tabella
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setPlaceholder(new Label("Nessuna ricetta trovata."));
-     // Header scuro e niente fascia bianca a destra
-        table.setTableMenuButtonVisible(false); // nasconde il pulsante colonne (spesso lascia alone chiaro)
-        hookHeaderStylingRelayout();            // aggancia i listener per riapplicare lo stile
-        fixTableHeaderTheme();                  // prima applicazione
+        table.setTableMenuButtonVisible(false);
 
         applyTableTheme();
+        hookHeaderStylingRelayout();
+        fixTableHeaderTheme();
 
         // Colonne
         colChk.setPrefWidth(60);
@@ -118,50 +120,81 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 
         colDesc.setCellValueFactory(cd -> cd.getValue().descrizione);
 
-        // RowFactory: hover/selected evidenti (barra verde + bg)
-        table.setRowFactory(tv -> {
-            TableRow<Riga> row = new TableRow<Riga>() {
-                @Override protected void updateItem(Riga item, boolean empty) {
-                    super.updateItem(item, empty);
-                    paintRow(this);
-                }
-            };
-            row.hoverProperty().addListener((o,w,h) -> paintRow(row));
-            row.selectedProperty().addListener((o,w,s) -> paintRow(row));
-            row.setOnMouseEntered(e -> paintRow(row));
-            row.setOnMouseExited(e  -> paintRow(row));
-            // doppio click = toggle
-            row.setOnMouseClicked(evt -> {
-                if (evt.getClickCount() == 2 && !row.isEmpty()) {
-                    Riga r = row.getItem();
-                    r.checked.set(!r.checked.get());
-                }
-            });
-            return row;
+        // RowFactory (una sola, niente duplicati)
+        table.setRowFactory(new Callback<TableView<Riga>, TableRow<Riga>>() {
+            @Override
+            public TableRow<Riga> call(TableView<Riga> tv) {
+                final TableRow<Riga> row = new TableRow<Riga>() {
+                    @Override
+                    protected void updateItem(Riga item, boolean empty) {
+                        super.updateItem(item, empty);
+                        paintRow(this);
+                    }
+                };
+
+                row.hoverProperty().addListener(new ChangeListener<Boolean>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Boolean> o, Boolean ov, Boolean nv) {
+                        paintRow(row);
+                    }
+                });
+                row.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                    @Override
+                    public void changed(ObservableValue<? extends Boolean> o, Boolean ov, Boolean nv) {
+                        paintRow(row);
+                    }
+                });
+                row.setOnMouseClicked(evt -> {
+                    if (evt.getClickCount() == 2 && !row.isEmpty()) {
+                        Riga riga = row.getItem();
+                        riga.checked.set(!riga.checked.get());
+                    }
+                });
+                return row;
+            }
         });
 
         HBox.setHgrow(topBarSpacer, Priority.ALWAYS);
 
-        // Listener filtri
-        txtSearch.textProperty().addListener((o, a, b) -> applyFilter());
-        chDifficolta.valueProperty().addListener((o, a, b) -> applyFilter());
+        // Listener filtri (senza lambda)
+        txtSearch.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> o, String oldV, String newV) {
+                applyFilter();
+            }
+        });
+        chDifficolta.valueProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> o, String oldV, String newV) {
+                applyFilter();
+            }
+        });
 
         // Seleziona/Annulla tutti
-        if (btnSelAll != null) btnSelAll.setOnAction(this::selectAll);
+        if (btnSelAll != null)  btnSelAll.setOnAction(this::selectAll);
         if (btnSelNone != null) btnSelNone.setOnAction(this::selectNone);
 
         // Dati iniziali
         ObservableList<Riga> righe = FXCollections.observableArrayList();
         for (int i = 0; i < tutteLeRicette.size(); i++) {
             Ricetta rc = tutteLeRicette.get(i);
-            if (rc != null) righe.add(new Riga(rc));
+            if (rc != null) {
+                righe.add(new Riga(rc));
+            }
         }
 
         // sync set selezionati
         for (int i = 0; i < righe.size(); i++) {
             final Riga r = righe.get(i);
-            r.checked.addListener((obs, oldVal, val) -> {
-                if (val) selectedIds.add(r.idRicetta); else selectedIds.remove(r.idRicetta);
+            r.checked.addListener(new ChangeListener<Boolean>() {
+                @Override
+                public void changed(ObservableValue<? extends Boolean> obs, Boolean oldVal, Boolean val) {
+                    if (val != null && val.booleanValue()) {
+                        selectedIds.add(Long.valueOf(r.idRicetta));
+                    } else {
+                        selectedIds.remove(Long.valueOf(r.idRicetta));
+                    }
+                }
             });
         }
 
@@ -171,9 +204,12 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         // Pre-selezione
         for (int i = 0; i < ricetteGiaAssociate.size(); i++) {
             Ricetta r = ricetteGiaAssociate.get(i);
-            if (r != null) selectedIds.add(r.getIdRicetta());
+            if (r != null) {
+                selectedIds.add(Long.valueOf(r.getIdRicetta()));
+            }
         }
-        for (Riga r : filtered) {
+        for (int i = 0; i < filtered.size(); i++) {
+            Riga r = filtered.get(i);
             r.checked.set(selectedIds.contains(Long.valueOf(r.idRicetta)));
         }
 
@@ -183,11 +219,16 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
     /* ===================== Azioni ===================== */
     private void selectAll(ActionEvent e) {
         if (filtered == null) return;
-        for (Riga r : filtered) r.checked.set(true);
+        for (int i = 0; i < filtered.size(); i++) {
+            filtered.get(i).checked.set(true);
+        }
     }
+
     private void selectNone(ActionEvent e) {
         if (filtered == null) return;
-        for (Riga r : filtered) r.checked.set(false);
+        for (int i = 0; i < filtered.size(); i++) {
+            filtered.get(i).checked.set(false);
+        }
     }
 
     /* ===================== Filtro ===================== */
@@ -203,7 +244,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
             if (riga == null) return false;
 
             boolean okTxt = true;
-            if (!q.isEmpty()) {
+            if (q.length() > 0) {
                 String n = valueOrEmpty(riga.nome.get());
                 String d = valueOrEmpty(riga.descrizione.get());
                 okTxt = containsIgnoreCase(n, q) || containsIgnoreCase(d, q);
@@ -223,31 +264,46 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
     private static String valueOrEmpty(String s) { return (s == null) ? "" : s; }
 
     /* ===================== Salvataggio ===================== */
-    /** controller.salvaSeConfermato(showAndWait()); */
+    /** Da usare così: controller.salvaSeConfermato(showAndWait()); */
     public void salvaSeConfermato(Optional<List<Long>> resultOpt) {
         if (resultOpt == null || !resultOpt.isPresent()) return;
 
         List<Long> selectedNow = resultOpt.get();
         try {
+            // 1) Stato "prima" dal DB
             List<Ricetta> gia = sessioneDao.findRicetteBySessionePresenza(idSessionePresenza);
 
             Set<Long> before = new HashSet<Long>();
             for (int i = 0; i < gia.size(); i++) {
                 Ricetta r = gia.get(i);
-                if (r != null) before.add(r.getIdRicetta());
+                if (r != null) before.add(Long.valueOf(r.getIdRicetta()));
             }
 
+            // 2) Stato "dopo" dalla selezione corrente
             Set<Long> after = new HashSet<Long>(selectedNow);
 
-            // Aggiunte
-            for (Long idAdd : after) if (!before.contains(idAdd))
-                sessioneDao.addRicettaToSessionePresenza(idSessionePresenza, idAdd);
+            // 3) Delta: aggiunte
+            for (Long idAdd : after) {
+                if (!before.contains(idAdd)) {
+                    sessioneDao.addRicettaToSessionePresenza(idSessionePresenza, idAdd.longValue());
+                }
+            }
 
-            // Rimozioni
-            for (Long idRem : before) if (!after.contains(idRem))
-                sessioneDao.removeRicettaFromSessionePresenza(idSessionePresenza, idRem);
+            // 4) Delta: rimozioni
+            for (Long idRem : before) {
+                if (!after.contains(idRem)) {
+                    sessioneDao.removeRicettaFromSessionePresenza(idSessionePresenza, idRem.longValue());
+                }
+            }
 
-            showInfo("Associazioni ricette salvate.");
+            // Se per qualsiasi motivo il SessioneDao non fosse implementato,
+            // si può scommentare il seguente fallback con RicettaDao:
+            /*
+            RicettaDao rdao = new RicettaDao();
+            rdao.syncSessioneRicette(idSessionePresenza, after);
+            */
+
+            showInfo("Associazioni ricette salvate correttamente.");
 
         } catch (Exception ex) {
             showError("Errore salvataggio ricette", ex.getMessage());
@@ -258,41 +314,30 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
     private void styleDialogButtons() {
         DialogPane dp = getDialogPane();
         dp.setStyle("-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);" +
-                    "-fx-border-color:" + BORDER_SOFT + "; -fx-border-width:1; -fx-border-radius:12; -fx-background-radius:12;");
+                "-fx-border-color:" + BORDER_SOFT + "; -fx-border-width:1; -fx-border-radius:12; -fx-background-radius:12;");
 
         Button okBtn = (Button) dp.lookupButton(ButtonType.OK);
         if (okBtn != null) {
             okBtn.setText("Conferma");
             okBtn.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
-                           "-fx-background-radius:10; -fx-padding:8 14;");
+                    "-fx-background-radius:10; -fx-padding:8 14;");
         }
         Button cancelBtn = (Button) dp.lookupButton(ButtonType.CANCEL);
         if (cancelBtn != null) {
             cancelBtn.setText("Annulla");
             cancelBtn.setStyle("-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-font-weight:700;" +
-                               "-fx-background-radius:10; -fx-padding:8 14;");
+                    "-fx-background-radius:10; -fx-padding:8 14;");
         }
     }
 
     private void applyTableTheme() {
         table.setStyle(
-            "-fx-background-color:" + BG_CARD + ";" +
-            "-fx-control-inner-background:" + BG_CARD + ";" +
-            "-fx-text-background-color:" + TXT_MAIN + ";" +
-            "-fx-table-cell-border-color:" + BORDER_SOFT + ";" +
-            "-fx-table-header-border-color:" + BORDER_SOFT + ";"
+                "-fx-background-color:" + BG_CARD + ";" +
+                        "-fx-control-inner-background:" + BG_CARD + ";" +
+                        "-fx-text-background-color:" + TXT_MAIN + ";" +
+                        "-fx-table-cell-border-color:" + BORDER_SOFT + ";" +
+                        "-fx-table-header-border-color:" + BORDER_SOFT + ";"
         );
-        table.setRowFactory(tv -> {
-            TableRow<Riga> r = new TableRow<Riga>() {
-                @Override protected void updateItem(Riga item, boolean empty) {
-                    super.updateItem(item, empty);
-                    paintRow(this);
-                }
-            };
-            r.hoverProperty().addListener((o,w,h) -> paintRow(r));
-            r.selectedProperty().addListener((o,w,s) -> paintRow(r));
-            return r;
-        });
     }
 
     private void paintRow(TableRow<Riga> row) {
@@ -304,28 +349,15 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         boolean accented = row.isHover() || row.isSelected();
         if (accented) {
             row.setStyle("-fx-background-color:" + HOVER_BG + ";" +
-                         "-fx-border-color: " + ACCENT + ";" +
-                         "-fx-border-width: 0 0 0 3;");
+                    "-fx-border-color: " + ACCENT + ";" +
+                    "-fx-border-width: 0 0 0 3;");
             row.setCursor(Cursor.HAND);
         } else {
-            // zebra leggerissima
             String zebra = (row.getIndex() % 2 == 0) ? "rgba(255,255,255,0.03)" : "transparent";
             row.setStyle("-fx-background-color:" + zebra + ";" +
-                         "-fx-border-width: 0;" +
-                         "-fx-border-color: transparent;");
+                    "-fx-border-width: 0;" +
+                    "-fx-border-color: transparent;");
             row.setCursor(Cursor.DEFAULT);
-        }
-    }
-
-    private ImageView loadIcon(String path) {
-        try (InputStream is = getClass().getResourceAsStream(path)) {
-            if (is == null) return null;
-            Image img = new Image(is);
-            ImageView iv = new ImageView(img);
-            iv.setFitWidth(16); iv.setFitHeight(16); iv.setPreserveRatio(true);
-            return iv;
-        } catch (Exception ex) {
-            return null;
         }
     }
 
@@ -333,21 +365,24 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, msg, ButtonType.OK);
         alert.setHeaderText(null);
         alert.getDialogPane().setMinWidth(420);
+        alert.showAndWait(); // <<<<< MOSTRA L'ALERT
     }
+
     private void showError(String header, String content) {
         Alert a = new Alert(Alert.AlertType.ERROR, content, ButtonType.OK);
         a.setHeaderText(header);
         a.getDialogPane().setMinWidth(520);
+        a.showAndWait(); // <<<<< MOSTRA L'ALERT
     }
 
     /* ===================== Riga tabella ===================== */
     public static class Riga {
         final long idRicetta;
-        final SimpleBooleanProperty checked = new SimpleBooleanProperty(false);
-        final SimpleStringProperty  nome = new SimpleStringProperty();
-        final SimpleStringProperty  descrizione = new SimpleStringProperty();
-        final SimpleStringProperty  difficolta = new SimpleStringProperty();
-        final SimpleIntegerProperty tempoPreparazione = new SimpleIntegerProperty();
+        final javafx.beans.property.SimpleBooleanProperty checked = new javafx.beans.property.SimpleBooleanProperty(false);
+        final javafx.beans.property.SimpleStringProperty  nome = new javafx.beans.property.SimpleStringProperty();
+        final javafx.beans.property.SimpleStringProperty  descrizione = new javafx.beans.property.SimpleStringProperty();
+        final javafx.beans.property.SimpleStringProperty  difficolta = new javafx.beans.property.SimpleStringProperty();
+        final javafx.beans.property.SimpleIntegerProperty tempoPreparazione = new javafx.beans.property.SimpleIntegerProperty();
 
         Riga(Ricetta r) {
             this.idRicetta = r.getIdRicetta();
@@ -357,47 +392,59 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
             this.tempoPreparazione.set(r.getTempoPreparazione());
         }
     }
+
     /** Ri-colora header e "filler" della TableView (no CSS esterno). */
     private void fixTableHeaderTheme() {
-        final String BG_HDR   = "#242c2f";                // come card header
-        final String GRID     = "rgba(255,255,255,0.06)"; // bordi soft
+        final String GRID     = "rgba(255,255,255,0.06)";
         final String TXT_HDR  = "#e9f5ec";
 
-        Platform.runLater(() -> {
-            // Sfondo continuo dell'header
-            Node headerBg = table.lookup(".column-header-background");
-            if (headerBg != null) {
-                headerBg.setStyle("-fx-background-color:" + BG_HDR + ";");
-            }
-
-            // Ogni colonna: sfondo + bordo sotto; label testo chiaro/bold
-            for (Node n : table.lookupAll(".column-header")) {
-                if (n instanceof Region r) {
-                    r.setStyle("-fx-background-color:" + BG_HDR + ";" +
-                               "-fx-background-insets: 0;" +
-                               "-fx-border-color:" + GRID + ";" +
-                               "-fx-border-width: 0 0 1 0;");
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                Node headerBg = table.lookup(".column-header-background");
+                if (headerBg != null) {
+                    headerBg.setStyle("-fx-background-color:" + BG_HDR + ";");
                 }
-                Node lab = n.lookup(".label");
-                if (lab instanceof Label lbl) {
-                    lbl.setTextFill(javafx.scene.paint.Color.web(TXT_HDR));
-                    lbl.setStyle("-fx-font-weight:700;");
+                Set<Node> headers = table.lookupAll(".column-header");
+                for (Node n : headers) {
+                    if (n instanceof Region) {
+                        Region r = (Region) n;
+                        r.setStyle("-fx-background-color:" + BG_HDR + ";" +
+                                "-fx-background-insets: 0;" +
+                                "-fx-border-color:" + GRID + ";" +
+                                "-fx-border-width: 0 0 1 0;");
+                    }
+                    Node lab = n.lookup(".label");
+                    if (lab instanceof Label) {
+                        Label lbl = (Label) lab;
+                        lbl.setTextFill(javafx.scene.paint.Color.web(TXT_HDR));
+                        lbl.setStyle("-fx-font-weight:700;");
+                    }
                 }
-            }
-
-            // Filler (zona a destra dell'ultima colonna): togli la fascia bianca
-            Node filler = table.lookup(".filler");
-            if (filler != null) {
-                filler.setStyle("-fx-background-color:" + BG_HDR + ";");
+                Node filler = table.lookup(".filler");
+                if (filler != null) {
+                    filler.setStyle("-fx-background-color:" + BG_HDR + ";");
+                }
             }
         });
     }
 
-    /** Riapplca lo stile header quando lo skin rinasce / cambiano le colonne / resize. */
+    /** Riapplica lo stile header quando lo skin rinasce / cambiano le colonne / resize. */
     private void hookHeaderStylingRelayout() {
-        table.skinProperty().addListener((obs, oldSkin, newSkin) -> fixTableHeaderTheme());
-        table.getColumns().addListener((javafx.collections.ListChangeListener<? super TableColumn<Riga, ?>>) c -> fixTableHeaderTheme());
-        table.widthProperty().addListener((o, a, b) -> fixTableHeaderTheme());
+        table.skinProperty().addListener(new ChangeListener<javafx.scene.control.Skin<?>>(){
+            @Override
+            public void changed(ObservableValue<? extends javafx.scene.control.Skin<?>> obs,
+                                javafx.scene.control.Skin<?> oldSkin,
+                                javafx.scene.control.Skin<?> newSkin) {
+                fixTableHeaderTheme();
+            }
+        });
+        table.getColumns().addListener((javafx.collections.ListChangeListener<TableColumn<Riga, ?>>) c -> fixTableHeaderTheme());
+        table.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> o, Number a, Number b) {
+                fixTableHeaderTheme();
+            }
+        });
     }
-
 }

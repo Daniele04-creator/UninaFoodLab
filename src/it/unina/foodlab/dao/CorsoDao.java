@@ -14,123 +14,129 @@ import java.util.List;
 
 /**
  * DAO dei corsi.
- * - Mantiene l'owner (CF_Chef) per operazioni protette (findById, update, delete, insert).
- * - Niente Stream/Lambda: codice lineare e chiaro.
+ * - Supporta schema qualificato (es. "public") per evitare ambiguità di tabella.
+ * - Owner opzionale: puoi limitare findAll ai corsi dell'owner per coerenza UI.
  * - Transazioni esplicite per creare corso + sessioni in modo atomico.
+ * - Niente Stream/Lambda.
  */
 public class CorsoDao {
 
+    /** Schema del database (es. "public"). Mai null/vuoto. */
+    private final String schema;
+    /** CF del proprietario (owner) per operazioni protette. Mai null/vuoto. */
     private final String ownerCfChef;
+    /** Se true, findAll() restituisce solo corsi dell'owner; se false, restituisce tutti. */
+    private final boolean restrictFindAllToOwner;
 
     public CorsoDao(String ownerCfChef) {
-        if (ownerCfChef == null || ownerCfChef.trim().isEmpty()) {
+        this(ownerCfChef, "public", false);
+    }
+
+    public CorsoDao(String ownerCfChef, String schema, boolean restrictFindAllToOwner) {
+        if (ownerCfChef == null || ownerCfChef.trim().isEmpty())
             throw new IllegalArgumentException("CF_Chef mancante per CorsoDao");
-        }
+        if (schema == null || schema.trim().isEmpty())
+            schema = "public";
         this.ownerCfChef = ownerCfChef.trim();
+        this.schema = schema.trim();
+        this.restrictFindAllToOwner = restrictFindAllToOwner;
     }
 
     /* =========================
-       SQL (costanti ordinate)
+       SQL (generate con schema)
        ========================= */
 
-    private static final String SQL_FIND_ALL = """
-        SELECT  c.id_corso,
-                c.data_inizio,
-                c.data_fine,
-                c.argomento,
-                c.frequenza,
-                c."numSessioni" AS num_sessioni,
-                ch.CF_Chef,
-                ch.nome,
-                ch.cognome,
-                ch.username,
-                ch.password
-        FROM corso c
-        LEFT JOIN chef ch ON ch.CF_Chef = c.fk_cf_chef
-        ORDER BY c.data_inizio DESC
-    """;
+    private String tbl(String name) { return schema + "." + name; }
 
-    private static final String SQL_FIND_BY_ID_OWNER = """
-        SELECT  c.id_corso,
-                c.data_inizio,
-                c.data_fine,
-                c.argomento,
-                c.frequenza,
-                c."numSessioni" AS num_sessioni,
-                ch.CF_Chef,
-                ch.nome,
-                ch.cognome,
-                ch.username,
-                ch.password
-        FROM corso c
-        JOIN chef ch ON c.fk_cf_chef = ch.CF_Chef
-        WHERE c.id_corso = ? AND c.fk_cf_chef = ?
-    """;
+    private String sqlFindAll() {
+        return ""
+            + "SELECT  c.id_corso, c.data_inizio, c.data_fine, c.argomento, c.frequenza, c.\"numSessioni\" AS num_sessioni, "
+            + "        ch.CF_Chef, ch.nome, ch.cognome, ch.username, ch.password "
+            + "FROM " + tbl("corso") + " c "
+            + "LEFT JOIN " + tbl("chef") + " ch ON ch.CF_Chef = c.fk_cf_chef "
+            + (restrictFindAllToOwner ? "WHERE c.fk_cf_chef = ? " : "")
+            + "ORDER BY c.data_inizio DESC";
+    }
 
-    private static final String SQL_INSERT_CORSO = """
-        INSERT INTO corso (data_inizio, data_fine, argomento, frequenza, "numSessioni", fk_cf_chef)
-        VALUES (?, ?, ?, ?, ?, ?)
-        RETURNING id_corso
-    """;
+    private String sqlFindByIdOwner() {
+        return ""
+            + "SELECT  c.id_corso, c.data_inizio, c.data_fine, c.argomento, c.frequenza, c.\"numSessioni\" AS num_sessioni, "
+            + "        ch.CF_Chef, ch.nome, ch.cognome, ch.username, ch.password "
+            + "FROM " + tbl("corso") + " c "
+            + "JOIN " + tbl("chef") + " ch ON c.fk_cf_chef = ch.CF_Chef "
+            + "WHERE c.id_corso = ? AND c.fk_cf_chef = ?";
+    }
 
-    private static final String SQL_UPDATE_CORSO = """
-        UPDATE corso
-           SET data_inizio   = ?,
-               data_fine     = ?,
-               argomento     = ?,
-               frequenza     = ?,
-               "numSessioni" = ?
-         WHERE id_corso = ? AND fk_cf_chef = ?
-    """;
+    private String sqlInsertCorso() {
+        return ""
+            + "INSERT INTO " + tbl("corso")
+            + " (data_inizio, data_fine, argomento, frequenza, \"numSessioni\", fk_cf_chef) "
+            + "VALUES (?, ?, ?, ?, ?, ?) "
+            + "RETURNING id_corso";
+    }
 
-    private static final String SQL_DELETE_CORSO = """
-        DELETE FROM corso
-        WHERE id_corso = ? AND fk_cf_chef = ?
-    """;
+    private String sqlUpdateCorso() {
+        return ""
+            + "UPDATE " + tbl("corso") + " "
+            + "   SET data_inizio = ?, data_fine = ?, argomento = ?, frequenza = ?, \"numSessioni\" = ? "
+            + " WHERE id_corso = ? AND fk_cf_chef = ?";
+    }
 
-    private static final String SQL_INSERT_SES_ONLINE = """
-        INSERT INTO sessione_online
-            (fk_id_corso, data, ora_inizio, ora_fine, piattaforma)
-        VALUES (?, ?, ?, ?, ?)
-    """;
+    private String sqlDeleteCorso() {
+        return "DELETE FROM " + tbl("corso") + " WHERE id_corso = ? AND fk_cf_chef = ?";
+    }
 
-    private static final String SQL_INSERT_SES_PRESENZA = """
-        INSERT INTO sessione_presenza
-            (fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """;
+    private String sqlInsertSesOnline() {
+        return ""
+            + "INSERT INTO " + tbl("sessione_online")
+            + " (fk_id_corso, data, ora_inizio, ora_fine, piattaforma) "
+            + "VALUES (?, ?, ?, ?, ?)";
+    }
 
-    private static final String SQL_DISTINCT_ARG = """
-        SELECT a
-        FROM (
-            SELECT DISTINCT TRIM(argomento) AS a
-            FROM corso
-            WHERE argomento IS NOT NULL AND TRIM(argomento) <> ''
-        ) t
-        ORDER BY LOWER(a), a
-    """;
+    private String sqlInsertSesPresenza() {
+        return ""
+            + "INSERT INTO " + tbl("sessione_presenza")
+            + " (fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    }
 
-    private static final String SQL_DISTINCT_FREQ = """
-        SELECT f
-        FROM (
-            SELECT DISTINCT TRIM(frequenza) AS f
-            FROM corso
-            WHERE frequenza IS NOT NULL AND TRIM(frequenza) <> ''
-        ) t
-        ORDER BY LOWER(f), f
-    """;
+    private String sqlDistinctArg() {
+        return ""
+            + "SELECT a FROM ( "
+            + "  SELECT DISTINCT TRIM(argomento) AS a "
+            + "  FROM " + tbl("corso") + " "
+            + "  WHERE argomento IS NOT NULL AND TRIM(argomento) <> '' "
+            + ") t "
+            + "ORDER BY LOWER(a), a";
+    }
+
+    private String sqlDistinctFreq() {
+        return ""
+            + "SELECT f FROM ( "
+            + "  SELECT DISTINCT TRIM(frequenza) AS f "
+            + "  FROM " + tbl("corso") + " "
+            + "  WHERE frequenza IS NOT NULL AND TRIM(frequenza) <> '' "
+            + ") t "
+            + "ORDER BY LOWER(f), f";
+    }
 
     /* =========================
        QUERY CORSI
        ========================= */
 
-    /** Restituisce TUTTI i corsi (nessun filtro per chef). */
+    /** Restituisce TUTTI i corsi o solo quelli dell'owner (in base a restrictFindAllToOwner). */
     public List<Corso> findAll() throws Exception {
         List<Corso> out = new ArrayList<Corso>();
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(SQL_FIND_ALL);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) out.add(mapRow(rs));
+             PreparedStatement ps = conn.prepareStatement(sqlFindAll())) {
+
+            if (restrictFindAllToOwner) {
+                ps.setString(1, ownerCfChef);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) out.add(mapRow(rs));
+            }
         }
         return out;
     }
@@ -138,7 +144,7 @@ public class CorsoDao {
     /** Restituisce il corso SOLO se appartiene all'owner (utile per edit/controllo). */
     public Corso findById(long id) throws Exception {
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(SQL_FIND_BY_ID_OWNER)) {
+             PreparedStatement ps = conn.prepareStatement(sqlFindByIdOwner())) {
             ps.setLong(1, id);
             ps.setString(2, ownerCfChef);
             try (ResultSet rs = ps.executeQuery()) {
@@ -150,7 +156,7 @@ public class CorsoDao {
     /** Inserisce SOLO il corso (non le sessioni). */
     public long insert(Corso corso) throws Exception {
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(SQL_INSERT_CORSO)) {
+             PreparedStatement ps = conn.prepareStatement(sqlInsertCorso())) {
             bindWithoutOwner(ps, corso);
             ps.setString(6, ownerCfChef); // ownership forzata
             try (ResultSet rs = ps.executeQuery()) {
@@ -164,7 +170,7 @@ public class CorsoDao {
     public void update(Corso corso) throws Exception {
         if (corso.getIdCorso() <= 0) throw new IllegalArgumentException("idCorso mancante");
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(SQL_UPDATE_CORSO)) {
+             PreparedStatement ps = conn.prepareStatement(sqlUpdateCorso())) {
             bindWithoutOwner(ps, corso);
             ps.setLong(6, corso.getIdCorso());
             ps.setString(7, ownerCfChef);
@@ -176,7 +182,7 @@ public class CorsoDao {
     /** Elimina il corso dell'owner. */
     public void delete(long id) throws Exception {
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(SQL_DELETE_CORSO)) {
+             PreparedStatement ps = conn.prepareStatement(sqlDeleteCorso())) {
             ps.setLong(1, id);
             ps.setString(2, ownerCfChef);
             int n = ps.executeUpdate();
@@ -194,10 +200,8 @@ public class CorsoDao {
 
         try (Connection conn = Db.get()) {
             boolean oldAuto = conn.getAutoCommit();
-            int oldIso = Connection.TRANSACTION_READ_COMMITTED;
+            int oldIso = conn.getTransactionIsolation();
             try {
-                // isolamento ragionevole per scritture semplici
-                oldIso = conn.getTransactionIsolation();
                 conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
                 conn.setAutoCommit(false);
 
@@ -209,7 +213,7 @@ public class CorsoDao {
                 return idCorso;
 
             } catch (Exception ex) {
-                conn.rollback();
+                try { conn.rollback(); } catch (Exception ignore) {}
                 throw ex;
             } finally {
                 try { conn.setTransactionIsolation(oldIso); } catch (Exception ignore) {}
@@ -219,14 +223,13 @@ public class CorsoDao {
     }
 
     private long insertCorso(Connection conn, Corso c) throws SQLException {
-        try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT_CORSO)) {
+        try (PreparedStatement ps = conn.prepareStatement(sqlInsertCorso())) {
             bindWithoutOwner(ps, c);
             ps.setString(6, ownerCfChef);
             try (ResultSet rs = ps.executeQuery()) {
                 rs.next();
                 long id = rs.getLong(1);
                 c.setIdCorso(id);
-                // Garantisco che il modello corso abbia l'owner impostato
                 if (c.getChef() == null) {
                     Chef s = new Chef();
                     s.setCF_Chef(ownerCfChef);
@@ -242,7 +245,7 @@ public class CorsoDao {
     private void insertSession(Connection conn, long corsoId, Sessione s) throws SQLException {
         if (s instanceof SessioneOnline) {
             SessioneOnline so = (SessioneOnline) s;
-            try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT_SES_ONLINE)) {
+            try (PreparedStatement ps = conn.prepareStatement(sqlInsertSesOnline())) {
                 ps.setLong(1, corsoId);
                 ps.setObject(2, so.getData());
                 ps.setObject(3, so.getOraInizio());
@@ -252,7 +255,7 @@ public class CorsoDao {
             }
         } else if (s instanceof SessionePresenza) {
             SessionePresenza sp = (SessionePresenza) s;
-            try (PreparedStatement ps = conn.prepareStatement(SQL_INSERT_SES_PRESENZA)) {
+            try (PreparedStatement ps = conn.prepareStatement(sqlInsertSesPresenza())) {
                 ps.setLong(1, corsoId);
                 ps.setObject(2, sp.getData());
                 ps.setObject(3, sp.getOraInizio());
@@ -273,22 +276,20 @@ public class CorsoDao {
        OPZIONI DISTINCT (per editor)
        ========================= */
 
-    /** Distinct su TUTTI i corsi. */
     public List<String> findDistinctArgomenti() throws Exception {
         List<String> out = new ArrayList<String>();
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(SQL_DISTINCT_ARG);
+             PreparedStatement ps = conn.prepareStatement(sqlDistinctArg());
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) out.add(rs.getString(1));
         }
         return out;
     }
 
-    /** Distinct su TUTTI i corsi. */
     public List<String> findDistinctFrequenze() throws Exception {
         List<String> out = new ArrayList<String>();
         try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(SQL_DISTINCT_FREQ);
+             PreparedStatement ps = conn.prepareStatement(sqlDistinctFreq());
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) out.add(rs.getString(1));
         }
@@ -320,13 +321,14 @@ public class CorsoDao {
         chef.setNome(rs.getString("nome"));
         chef.setCognome(rs.getString("cognome"));
         chef.setUsername(rs.getString("username"));
-        chef.setPassword(rs.getString("password")); // mantengo per compatibilità (non lo esponi in UI)
+        // password presente nel result-set ma NON usarla in UI
+        chef.setPassword(rs.getString("password"));
         c.setChef(chef);
 
         return c;
     }
 
-    /** Bind dei campi (senza owner) per insert/update + validazioni minime. */
+    /** Bind campi (senza owner) per insert/update + validazioni minime. */
     private void bindWithoutOwner(PreparedStatement ps, Corso c) throws SQLException {
         LocalDate di = c.getDataInizio();
         LocalDate df = c.getDataFine();
@@ -350,7 +352,25 @@ public class CorsoDao {
         ps.setInt(5, ns);
     }
 
-    public String getOwnerCfChef() {
-        return ownerCfChef;
+    public String getOwnerCfChef() { return ownerCfChef; }
+    public String getSchema() { return schema; }
+    public boolean isRestrictFindAllToOwner() { return restrictFindAllToOwner; }
+
+    /**
+     * Piccolo check per capire SUBITO da dove stai leggendo.
+     * Esempio d'uso in debug: System.out.println(corsoDao.sanityCheck());
+     */
+    public String sanityCheck() {
+        Connection conn = null;
+        try {
+            conn = Db.get();
+            DatabaseMetaData md = conn.getMetaData();
+            return "[CorsoDao] DB URL=" + md.getURL() + " | User=" + md.getUserName() + " | Schema=" + schema
+                    + " | restrictFindAllToOwner=" + restrictFindAllToOwner;
+        } catch (Exception ex) {
+            return "[CorsoDao] sanityCheck ERROR: " + ex.getMessage();
+        } finally {
+            if (conn != null) try { conn.close(); } catch (Exception ignore) {}
+        }
     }
 }

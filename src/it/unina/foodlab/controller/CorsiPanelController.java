@@ -1157,29 +1157,31 @@ public class CorsiPanelController {
 	}
 
 	private void openSessioniPreview(Corso corso) {
-		if (corso == null)
-			return;
-		try {
-			FXMLLoader l = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/SessioniPreview.fxml"));
-			DialogPane pane = l.load();
-			SessioniPreviewController ctrl = l.getController();
+    if (corso == null) return;
+    try {
+        FXMLLoader l = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/SessioniPreview.fxml"));
+        DialogPane pane = l.load();
+        SessioniPreviewController ctrl = l.getController();
 
-			long id = corso.getIdCorso();
-			List<Sessione> sessions = (sessioneDao != null) ? sessioneDao.findByCorso(id) : Collections.emptyList();
-			ctrl.init(corso, sessions);
+        long id = corso.getIdCorso();
+        List<Sessione> sessions = (sessioneDao != null) ? sessioneDao.findByCorso(id) : java.util.Collections.<Sessione>emptyList();
 
-			Dialog<Void> dlg = new Dialog<>();
-			dlg.setTitle("Sessioni — " + corso.getArgomento());
-			dlg.setDialogPane(pane);
-			dlg.initOwner(table.getScene().getWindow());
-			dlg.initModality(Modality.WINDOW_MODAL);
-			dlg.showAndWait();
+        // >>> PASSO ANCHE sessioneDao <<<
+        ctrl.init(corso, sessions, sessioneDao);
 
-		} catch (Exception ex) {
-			showError("Errore apertura anteprima sessioni: " + ex.getMessage());
-			ex.printStackTrace();
-		}
-	}
+        Dialog<Void> dlg = new Dialog<>();
+        dlg.setTitle("Sessioni — " + corso.getArgomento());
+        dlg.setDialogPane(pane);
+        dlg.initOwner(table.getScene().getWindow());
+        dlg.initModality(Modality.WINDOW_MODAL);
+        dlg.showAndWait();
+
+    } catch (Exception ex) {
+        showError("Errore apertura anteprima sessioni: " + ex.getMessage());
+        ex.printStackTrace();
+    }
+}
+
 
 	/* ==================== ASSOCIAZIONE RICETTE ==================== */
 	private void onAssociateRecipes() {

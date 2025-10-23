@@ -31,11 +31,11 @@
 
                 <!-- Divider sottile color zafferano -->
                 <Region prefHeight="2" maxHeight="2" style="-fx-background-color:#f0b766; -fx-background-radius:2;"/>
-                <Label text="• Pianifica sessioni pratiche senza sprechi"
+                <Label text="• Programma corsi e sessioni con pochi click"
                        style="-fx-text-fill:#e9f5ec; -fx-font-size:13px;"/>
-                <Label text="• Ingredienti calcolati sulle adesioni reali"
+                <Label text="• Associa ricette in modo semplice"
                        style="-fx-text-fill:#e9f5ec; -fx-font-size:13px;"/>
-                <Label text="• Report mensili chiari e immediati"
+                <Label text="• Statistiche chiare e immediatei"
                        style="-fx-text-fill:#e9f5ec; -fx-font-size:13px;"/>
 
                 <Region VBox.vgrow="ALWAYS"/>

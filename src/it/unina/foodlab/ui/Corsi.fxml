@@ -15,19 +15,20 @@
     <!-- ============== SIDEBAR SINISTRA ============== -->
     <left>
         <VBox spacing="12" BorderPane.alignment="CENTER"
-      style="
-          -fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
-          -fx-background-radius: 0 14 14 0;
-          -fx-background-insets: 0;
-          -fx-padding:16;">
+              style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
+                     -fx-background-radius: 0 14 14 0;
+                     -fx-background-insets: 0;
+                     -fx-padding:16;">
             <children>
+
+                <!-- logo/titolo (facoltativo) -->
                 <HBox spacing="8" alignment="CENTER_LEFT">
                     <children>
                         <ImageView fitHeight="28" preserveRatio="true">
                             <image><Image url="@/icons/Corsi-Logo.png"/></image>
                         </ImageView>
                         <Label text="Corsi"
-                               style="-fx-text-fill:#a7f3d0; -fx-font-weight:900; -fx-font-size:18px;"/>
+                               style="-fx-text-fill:#cfe5d9; -fx-font-size:18px; -fx-font-weight:700;"/>
                     </children>
                 </HBox>
 
@@ -51,25 +52,23 @@
     </left>
 
     <!-- ============== TOP BAR ============== -->
-   <top>
-  <HBox spacing="12" alignment="CENTER_LEFT" BorderPane.alignment="CENTER"
-        style="
-            -fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
-            /* TL  TR  BR  BL  (metti 0 nell’angolo in basso a sinistra) */
-            -fx-background-radius: 0 0 14 0;
-            -fx-background-insets: 0;
-            -fx-padding:12 14;">
+    <top>
+        <HBox spacing="12" alignment="CENTER_LEFT" BorderPane.alignment="CENTER"
+              style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
+                     -fx-background-radius: 0 0 14 0;
+                     -fx-background-insets: 0;
+                     -fx-padding:12 14;">
             <children>
                 <ImageView fitHeight="44" preserveRatio="true">
                     <image><Image url="@/icons/Corsi-Logo.png"/></image>
                 </ImageView>
                 <Label text="I miei corsi"
-                       style="-fx-text-fill:#e9f5ec; -fx-font-weight:800; -fx-font-size:16px;"/>
+                       style="-fx-text-fill:#e9f5ec; -fx-font-size:18px; -fx-font-weight:800;"/>
 
                 <Region HBox.hgrow="ALWAYS"/>
 
                 <!-- Filtri (il menu viene costruito a runtime dal controller) -->
-                <MenuButton fx:id="btnFilters"
+                <MenuButton fx:id="btnFilters" text="Filtri"
                             contentDisplay="LEFT" graphicTextGap="8"
                             style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10; -fx-padding:8 10;">
                     <graphic>
@@ -78,7 +77,7 @@
                         </ImageView>
                     </graphic>
                     <tooltip><Tooltip text="Filtri avanzati"/></tooltip>
-                    <!-- Items placeholder: il controller li svuota e inserisce un ContextMenu personalizzato -->
+                    <!-- Placeholder items: il controller li ignora e usa un ContextMenu custom -->
                     <items>
                         <MenuItem fx:id="miFiltroArg"  text="Argomento"/>
                         <MenuItem fx:id="miFiltroFreq" text="Frequenza"/>
@@ -104,39 +103,46 @@
         <VBox spacing="12" style="-fx-padding: 12 20 14 14;">
             <children>
 
-                <!-- Card tabella scura (stile card come nel login) -->
+                <!-- Card tabella scura -->
                 <HBox spacing="0"
                       style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
                              -fx-border-color: rgba(255,255,255,0.06);
                              -fx-background-radius:12; -fx-border-radius:12; -fx-padding:10;">
                     <children>
-                        <TableView fx:id="table" HBox.hgrow="ALWAYS"
-                                   style="-fx-background-color:#20282b;
-                                          -fx-control-inner-background:#20282b;
-                                          -fx-text-background-color:#e9f5ec;
-                                          -fx-table-cell-border-color: rgba(255,255,255,0.06);
-                                          -fx-table-header-border-color: rgba(255,255,255,0.06);
-                                          -fx-selection-bar: transparent;
-                                          -fx-selection-bar-non-focused: transparent;
-                                          -fx-padding:4;">
-                            <columnResizePolicy>
-                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-                            </columnResizePolicy>
+                       <TableView fx:id="table" HBox.hgrow="ALWAYS"
+           style="-fx-background-color:#20282b;
+                  -fx-control-inner-background:#20282b;
+                  -fx-text-background-color:#e9f5ec;
+                  -fx-table-cell-border-color: rgba(255,255,255,0.06);
+                  -fx-table-header-border-color: rgba(255,255,255,0.06);
+                  -fx-selection-bar: transparent;
+                  -fx-selection-bar-non-focused: transparent;
+                  -fx-padding:4;">
+    <columnResizePolicy>
+        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+    </columnResizePolicy>
 
-                            <columns>
-                                <TableColumn fx:id="colId"     text="ID"         prefWidth="80"  style="-fx-alignment: CENTER_LEFT;"/>
-                                <TableColumn fx:id="colArg"    text="Argomento"  prefWidth="220" style="-fx-alignment: CENTER_LEFT;"/>
-                                <TableColumn fx:id="colFreq"   text="Frequenza"  prefWidth="120" style="-fx-alignment: CENTER_LEFT;"/>
-                                <TableColumn fx:id="colInizio" text="Inizio"     prefWidth="110" style="-fx-alignment: CENTER_LEFT;"/>
-                                <TableColumn fx:id="colFine"   text="Fine"       prefWidth="110" style="-fx-alignment: CENTER_LEFT;"/>
-                                <TableColumn fx:id="colChef"   text="Chef"       prefWidth="200" style="-fx-alignment: CENTER_LEFT;"/>
-                            </columns>
+    <columns>
+        <TableColumn fx:id="colId"     text="ID"         prefWidth="80"  style="-fx-alignment: CENTER;"/>
+        <TableColumn fx:id="colArg"    text="Argomento"  prefWidth="260" style="-fx-alignment: CENTER_LEFT;"/>
+        <TableColumn fx:id="colFreq"   text="Frequenza"  prefWidth="140" style="-fx-alignment: CENTER_LEFT;"/>
 
-                            <placeholder>
-                                <Label text="Nessun corso trovato."
-                                       style="-fx-text-fill: rgba(233,245,236,0.85); -fx-padding: 8;"/>
-                            </placeholder>
-                        </TableView>
+        <!-- >>> NUOVA COLONNA STATO (coerente con il controller) <<< -->
+        <TableColumn fx:id="colStato"  text="Stato"      prefWidth="120" style="-fx-alignment: CENTER;"/>
+
+        <TableColumn fx:id="colInizio" text="Inizio"     prefWidth="130" style="-fx-alignment: CENTER;"/>
+        <TableColumn fx:id="colFine"   text="Fine"       prefWidth="130" style="-fx-alignment: CENTER;"/>
+        <TableColumn fx:id="colChef"   text="Chef"       prefWidth="220" style="-fx-alignment: CENTER_LEFT;"/>
+    </columns>
+
+    <placeholder>
+        <Label text="Non hai ancora corsi.
+Crea il primo corso per iniziare a pianificare le sessioni."
+               style="-fx-text-fill: rgba(233,245,236,0.85);
+                      -fx-font-weight:700; -fx-padding: 12; -fx-alignment: center;"/>
+    </placeholder>
+</TableView>
+
                     </children>
                 </HBox>
 

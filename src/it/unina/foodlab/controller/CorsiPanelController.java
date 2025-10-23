@@ -79,13 +79,14 @@ public class CorsiPanelController {
     private String filtroFreq = null;
     private String filtroChef = null;
     private String filtroId = null;
+    private String filtroStato = null;   // <— NEW
     private LocalDate dateFrom = null;
     private LocalDate dateTo = null;
 
     /* --- Menu Filtri --- */
     private ContextMenu filtersMenu;
-    private Label labArgomentoVal, labFrequenzaVal, labChefVal, labIdVal;
-    private Button btnClearArg, btnClearFreq, btnClearChef, btnClearId;
+    private Label labArgomentoVal, labFrequenzaVal, labChefVal, labIdVal,labStatoVal;
+    private Button btnClearArg, btnClearFreq, btnClearChef, btnClearId,btnClearStato;
 
     /* --- UI Comfort Mode --- */
     private boolean comfortable = true; // righe alte + font più grande
@@ -160,13 +161,40 @@ public class CorsiPanelController {
 
     /* ================== TABELLA ================== */
 
-    private final DateTimeFormatter DF = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+  private final DateTimeFormatter DF = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-   private void initTableColumns() {
-    // ...le tue colonne già esistenti...
+private void initTableColumns() {
+    // ID
+    colId.setCellValueFactory(new PropertyValueFactory<>("idCorso"));
+    colId.setStyle("-fx-alignment: CENTER;");
 
+    // Argomento (bold)
+    colArg.setCellValueFactory(new PropertyValueFactory<>("argomento"));
+    colArg.setCellFactory(tc -> new TableCell<Corso, String>() {
+        private final Label lbl = makeCellLabel(true);
+        @Override protected void updateItem(String v, boolean empty) {
+            super.updateItem(v, empty);
+            if (empty || v == null) { setGraphic(null); return; }
+            lbl.setText(v);
+            setGraphic(lbl);
+        }
+    });
+
+    // Frequenza
+    colFreq.setCellValueFactory(new PropertyValueFactory<>("frequenza"));
+    colFreq.setCellFactory(tc -> new TableCell<Corso, String>() {
+        private final Label lbl = makeCellLabel(false);
+        @Override protected void updateItem(String v, boolean empty) {
+            super.updateItem(v, empty);
+            if (empty || v == null) { setGraphic(null); return; }
+            lbl.setText(v);
+            setGraphic(lbl);
+        }
+    });
+
+    // STATO (chip)
     colStato.setCellValueFactory(cd -> Bindings.createStringBinding(() -> statoOf(cd.getValue())));
-    colStato.setCellFactory(tc -> new TableCell<>() {
+    colStato.setCellFactory(tc -> new TableCell<Corso, String>() {
         private final Label chip = new Label();
         @Override protected void updateItem(String s, boolean empty) {
             super.updateItem(s, empty);
@@ -180,13 +208,74 @@ public class CorsiPanelController {
             };
             chip.setStyle(
               "-fx-font-weight:700; -fx-font-size:12px; -fx-text-fill:white;" +
-              "-fx-background-color:"+bg+"; -fx-background-radius:999; -fx-padding:2 8 2 8;"
+              "-fx-background-color:"+bg+"; -fx-background-radius:999; -fx-padding:2 8;"
             );
             setGraphic(chip);
         }
     });
-    colStato.setPrefWidth(120);
+
+    // Inizio
+    colInizio.setCellValueFactory(new PropertyValueFactory<>("dataInizio"));
+    colInizio.setCellFactory(tc -> new TableCell<Corso, LocalDate>() {
+        private final Label lbl = makeCellLabel(false);
+        { setAlignment(Pos.CENTER); }
+        @Override protected void updateItem(LocalDate d, boolean empty) {
+            super.updateItem(d, empty);
+            if (empty || d == null) { setGraphic(null); return; }
+            lbl.setText(DF.format(d));
+            setGraphic(lbl);
+        }
+    });
+
+    // Fine
+    colFine.setCellValueFactory(new PropertyValueFactory<>("dataFine"));
+    colFine.setCellFactory(tc -> new TableCell<Corso, LocalDate>() {
+        private final Label lbl = makeCellLabel(false);
+        { setAlignment(Pos.CENTER); }
+        @Override protected void updateItem(LocalDate d, boolean empty) {
+            super.updateItem(d, empty);
+            if (empty || d == null) { setGraphic(null); return; }
+            lbl.setText(DF.format(d));
+            setGraphic(lbl);
+        }
+    });
+
+    // Chef (nome cognome, fallback CF)
+    colChef.setCellValueFactory(cd -> Bindings.createStringBinding(() -> {
+        Corso c = cd.getValue();
+        if (c == null || c.getChef() == null) return "";
+        String nome = nz(c.getChef().getNome());
+        String cogn = nz(c.getChef().getCognome());
+        String full = (nome + " " + cogn).trim();
+        return full.isEmpty() ? nz(c.getChef().getCF_Chef()) : full;
+    }));
+    colChef.setCellFactory(tc -> new TableCell<Corso, String>() {
+        private final Label lbl = makeCellLabel(false);
+        @Override protected void updateItem(String v, boolean empty) {
+            super.updateItem(v, empty);
+            if (empty || v == null) { setGraphic(null); return; }
+            lbl.setText(v);
+            setGraphic(lbl);
+        }
+    });
+
+    // Policy e larghezze comode
+    Platform.runLater(() -> {
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        colId.setMaxWidth(80);  colId.setMinWidth(70);
+        colArg.setPrefWidth(260);
+        colFreq.setPrefWidth(140);
+        colStato.setPrefWidth(120);
+        colInizio.setPrefWidth(130);
+        colFine.setPrefWidth(130);
+        colChef.setPrefWidth(220);
+    });
+
+    // Ordinamento iniziale
+    table.getSortOrder().setAll(colInizio);
+    colInizio.setSortType(TableColumn.SortType.DESCENDING);
 }
+
 
     /** Label per celle con padding e font coerenti (no CSS esterno). */
     private Label makeCellLabel(boolean bold) {
@@ -213,16 +302,21 @@ public class CorsiPanelController {
         final String GRID = "rgba(255,255,255,0.06)";
 
         table.setStyle(
-            "-fx-background-color:" + BG + ";" +
-            "-fx-control-inner-background:" + BG + ";" +
-            "-fx-text-background-color:" + TXT + ";" +
-            "-fx-table-cell-border-color:" + GRID + ";" +
-            "-fx-table-header-border-color:" + GRID + ";" +
-            "-fx-selection-bar: transparent;" +
-            "-fx-selection-bar-non-focused: transparent;" +
-            "-fx-background-insets: 0;" +
-            "-fx-padding: 6;"
-        );
+        	    "-fx-background-color:#20282b;" +
+        	    "-fx-control-inner-background:#20282b;" +
+        	    "-fx-text-background-color:#e9f5ec;" +
+        	    "-fx-table-cell-border-color: rgba(255,255,255,0.06);" +
+        	    "-fx-table-header-border-color: rgba(255,255,255,0.06);" +
+        	    "-fx-selection-bar: transparent;" +
+        	    "-fx-selection-bar-non-focused: transparent;" +
+        	    // spegne focus blu della table e dei figli
+        	    "-fx-focus-color: transparent;" +
+        	    "-fx-faint-focus-color: transparent;" +
+        	    "-fx-accent: transparent;" +
+        	    "-fx-background-insets: 0;" +
+        	    "-fx-padding: 6;"
+        	);
+
 
         Platform.runLater(() -> {
             Node headerRow = table.lookup("TableHeaderRow");
@@ -395,6 +489,11 @@ public class CorsiPanelController {
                 String idS = String.valueOf(c.getIdCorso());
                 if (!idS.equals(filtroId)) return false;
             }
+            if (!isBlank(filtroStato)) {
+                String st = statoOf(c);
+                if (!matchesEqIgnoreCase(st, filtroStato)) return false;
+            }
+
 
             LocalDate din = c.getDataInizio();
             LocalDate dfi = c.getDataFine();
@@ -410,7 +509,7 @@ public class CorsiPanelController {
     }
 
     private void clearAllFilters() {
-        filtroArg = filtroFreq = filtroChef = filtroId = null;
+    	filtroArg = filtroFreq = filtroChef = filtroId = filtroStato = null; // <—
         dateFrom = dateTo = null;
         refilter();
         updateFiltersUI();
@@ -428,6 +527,7 @@ public class CorsiPanelController {
         appendIf(sb, !isBlank(filtroFreq), "Freq=" + filtroFreq);
         appendIf(sb, !isBlank(filtroChef), "Chef=" + filtroChef);
         appendIf(sb, !isBlank(filtroId), "ID=" + filtroId);
+        appendIf(sb, !isBlank(filtroStato), "Stato=" + filtroStato); // <— NEW
         if (dateFrom != null || dateTo != null) appendIf(sb, true, formatDateRange(dateFrom, dateTo));
 
         if (sb.length() == 0) {
@@ -462,6 +562,13 @@ public class CorsiPanelController {
         }
         return sortedWithAllOption(s);
     }
+    
+    private List<String> distinctStati() {
+        List<String> s = new ArrayList<>(Arrays.asList("Futuro", "In corso", "Concluso"));
+        s.add(0, ALL_OPTION);
+        return s;
+    }
+
 
     private List<String> distinctFrequenze() {
         Set<String> s = new HashSet<>();
@@ -708,75 +815,147 @@ public class CorsiPanelController {
     /* ================== UI: Menu Filtri (Date inline + '×') ================== */
 
     private void buildAndAttachFiltersContextMenu() {
-        filtersMenu = new ContextMenu();
-        filtersMenu.setStyle(
-            "-fx-background-color: linear-gradient(to bottom,#262f3c,#212938);" +
-            "-fx-background-insets: 0;" +
-            "-fx-background-radius: 14;" +
-            "-fx-border-color: #3a4657;" +
-            "-fx-border-radius: 14;" +
-            "-fx-border-width: 1;" +
-            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.2, 0, 6);"
-        );
+    filtersMenu = new ContextMenu();
+    filtersMenu.setStyle(
+    	    // colori coerenti con la tabella
+    	    "-fx-background-color:#20282b;" +
+    	    "-fx-background-insets:0;" +
+    	    "-fx-background-radius:14;" +
+    	    "-fx-border-color: rgba(255,255,255,0.06);" +
+    	    "-fx-border-radius:14;" +
+    	    "-fx-border-width:1;" +
+    	    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.2, 0, 6);" +
+    	    // spegne blu di focus/selection del menu
+    	    "-fx-base:#20282b;" +
+    	    "-fx-control-inner-background:#20282b;" +
+    	    "-fx-selection-bar: transparent;" +
+    	    "-fx-accent: transparent;" +
+    	    "-fx-focus-color: transparent;" +
+    	    "-fx-faint-focus-color: transparent;"
+    	);
 
-        CustomMenuItem rowFrom = createDateRow("Inizio da", true);
-        CustomMenuItem rowTo   = createDateRow("Fine fino a", false);
+    // Date
+    CustomMenuItem rowFrom = createDateRow("Inizio da", true);
+    CustomMenuItem rowTo   = createDateRow("Fine fino a", false);
+    
+    rowFrom.setStyle("-fx-background-color: transparent;");
+    rowTo.setStyle("-fx-background-color: transparent;");
 
-        CustomMenuItem rowArg = createFilterRow("Argomento", "(tutte)", iconPathList(), e -> {
-            String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
-            filtroArg = normalizeAllToNull(scelto);
-            refilter(); updateFiltersUI(); updatePrettyFilterRows();
-        }, () -> { filtroArg = null; refilter(); updateFiltersUI(); updatePrettyFilterRows(); },
-                b -> btnClearArg = b, l -> labArgomentoVal = l);
+    // Argomento
+    CustomMenuItem rowArg = createFilterRow("Argomento", "(tutte)", iconPathList(), e -> {
+        String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
+        filtroArg = normalizeAllToNull(scelto);
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, () -> {
+        filtroArg = null;
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, b -> btnClearArg = b, l -> labArgomentoVal = l);
 
-        CustomMenuItem rowFreq = createFilterRow("Frequenza", "(tutte)", iconPathCalendar(), e -> {
-            String scelto = askChoice("Filtro Frequenza", "Seleziona frequenza", distinctFrequenze(), filtroFreq);
-            filtroFreq = normalizeAllToNull(scelto);
-            refilter(); updateFiltersUI(); updatePrettyFilterRows();
-        }, () -> { filtroFreq = null; refilter(); updateFiltersUI(); updatePrettyFilterRows(); },
-                b -> btnClearFreq = b, l -> labFrequenzaVal = l);
+    rowArg.setStyle("-fx-background-color: transparent;");
+   
+    CustomMenuItem rowFreq = createFilterRow("Frequenza", "(tutte)", iconPathCalendar(), e -> {
+        String scelto = askChoice("Filtro Frequenza", "Seleziona frequenza", distinctFrequenze(), filtroFreq);
+        filtroFreq = normalizeAllToNull(scelto);
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, () -> {
+        filtroFreq = null;
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, b -> btnClearFreq = b, l -> labFrequenzaVal = l);
 
-        CustomMenuItem rowChef = createFilterRow("Chef", "(tutte)", iconPathChefHat(), e -> {
-            String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
-            filtroChef = normalizeAllToNull(scelto);
-            refilter(); updateFiltersUI(); updatePrettyFilterRows();
-        }, () -> { filtroChef = null; refilter(); updateFiltersUI(); updatePrettyFilterRows(); },
-                b -> btnClearChef = b, l -> labChefVal = l);
+    rowFreq.setStyle("-fx-background-color: transparent;");
 
-        CustomMenuItem rowId = createFilterRow("ID", "(tutte)", iconPathId(), e -> {
-            String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
-            filtroId = normalizeAllToNull(scelto);
-            refilter(); updateFiltersUI(); updatePrettyFilterRows();
-        }, () -> { filtroId = null; refilter(); updateFiltersUI(); updatePrettyFilterRows(); },
-                b -> btnClearId = b, l -> labIdVal = l);
+    // Stato  <<<<<<<<<< NEW
+    CustomMenuItem rowStato = createFilterRow("Stato", "(tutti)", iconPathStatus(), e -> {
+        String scelto = askChoice("Filtro Stato", "Seleziona stato",
+                distinctStati(), filtroStato);
+        filtroStato = normalizeAllToNull(scelto);
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, () -> {
+        filtroStato = null;
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, b -> btnClearStato = b, l -> labStatoVal = l);
 
-        CustomMenuItem sep1 = separatorItem();
-        CustomMenuItem sep2 = separatorItem();
+    rowStato.setStyle("-fx-background-color: transparent;");
 
-        MenuItem clearAll = new MenuItem("Pulisci tutti i filtri");
-        clearAll.setStyle("-fx-text-fill:#ffadb3; -fx-font-weight:bold;");
-        clearAll.setOnAction(e -> { clearAllFilters(); updatePrettyFilterRows(); });
+    // Chef
+    CustomMenuItem rowChef = createFilterRow("Chef", "(tutte)", iconPathChefHat(), e -> {
+        String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
+        filtroChef = normalizeAllToNull(scelto);
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, () -> {
+        filtroChef = null;
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, b -> btnClearChef = b, l -> labChefVal = l);
 
-        filtersMenu.getItems().setAll(rowFrom, rowTo, sep1, rowArg, rowFreq, rowChef, rowId, sep2, clearAll);
+    rowChef.setStyle("-fx-background-color: transparent;");
 
-        if (btnFilters != null) {
-            btnFilters.getItems().clear();
-            btnFilters.setOnMousePressed(e -> {
-                if (filtersMenu.isShowing()) filtersMenu.hide();
-                filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
-                e.consume();
-            });
-            btnFilters.setOnKeyPressed(ke -> {
-                switch (ke.getCode()) {
-                    case SPACE, ENTER -> {
-                        if (filtersMenu.isShowing()) filtersMenu.hide();
-                        filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
-                        ke.consume();
-                    }
-                    default -> {}
+    // ID
+    CustomMenuItem rowId = createFilterRow("ID", "(tutte)", iconPathId(), e -> {
+        String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
+        filtroId = normalizeAllToNull(scelto);
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, () -> {
+        filtroId = null;
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, b -> btnClearId = b, l -> labIdVal = l);
+
+    rowId.setStyle("-fx-background-color: transparent;");
+
+    CustomMenuItem sep1 = separatorItem();
+    CustomMenuItem sep2 = separatorItem();
+    
+    sep1.setStyle("-fx-background-color: transparent;");
+
+
+    // >>> Bottone rosso "Pulisci tutti i filtri" (CustomMenuItem)
+    CustomMenuItem clearBtn = createClearAllButtonItem();
+    
+    clearBtn.setStyle("-fx-background-color: transparent;");
+
+
+    filtersMenu.getItems().setAll(rowFrom, rowTo, sep1, rowArg, rowFreq, rowStato, rowChef, rowId, sep2, clearBtn);
+
+    if (btnFilters != null) {
+        btnFilters.getItems().clear();
+        btnFilters.setOnMousePressed(e -> {
+            if (filtersMenu.isShowing()) filtersMenu.hide();
+            filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
+            e.consume();
+        });
+        btnFilters.setOnKeyPressed(ke -> {
+            switch (ke.getCode()) {
+                case SPACE, ENTER -> {
+                    if (filtersMenu.isShowing()) filtersMenu.hide();
+                    filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
+                    ke.consume();
                 }
-            });
-        }
+                default -> {}
+            }
+        });
+    }
+}
+    
+    private CustomMenuItem createClearAllButtonItem() {
+        final String ACCENT = "#1fb57a";
+
+        // icona (scopa)
+        javafx.scene.shape.SVGPath svg = new javafx.scene.shape.SVGPath();
+        svg.setContent("M3 14l6-6 1 1-6 6H3zm7-7l2-2 5 5-2 2-5-5zm7 6l-2 2 2 2h2v-2l-2-2z");
+        svg.setStyle("-fx-fill:white; -fx-min-width:16; -fx-min-height:16; -fx-max-width:16; -fx-max-height:16;");
+
+        Label text = new Label("Pulisci tutti i filtri");
+        text.setStyle("-fx-text-fill:white; -fx-font-weight:800;");
+
+        HBox btn = new HBox(8, svg, text);
+        btn.setAlignment(Pos.CENTER_LEFT);
+        btn.setPadding(new Insets(8, 12, 8, 12));
+        btn.setStyle("-fx-background-color:#ef4444; -fx-background-radius:10;"); // rosso “azione”
+        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color:#dc2626; -fx-background-radius:10;"));
+        btn.setOnMouseExited (e -> btn.setStyle("-fx-background-color:#ef4444; -fx-background-radius:10;"));
+        btn.setOnMouseClicked(e -> { clearAllFilters(); updatePrettyFilterRows(); filtersMenu.hide(); });
+
+        CustomMenuItem item = new CustomMenuItem(btn, false);
+        return item;
     }
 
     private CustomMenuItem createFilterRow(String title, String value, String svgPath,
@@ -820,9 +999,13 @@ public class CorsiPanelController {
         });
 
         box.setOnMouseEntered(e -> {
-            box.setStyle("-fx-background-color: linear-gradient(to right, " + ACCENT + " 0px, " + ACCENT + " 3px, transparent 3px), rgba(255,255,255,0.10); -fx-background-radius:10;");
+            box.setStyle(
+                "-fx-background-color: linear-gradient(to right, " + ACCENT + " 0px, " + ACCENT + " 3px, transparent 3px);" +
+                "-fx-background-radius:10;"
+            );
             labTitle.setStyle("-fx-text-fill:#cfe5d9; -fx-font-size:12.5px;");
         });
+
         box.setOnMouseExited(e -> {
             box.setStyle("-fx-background-color: transparent; -fx-background-radius:10;");
             labTitle.setStyle("-fx-text-fill:#9fb6aa; -fx-font-size:12.5px;");
@@ -879,9 +1062,13 @@ public class CorsiPanelController {
 
         CustomMenuItem item = new CustomMenuItem(box, false);
         box.setOnMouseEntered(e -> {
-            box.setStyle("-fx-background-color: linear-gradient(to right, " + ACCENT + " 0px, " + ACCENT + " 3px, transparent 3px), rgba(255,255,255,0.06); -fx-background-radius:10;");
+            box.setStyle(
+                "-fx-background-color: linear-gradient(to right, " + ACCENT + " 0px, " + ACCENT + " 3px, transparent 3px);" +
+                "-fx-background-radius:10;"
+            );
             labTitle.setStyle("-fx-text-fill:#cfe5d9; -fx-font-size:12.5px;");
         });
+
         box.setOnMouseExited(e -> {
             box.setStyle("-fx-background-color: transparent; -fx-background-radius:10;");
             labTitle.setStyle("-fx-text-fill:#9fb6aa; -fx-font-size:12.5px;");
@@ -894,10 +1081,18 @@ public class CorsiPanelController {
         if (dp == null) return;
         final String TEXT_LIGHT = "#e5e7eb";
         dp.setEditable(false);
-        dp.setStyle("-fx-background-color: #2e3845; -fx-background-radius:8; -fx-text-fill:" + TEXT_LIGHT + ";" +
-                "-fx-control-inner-background: #2e3845; -fx-prompt-text-fill: rgba(255,255,255,0.6);" +
-                "-fx-border-color: #3a4657; -fx-border-radius:8; -fx-padding: 2 8 2 8;");
-        if (dp.getEditor() != null) dp.getEditor().setStyle("-fx-background-color: transparent; -fx-text-fill:" + TEXT_LIGHT + ";");
+        dp.setStyle(
+        	    "-fx-background-color: #2e3845; -fx-background-radius:8; -fx-text-fill:#e5e7eb;" +
+        	    "-fx-control-inner-background: #2e3845; -fx-prompt-text-fill: rgba(255,255,255,0.6);" +
+        	    "-fx-border-color: #3a4657; -fx-border-radius:8; -fx-padding: 2 8 2 8;" +
+        	    // spegne focus blu del DatePicker
+        	    "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-accent: transparent;"
+        	);
+        if (dp.getEditor() != null) {
+            dp.getEditor().setStyle("-fx-background-color: transparent; -fx-text-fill:#e5e7eb;" +
+                    "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-accent: transparent;");
+        }
+
     }
 
     private CustomMenuItem separatorItem() {
@@ -915,23 +1110,56 @@ public class CorsiPanelController {
         if (labFrequenzaVal != null) labFrequenzaVal.setText(isBlank(filtroFreq) ? "(tutte)" : filtroFreq);
         if (labChefVal != null)      labChefVal.setText(isBlank(filtroChef) ? "(tutte)" : filtroChef);
         if (labIdVal != null)        labIdVal.setText(isBlank(filtroId) ? "(tutte)" : filtroId);
-
+        if (labStatoVal != null)   labStatoVal.setText(isBlank(filtroStato) ? "(tutti)" : filtroStato);
+        
+        if (btnClearStato != null) { boolean on = !isBlank(filtroStato); btnClearStato.setVisible(on); btnClearStato.setManaged(on); }
         if (btnClearArg  != null) { boolean on = !isBlank(filtroArg);  btnClearArg.setVisible(on);  btnClearArg.setManaged(on); }
         if (btnClearFreq != null) { boolean on = !isBlank(filtroFreq); btnClearFreq.setVisible(on); btnClearFreq.setManaged(on); }
         if (btnClearChef != null) { boolean on = !isBlank(filtroChef); btnClearChef.setVisible(on); btnClearChef.setManaged(on); }
         if (btnClearId   != null) { boolean on = !isBlank(filtroId);   btnClearId.setVisible(on);   btnClearId.setManaged(on); }
+        
+        
     }
 
     /* ================== Helpers vari ================== */
 
-   private static void applyRowStyle(TableRow<Corso> row, boolean hovered, boolean selected) {
-    final String ACCENT    = "#1fb57a";
-    final String SELECT_BG = "rgba(31,181,122,0.14)"; // <— da 0.18 a 0.14
-    final String HOVER_BG  = "rgba(255,255,255,0.07)"; // <— leggermente meno
-    final String ZEBRA_BG  = "rgba(255,255,255,0.03)";
+ private static void applyRowStyle(TableRow<Corso> row, boolean hovered, boolean selected) {
+    final String ACCENT    = "#1fb57a";                 // barra verde
+    final String SELECT_BG = "rgba(31,181,122,0.14)";   // selezione
+    final String HOVER_BG  = "rgba(255,255,255,0.07)";  // hover
+    final String ZEBRA_BG  = "rgba(255,255,255,0.03)";  // zebra righe pari
     final String CLEAR     = "transparent";
-    // (resto invariato)
+
+    if (row == null || row.isEmpty() || row.getItem() == null) {
+        row.setStyle("");
+        row.setCursor(Cursor.DEFAULT);
+        return;
+    }
+
+    String base = (row.getIndex() % 2 == 0) ? ZEBRA_BG : CLEAR;
+
+    if (selected) {
+        row.setStyle(
+            "-fx-background-color: " +
+            "linear-gradient(to right, " + ACCENT + " 0px, " + ACCENT + " 4px, transparent 4px), " +
+            SELECT_BG + ";" +
+            "-fx-background-radius:8;"
+        );
+        row.setCursor(Cursor.HAND);
+    } else if (hovered) {
+        row.setStyle(
+            "-fx-background-color: " +
+            "linear-gradient(to right, " + ACCENT + " 0px, " + ACCENT + " 4px, transparent 4px), " +
+            HOVER_BG + ";" +
+            "-fx-background-radius:8;"
+        );
+        row.setCursor(Cursor.HAND);
+    } else {
+        row.setStyle("-fx-background-color:" + base + "; -fx-background-radius:8;");
+        row.setCursor(Cursor.DEFAULT);
+    }
 }
+
 
 
     private static String safe(String s) { return s == null ? "" : s; }
@@ -1168,4 +1396,6 @@ public class CorsiPanelController {
     private String iconPathCalendar() { return "M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H5V8h14v9z"; }
     private String iconPathChefHat()  { return "M4 10c0-2.2 1.8-4 4-4 .5 0 .9.1 1.3.3C9.9 5.5 10.9 5 12 5c1.7 0 3.1.8 4 2.1.6-.1 1.3-.1 2-.1 2.2 0 4 1.8 4 4v1H4v-2z M4 14h18v2c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2v-2z"; }
     private String iconPathId()       { return "M3 3h18v4H3V3zm0 6h18v12H3V9zm4 2v8h10v-8H7z"; }
+    private String iconPathStatus() { return "M4 4h10l2 2h4v11H4zM6 6v9h12V8h-3l-2-2H6z"; }
+
 }

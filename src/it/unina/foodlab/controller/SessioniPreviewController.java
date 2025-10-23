@@ -39,6 +39,9 @@ public class SessioniPreviewController {
     private static final String GRID_SOFT  = "rgba(255,255,255,0.08)";
     private static final String ACCENT     = "#1fb57a";
     private static final String HOVER_BG   = "rgba(31,181,122,0.16)";
+    private static final String TYPE_ONLINE   = "#3b82f6"; // azzurro (chip/bordo ONLINE)
+    private static final String TYPE_PRESENZA = "#10b981"; // verde (chip/bordo PRESENZA)
+
 
     /* ====== FXML ====== */
     @FXML private DialogPane dialogPane;
@@ -124,7 +127,7 @@ public class SessioniPreviewController {
         // Ricerca
         if (txtSearch != null) {
             txtSearch.textProperty().addListener((o,a,b) -> refilter());
-            txtSearch.setPromptText("Cerca (piattaforma, via, aula, cap…)"); // come screenshot
+            txtSearch.setPromptText("Cerca"); // come screenshot
         }
 
         // Dati iniziali
@@ -201,6 +204,24 @@ public class SessioniPreviewController {
         pane.setContent(tv);
 
         dlg.setDialogPane(pane);
+     // Stile dark per il bottone "Chiudi"
+        Button closeBtn = (Button) pane.lookupButton(ButtonType.CLOSE);
+        if (closeBtn != null) {
+            closeBtn.setText("Chiudi");
+            closeBtn.setStyle(
+                "-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-font-weight:700;" +
+                "-fx-background-radius:10; -fx-padding:8 16;"
+            );
+            closeBtn.setOnMouseEntered(e2 -> closeBtn.setStyle(
+                "-fx-background-color:#374151; -fx-text-fill:#e9f5ec; -fx-font-weight:700;" +
+                "-fx-background-radius:10; -fx-padding:8 16;"
+            ));
+            closeBtn.setOnMouseExited(e2 -> closeBtn.setStyle(
+                "-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-font-weight:700;" +
+                "-fx-background-radius:10; -fx-padding:8 16;"
+            ));
+        }
+
         dlg.setResizable(true);
         dlg.setOnShown(ev -> {
             Node c = pane.getContent();
@@ -212,59 +233,119 @@ public class SessioniPreviewController {
     }
 
     private TableView<Ricetta> buildRicetteTable(List<Ricetta> data) {
-        TableView<Ricetta> tv = new TableView<Ricetta>();
-        tv.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        tv.setTableMenuButtonVisible(false);
-        tv.setPlaceholder(new Label("Nessuna ricetta associata."));
+    TableView<Ricetta> tv = new TableView<>();
+    tv.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+    tv.setTableMenuButtonVisible(false);
+    tv.setFixedCellSize(40);
 
-        tv.setStyle(
-            "-fx-background-color:" + BG_SURFACE + ";" +
-            "-fx-control-inner-background:" + BG_SURFACE + ";" +
-            "-fx-text-background-color:" + TXT_MAIN + ";" +
-            "-fx-table-cell-border-color:" + GRID_SOFT + ";" +
-            "-fx-table-header-border-color:" + GRID_SOFT + ";"
-        );
+    // Tema scuro coerente + niente selezione blu
+    tv.setStyle(
+        "-fx-background-color:" + BG_SURFACE + ";" +
+        "-fx-control-inner-background:" + BG_SURFACE + ";" +
+        "-fx-text-background-color:" + TXT_MAIN + ";" +
+        "-fx-table-cell-border-color:" + GRID_SOFT + ";" +
+        "-fx-table-header-border-color:" + GRID_SOFT + ";" +
+        "-fx-selection-bar: transparent;" +
+        "-fx-selection-bar-non-focused: transparent;" +
+        "-fx-focus-color: transparent;" +
+        "-fx-faint-focus-color: transparent;" +
+        "-fx-background-insets:0; -fx-padding:0;"
+    );
 
-        TableColumn<Ricetta, String> colNome = new TableColumn<Ricetta, String>("Nome");
-        colNome.setCellValueFactory(new PropertyValueFactory<Ricetta, String>("nome"));
+    // Colonne
+    TableColumn<Ricetta, String> colNome = new TableColumn<>("Nome");
+    colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
 
-        TableColumn<Ricetta, String> colDiff = new TableColumn<Ricetta, String>("Difficoltà");
-        colDiff.setCellValueFactory(new PropertyValueFactory<Ricetta, String>("difficolta"));
-        colDiff.setPrefWidth(140);
+    TableColumn<Ricetta, String> colDiff = new TableColumn<>("Difficoltà");
+    colDiff.setCellValueFactory(new PropertyValueFactory<>("difficolta"));
+    colDiff.setPrefWidth(140);
+    // chip colore per difficoltà
+    colDiff.setCellFactory(tc -> new TableCell<>() {
+        private final Label chip = new Label();
+        @Override protected void updateItem(String s, boolean empty) {
+            super.updateItem(s, empty);
+            if (empty || s == null) { setGraphic(null); return; }
+            chip.setText(s);
+            String bg = switch (s.trim().toLowerCase()) {
+                case "facile"    -> "#10b981";
+                case "medio"     -> "#f59e0b";
+                case "difficile" -> "#ef4444";
+                default          -> "#6b7280";
+            };
+            chip.setStyle("-fx-background-color:"+bg+"; -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:12px; -fx-background-radius:999; -fx-padding:2 8;");
+            setGraphic(chip);
+        }
+    });
 
-        TableColumn<Ricetta, Integer> colTempo = new TableColumn<Ricetta, Integer>("Minuti");
-        colTempo.setCellValueFactory(new PropertyValueFactory<Ricetta, Integer>("tempoPreparazione"));
-        colTempo.setPrefWidth(110);
-        colTempo.setStyle("-fx-alignment: CENTER;");
+    TableColumn<Ricetta, Integer> colTempo = new TableColumn<>("Minuti");
+    colTempo.setCellValueFactory(new PropertyValueFactory<>("tempoPreparazione"));
+    colTempo.setPrefWidth(110);
+    colTempo.setStyle("-fx-alignment: CENTER;");
+    colTempo.setCellFactory(tc -> new TableCell<>() {
+        @Override protected void updateItem(Integer n, boolean empty) {
+            super.updateItem(n, empty);
+            setText(empty || n == null ? null : (n + " min"));
+        }
+    });
 
-        TableColumn<Ricetta, String> colDesc = new TableColumn<Ricetta, String>("Descrizione");
-        colDesc.setCellValueFactory(new PropertyValueFactory<Ricetta, String>("descrizione"));
+    TableColumn<Ricetta, String> colDesc = new TableColumn<>("Descrizione");
+    colDesc.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
+    // ellissi su una riga
+    colDesc.setCellFactory(tc -> new TableCell<>() {
+        private final Label lbl = new Label();
+        { lbl.setStyle("-fx-text-fill:#cfe5d9;"); lbl.setEllipsisString("…"); }
+        @Override protected void updateItem(String s, boolean empty) {
+            super.updateItem(s, empty);
+            if (empty || s == null) { setGraphic(null); return; }
+            lbl.setText(s);
+            setGraphic(lbl);
+        }
+    });
 
-        tv.getColumns().addAll(colNome, colDiff, colTempo, colDesc);
-        if (data != null) tv.getItems().addAll(data);
+    tv.getColumns().setAll(colNome, colDiff, colTempo, colDesc);
+    if (data != null) tv.getItems().addAll(data);
 
-        // header scuro
-        Platform.runLater(new Runnable() {
-            @Override public void run() {
-                for (Node n : tv.lookupAll(".column-header")) {
-                    if (n instanceof Region) {
-                        ((Region) n).setStyle(
-                            "-fx-background-color:" + BG_CARD + ";" +
-                            "-fx-background-insets: 0;" +
-                            "-fx-border-color:" + GRID_SOFT + ";" +
-                            "-fx-border-width: 0 0 1 0;"
-                        );
-                    }
-                }
-                Node headerBg = tv.lookup(".column-header-background");
-                if (headerBg != null) headerBg.setStyle("-fx-background-color:" + BG_CARD + ";");
-                Node filler = tv.lookup(".filler");
-                if (filler != null) filler.setStyle("-fx-background-color:" + BG_CARD + ";");
+    // Header scuro
+    Platform.runLater(() -> {
+        for (Node n : tv.lookupAll(".column-header")) {
+            if (n instanceof Region r) {
+                r.setStyle("-fx-background-color:" + BG_CARD + "; -fx-border-color:" + GRID_SOFT + "; -fx-border-width:0 0 1 0;");
             }
-        });
+            Node lab = n.lookup(".label");
+            if (lab instanceof Label l) {
+                l.setTextFill(javafx.scene.paint.Color.web(TXT_MAIN));
+                l.setStyle("-fx-font-weight:700;");
+            }
+        }
+        Node headerBg = tv.lookup(".column-header-background");
+        if (headerBg != null) headerBg.setStyle("-fx-background-color:" + BG_CARD + ";");
+        Node filler = tv.lookup(".filler");
+        if (filler != null) filler.setStyle("-fx-background-color:" + BG_CARD + ";");
+    });
 
-        return tv;
-    }
+    // Placeholder
+    Label ph = new Label("Nessuna ricetta associata.");
+    ph.setStyle("-fx-text-fill:#b7c5cf; -fx-font-weight:700;");
+    tv.setPlaceholder(ph);
+
+    // Riga “card-like” (hover/selected)
+    tv.setRowFactory(t -> new TableRow<>() {
+        @Override protected void updateItem(Ricetta item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) { setStyle(""); return; }
+            boolean on = isHover() || isSelected();
+            if (on) {
+                setStyle("-fx-background-color: rgba(31,181,122,0.18); -fx-border-color:#1fb57a; -fx-border-width:0 0 0 4;");
+            } else {
+                String base = (getIndex()%2==0) ? "rgba(255,255,255,0.03)" : "transparent";
+                setStyle("-fx-background-color:"+base+";");
+            }
+        }
+    });
+
+    return tv;
+}
+
 
     /* =================== Card cell =================== */
     private final class CardCell extends ListCell<Sessione> {
@@ -311,46 +392,54 @@ public class SessioniPreviewController {
             paint();
         }
 
-        private void render(Sessione s) {
-            DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
+       private void render(Sessione s) {
+    DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
 
-            String data = (s.getData() != null) ? df.format(s.getData()) : "";
-            String orari = (s.getOraInizio() != null ? tf.format(s.getOraInizio()) : "") +
-                    "–" + (s.getOraFine() != null ? tf.format(s.getOraFine()) : "");
+    String data = (s.getData() != null) ? df.format(s.getData()) : "";
+    String orari = (s.getOraInizio() != null ? tf.format(s.getOraInizio()) : "") +
+            "–" + (s.getOraFine() != null ? tf.format(s.getOraFine()) : "");
 
-            if (s instanceof SessioneOnline) {
-                SessioneOnline so = (SessioneOnline) s;
-                labTipo.setText("ONLINE");
-                labRiga2.setText(data + "   " + orari);
-                labRiga3.setText(nz(so.getPiattaforma()));
-            } else {
-                SessionePresenza sp = (SessionePresenza) s;
-                labTipo.setText("PRESENZA");
-                labRiga2.setText(data + "   " + orari);
-                String ind = join(" ", nz(sp.getVia()), nz(sp.getNum()),
-                        (sp.getCap() > 0 ? String.valueOf(sp.getCap()) : ""), nz(sp.getAula()));
-                labRiga3.setText(ind.trim());
-            }
-        }
+    String color = typeColor(s); // <<--- nuovo
 
-        private void paint() {
-            boolean accented = isHover() || isSelected();
-            if (accented) {
-                card.setStyle(
-                    "-fx-background-color: linear-gradient(to right," + ACCENT + " 0px," + ACCENT + " 3px, transparent 3px), " + HOVER_BG + ";" +
-                    "-fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 14, 0.25, 0, 3);"
-                );
-                setCursor(Cursor.HAND);
-            } else {
-                String zebra = (getIndex() % 2 == 0) ? "rgba(255,255,255,0.03)" : "transparent";
-                card.setStyle(
-                    "-fx-background-color: linear-gradient(to right, transparent 0px, transparent 3px), " + zebra + ";" +
-                    "-fx-background-radius: 12;"
-                );
-                setCursor(Cursor.DEFAULT);
-            }
-        }
+    if (s instanceof SessioneOnline so) {
+        labTipo.setText("ONLINE");
+        labRiga2.setText(data + "   " + orari);
+        labRiga3.setText(nz(so.getPiattaforma()));
+    } else {
+        SessionePresenza sp = (SessionePresenza) s;
+        labTipo.setText("PRESENZA");
+        labRiga2.setText(data + "   " + orari);
+        String ind = join(" ", nz(sp.getVia()), nz(sp.getNum()),
+                (sp.getCap() > 0 ? String.valueOf(sp.getCap()) : ""), nz(sp.getAula()));
+        labRiga3.setText(ind.trim());
+    }
+
+    // chip tipo colorata
+    labTipo.setStyle("-fx-text-fill:white; -fx-font-weight:800; -fx-font-size:12.5px; "
+            + "-fx-background-color:" + color + "; -fx-background-radius:9999; -fx-padding:2 8;");
+}
+
+
+       private void paint() {
+    	    boolean accented = isHover() || isSelected();
+    	    String color = getItem() == null ? ACCENT : typeColor(getItem()); // <<--- nuovo
+    	    if (accented) {
+    	        card.setStyle(
+    	            "-fx-background-color: linear-gradient(to right," + color + " 0px," + color + " 3px, transparent 3px), " + HOVER_BG + ";" +
+    	            "-fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 14, 0.25, 0, 3);"
+    	        );
+    	        setCursor(Cursor.HAND);
+    	    } else {
+    	        String zebra = (getIndex() % 2 == 0) ? "rgba(255,255,255,0.03)" : "transparent";
+    	        card.setStyle(
+    	            "-fx-background-color: linear-gradient(to right, transparent 0px, transparent 3px), " + zebra + ";" +
+    	            "-fx-background-radius: 12;"
+    	        );
+    	        setCursor(Cursor.DEFAULT);
+    	    }
+    	}
+
     }
 
     /* =================== piccoli helpers =================== */
@@ -378,4 +467,10 @@ public class SessioniPreviewController {
         a.getDialogPane().setMinWidth(480);
         a.showAndWait();
     }
+    
+    /** Ritorna il colore di accento in base al tipo di sessione. */
+    private static String typeColor(Sessione s) {
+        return (s instanceof SessioneOnline) ? TYPE_ONLINE : TYPE_PRESENZA;
+    }
+
 }

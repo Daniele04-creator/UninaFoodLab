@@ -505,18 +505,37 @@ private final class TipoCell extends TableCell<Sessione, String> {
 
     /* ====== Validazione ====== */
     private Optional<String> validateBeforeClose() {
-        for (int i = 0; i < model.size(); i++) {
-            Sessione s = model.get(i);
-            if (s.getData() == null) return Optional.of("Imposta la data per la riga " + (i+1));
-            if (s.getOraInizio() == null || s.getOraFine() == null) return Optional.of("Imposta orari per la riga " + (i+1));
-            if (s.getOraFine().isBefore(s.getOraInizio())) return Optional.of("L’orario di fine deve essere successivo all’inizio (riga " + (i+1) + ")");
-            if (s instanceof SessionePresenza sp) {
-                if (isBlank(sp.getVia()) || isBlank(sp.getAula())) return Optional.of("Compila Via e Aula (riga " + (i+1) + ")");
-                if (!isValidCAP(String.valueOf(sp.getCap()))) return Optional.of("CAP non valido (riga " + (i+1) + ")");
+    for (int i = 0; i < model.size(); i++) {
+        Sessione s = model.get(i);
+
+        // ONLINE: piattaforma obbligatoria
+        if (s instanceof SessioneOnline so) {
+            String p = tryGetPiattaforma(so);
+            if (p == null || p.trim().isEmpty()) {
+                return Optional.of("Inserisci la piattaforma (riga " + (i+1) + ")");
             }
         }
-        return Optional.empty();
+
+        // PRESENZA: indirizzo obbligatorio
+        if (s instanceof SessionePresenza sp) {
+            if (isBlank(sp.getVia()) || isBlank(sp.getNum()) || isBlank(sp.getAula())|| sp.getPostiMax() <= 0) {
+                return Optional.of("Compila tutti i campi della (riga " + (i+1) + ")");
+            }
+            if (!isValidCAP(String.valueOf(sp.getCap()))) {
+                return Optional.of("CAP non valido (riga " + (i+1) + ")");
+            }
+        }
+
+        if (s.getData() == null)
+            return Optional.of("Imposta la data per la riga " + (i+1));
+        if (s.getOraInizio() == null || s.getOraFine() == null)
+            return Optional.of("Imposta orari per la riga " + (i+1));
+        if (s.getOraFine().isBefore(s.getOraInizio()))
+            return Optional.of("L’orario di fine deve essere successivo all’inizio (riga " + (i+1) + ")");
     }
+    return Optional.empty();
+}
+
 
     /* ====== Tools ====== */
     private static boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }

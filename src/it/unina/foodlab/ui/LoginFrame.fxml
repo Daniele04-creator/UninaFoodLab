@@ -33,9 +33,9 @@
                 <Region prefHeight="2" maxHeight="2" style="-fx-background-color:#f0b766; -fx-background-radius:2;"/>
                 <Label text="• Programma corsi e sessioni con pochi click"
                        style="-fx-text-fill:#e9f5ec; -fx-font-size:13px;"/>
-                <Label text="• Associa ricette in modo semplice"
+                <Label text="• Fai tutto in una sola schermata"
                        style="-fx-text-fill:#e9f5ec; -fx-font-size:13px;"/>
-                <Label text="• Statistiche chiare e immediatei"
+                <Label text="• Statistiche chiare e rilevanti"
                        style="-fx-text-fill:#e9f5ec; -fx-font-size:13px;"/>
 
                 <Region VBox.vgrow="ALWAYS"/>

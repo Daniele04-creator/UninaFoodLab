@@ -463,33 +463,37 @@ private void initTableColumns() {
 
 
     // tooltip su ogni riga (argomento + periodo + chef)
-    private void installRowFactory() {
-        table.setRowFactory(tv -> {
-            TableRow<Corso> row = new TableRow<>() {
-                @Override protected void updateItem(Corso c, boolean empty) {
-                    super.updateItem(c, empty);
-                    applyRowStyle(this, false, isSelected());
-                    if (empty || c == null) { setTooltip(null); return; }
-                    String tip = (c.getArgomento()==null? "" : c.getArgomento()) +
-                            "\n📅 " + (c.getDataInizio()!=null? DF.format(c.getDataInizio()):"?") +
-                            " → " + (c.getDataFine()!=null? DF.format(c.getDataFine()):"?") +
-                            "\n👨‍🍳 " + (c.getChef()!=null? chefLabelOf(c.getChef()):"");
-                    Tooltip t = new Tooltip(tip);
-                    t.setStyle("-fx-font-size:12px; -fx-font-weight:600; -fx-background-radius:8;");
-                    setTooltip(t);
-                }
-            };
-            // (resto del tuo row factory invariato: hover, doppio click, ecc.)
-            row.setOnMouseEntered(e -> { if (!row.isEmpty()) { table.getSelectionModel().select(row.getIndex()); applyRowStyle(row,true,true);} });
-            row.setOnMouseExited(e -> applyRowStyle(row,false,row.isSelected()));
-            row.hoverProperty().addListener((o,w,h)-> applyRowStyle(row,h,row.isSelected()));
-            row.selectedProperty().addListener((o,w,s)-> applyRowStyle(row,row.isHover(),s));
-            row.setOnMouseClicked(e -> {
-                if (!row.isEmpty() && e.getButton()==MouseButton.PRIMARY && e.getClickCount()==2) openSessioniPreview(row.getItem());
-            });
-            return row;
+   /** Riga con hover/selection “card-like” e doppio click → anteprima sessioni,
+ *  senza cambiare la selezione quando il mouse passa sopra. */
+private void installRowFactory() {
+    table.setRowFactory(tv -> {
+        TableRow<Corso> row = new TableRow<>() {
+            @Override
+            protected void updateItem(Corso item, boolean empty) {
+                super.updateItem(item, empty);
+                applyRowStyle(this, false, isSelected());
+            }
+        };
+
+        // SOLO stile in hover, NIENTE selezione forzata
+        row.setOnMouseEntered(e -> applyRowStyle(row, true,  row.isSelected()));
+        row.setOnMouseExited (e -> applyRowStyle(row, false, row.isSelected()));
+        row.hoverProperty().addListener((o, w, h) -> applyRowStyle(row, h, row.isSelected()));
+        row.selectedProperty().addListener((o, w, s) -> applyRowStyle(row, row.isHover(), s));
+
+        // Selezione solo con click; doppio click apre le sessioni
+        row.setOnMouseClicked(e -> {
+            if (row.isEmpty()) return;
+            if (e.getClickCount() == 2 && e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+                openSessioniPreview(row.getItem());
+            } else if (e.getClickCount() == 1 && e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+                table.getSelectionModel().select(row.getIndex()); // selezione esplicita SOLO al click
+            }
         });
-    }
+        return row;
+    });
+}
+
 
 
     /* ================== FILTRI ================== */
@@ -1013,17 +1017,20 @@ private void styleDarkButtons(DialogPane pane, ButtonType okType, ButtonType can
         final Corso sel = table.getSelectionModel().getSelectedItem();
         if (sel == null) return;
 
-        Alert a = new Alert(Alert.AlertType.CONFIRMATION, "Eliminare il corso: " + sel.getArgomento() + " ?");
-        Optional<ButtonType> resp = a.showAndWait();
-        if (resp.isPresent() && resp.get() == ButtonType.OK) {
-            try {
-                corsoDao.delete(sel.getIdCorso());
-                backing.remove(sel);
-                updateFiltersUI();
-            } catch (Exception ex) {
-                showError("Impossibile eliminare il corso: " + ex.getMessage());
-            }
-        }
+        boolean conferma = showConfirmDark(
+        	    "Conferma eliminazione",
+        	    "Eliminare il corso: " + sel.getArgomento() + " ?"
+        	);
+        	if (conferma) {
+        	    try {
+        	        corsoDao.delete(sel.getIdCorso());
+        	        backing.remove(sel);
+        	        updateFiltersUI();
+        	    } catch (Exception ex) {
+        	        showInfoDark("Impossibile eliminare il corso: " + ex.getMessage());
+        	    }
+        	}
+
     }
 
     /* ================== UI: Menu Filtri (Date inline + '×') ================== */
@@ -1492,7 +1499,7 @@ private void styleDarkButtons(DialogPane pane, ButtonType okType, ButtonType can
             List<SessionePresenza> presenze = new ArrayList<>();
             for (Sessione s : tutte) if (s instanceof SessionePresenza sp) presenze.add(sp);
 
-            if (presenze.isEmpty()) { showInfo("Il corso non ha sessioni in presenza."); return; }
+            if (presenze.isEmpty()) { showInfoDark("Il corso non ha sessioni in presenza."); return; }
 
             SessionePresenza target = (presenze.size() == 1) ? presenze.get(0) : choosePresenza(presenze).orElse(null);
             if (target == null) return;
@@ -1684,6 +1691,142 @@ private void styleDarkButtons(DialogPane pane, ButtonType okType, ButtonType can
             // fallback: lascia la lista com’è
         }
     }
+    
+    /** Mostra un messaggio informativo in stile dark, coerente con l’app. */
+   /** Alert informativo scuro, senza header né icona. Testo ben leggibile. */
+private void showInfoDark(String message) {
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+
+    // NIENTE header, NIENTE icona (altrimenti resta la banda chiara)
+    alert.setHeaderText(null);
+    alert.setGraphic(null);
+
+    // testo nel CORPO (non nell'header)
+    Label content = new Label(message == null ? "" : message);
+    content.setWrapText(true);
+    content.setStyle("-fx-text-fill:#e9f5ec; -fx-font-size:14px; -fx-font-weight:600;");
+    alert.getDialogPane().setContent(content);
+
+    // stile dark coerente
+    DialogPane dp = alert.getDialogPane();
+    dp.setStyle(
+        "-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);" +
+        "-fx-border-color: rgba(255,255,255,0.08);" +
+        "-fx-border-width: 1;" +
+        "-fx-border-radius: 12;" +
+        "-fx-background-radius: 12;" +
+        "-fx-padding: 14;" +
+        "-fx-focus-color: transparent;" +
+        "-fx-faint-focus-color: transparent;" +
+        "-fx-accent: transparent;"
+    );
+    // header panel (se esiste) completamente trasparente
+    Node header = dp.lookup(".header-panel");
+    if (header instanceof Region r) {
+        r.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+    }
+    // graphic container (icona info) via
+    Node graphic = dp.lookup(".graphic-container");
+    if (graphic instanceof Region g) {
+        g.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+    }
+
+    // bottone OK in stile brand
+    Button okBtn = (Button) dp.lookupButton(ButtonType.OK);
+    if (okBtn != null) {
+        okBtn.setText("OK");
+        okBtn.setStyle(
+            "-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
+            "-fx-background-radius:10; -fx-padding:8 16;"
+        );
+        okBtn.setOnMouseEntered(e -> okBtn.setStyle(
+            "-fx-background-color:#16a56e; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
+            "-fx-background-radius:10; -fx-padding:8 16;"
+        ));
+        okBtn.setOnMouseExited(e -> okBtn.setStyle(
+            "-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
+            "-fx-background-radius:10; -fx-padding:8 16;"
+        ));
+    }
+
+    dp.setMinWidth(460);
+    alert.showAndWait();
+}
+
+/**
+ * Mostra un dialogo di conferma in stile dark.
+ * Ritorna true se l'utente preme "Conferma", false se preme "Annulla" o chiude la finestra.
+ */
+private boolean showConfirmDark(String titolo, String messaggio) {
+    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    alert.setTitle(titolo == null ? "Conferma" : titolo);
+    alert.setHeaderText(null);
+    alert.setGraphic(null);
+
+    Label lbl = new Label(messaggio == null ? "" : messaggio);
+    lbl.setWrapText(true);
+    lbl.setStyle("-fx-text-fill:#e9f5ec; -fx-font-size:14px; -fx-font-weight:600;");
+    alert.getDialogPane().setContent(lbl);
+
+    DialogPane dp = alert.getDialogPane();
+    dp.setStyle(
+        "-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);" +
+        "-fx-border-color: rgba(255,255,255,0.08);" +
+        "-fx-border-width: 1;" +
+        "-fx-border-radius: 12;" +
+        "-fx-background-radius: 12;" +
+        "-fx-padding: 14;" +
+        "-fx-focus-color: transparent;" +
+        "-fx-faint-focus-color: transparent;"
+    );
+
+    // Rimuovi header/graphic panel chiari
+    Node header = dp.lookup(".header-panel");
+    if (header instanceof Region r) {
+        r.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+    }
+    Node graphic = dp.lookup(".graphic-container");
+    if (graphic instanceof Region g) {
+        g.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+    }
+
+    // === Bottoni ===
+    ButtonType confermaType = new ButtonType("Conferma", ButtonBar.ButtonData.OK_DONE);
+    ButtonType annullaType  = new ButtonType("Annulla",  ButtonBar.ButtonData.CANCEL_CLOSE);
+    dp.getButtonTypes().setAll(confermaType, annullaType);
+
+    Button btnConferma = (Button) dp.lookupButton(confermaType);
+    btnConferma.setStyle(
+        "-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
+        "-fx-background-radius:10; -fx-padding:8 16;"
+    );
+    btnConferma.setOnMouseEntered(e ->
+        btnConferma.setStyle("-fx-background-color:#16a56e; -fx-text-fill:#0a1410;" +
+                             "-fx-font-weight:800; -fx-background-radius:10; -fx-padding:8 16;"));
+    btnConferma.setOnMouseExited(e ->
+        btnConferma.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410;" +
+                             "-fx-font-weight:800; -fx-background-radius:10; -fx-padding:8 16;"));
+
+    Button btnAnnulla = (Button) dp.lookupButton(annullaType);
+    btnAnnulla.setStyle(
+        "-fx-background-color:#ef4444; -fx-text-fill:white; -fx-font-weight:700;" +
+        "-fx-background-radius:10; -fx-padding:8 16;"
+    );
+    btnAnnulla.setOnMouseEntered(e ->
+        btnAnnulla.setStyle("-fx-background-color:#dc2626; -fx-text-fill:white; -fx-font-weight:700;" +
+                            "-fx-background-radius:10; -fx-padding:8 16;"));
+    btnAnnulla.setOnMouseExited(e ->
+        btnAnnulla.setStyle("-fx-background-color:#ef4444; -fx-text-fill:white; -fx-font-weight:700;" +
+                            "-fx-background-radius:10; -fx-padding:8 16;"));
+
+    dp.setMinWidth(460);
+
+    Optional<ButtonType> result = alert.showAndWait();
+    return result.isPresent() && result.get() == confermaType;
+}
+
+
+
     
 
 

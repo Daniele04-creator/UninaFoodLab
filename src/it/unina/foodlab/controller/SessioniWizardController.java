@@ -115,9 +115,9 @@ public class SessioniWizardController {
     public List<Sessione> buildResult() { return new ArrayList<>(model); }
 
     /* ====== Pulsanti barra comandi (collega onAction nell’FXML) ====== */
-   @FXML
+@FXML
 private void onNuovo(ActionEvent e) {
-    // Data suggerita: +1 step rispetto all'ultima riga, altrimenti null
+    // data suggerita: ultimo + passo (settimanale di default)
     LocalDate suggested = null;
     if (!model.isEmpty()) {
         Sessione last = model.get(model.size()-1);
@@ -128,11 +128,12 @@ private void onNuovo(ActionEvent e) {
     }
     SessionePresenza s = new SessionePresenza(); // default in presenza
     s.setCorso(corso);
-    s.setData(suggested);       // solo data, niente orari/campi
+    s.setData(suggested);           // SOLO data; NO orari/cap/posti
     model.add(s);
     table.getSelectionModel().select(model.size() - 1);
     table.scrollTo(model.size() - 1);
 }
+
 
 
     @FXML
@@ -188,9 +189,13 @@ private void onNuovo(ActionEvent e) {
             switch (kind) {
                 case FieldKind.K_VIA:   return safe(sp.getVia());
                 case FieldKind.K_NUM:   return safe(sp.getNum());
-                case FieldKind.K_CAP:   return (sp.getCap() <= 0 ? "" : String.valueOf(sp.getCap()));
+                case FieldKind.K_CAP:
+                    int cap = sp.getCap();
+                    return (cap <= 0 ? "" : String.valueOf(cap));
                 case FieldKind.K_AULA:  return safe(sp.getAula());             // <-- se è getAula(), cambia qui
-                case FieldKind.K_POSTI: return (sp.getPostiMax() <= 0 ? "" : String.valueOf(sp.getPostiMax()));
+                case FieldKind.K_POSTI:
+                    int posti = sp.getPostiMax();
+                    return (posti <= 0 ? "" : String.valueOf(posti));
                 default: return "";
             }
         }

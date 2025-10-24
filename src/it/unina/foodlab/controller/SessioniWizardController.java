@@ -15,9 +15,6 @@ import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.layout.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -30,19 +27,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Wizard di gestione sessioni di un corso.
+ * - Tema scuro coerente
+ * - Editor inline per data/orari/campi specifici
+ * - Rimozione alone bianco delle freccette (arrow-button) nei ComboBox
+ */
 public class SessioniWizardController {
 
-    /* ====== Palette ====== */
+    /* ====== Palette / stile base ====== */
     private static final String BG_CARD     = "#20282b";
     private static final String BG_HDR      = "#242c2f";
     private static final String TXT_MAIN    = "#e9f5ec";
-    private static final String TXT_MUTED   = "rgba(233,245,236,0.45)";
     private static final String BORDER_SOFT = "rgba(255,255,255,0.06)";
     private static final String ACCENT      = "#1fb57a";
     private static final String HOVER_BG    = "rgba(31,181,122,0.22)";
     private static final String ZEBRA_BG    = "rgba(255,255,255,0.03)";
-    private static final String INPUT_STYLE = "-fx-background-color:#2b3438; -fx-text-fill:" + TXT_MAIN +
-            "; -fx-background-radius:8; -fx-border-color:" + BORDER_SOFT + "; -fx-border-radius:8; -fx-padding:2 6;";
+
+    private static final String INPUT_STYLE =
+            "-fx-background-color:#2b3438;" +
+            "-fx-text-fill:" + TXT_MAIN + ";" +
+            "-fx-background-radius:8;" +
+            "-fx-border-color:" + BORDER_SOFT + ";" +
+            "-fx-border-radius:8;" +
+            "-fx-padding:2 6;";
 
     private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter HF = DateTimeFormatter.ofPattern("HH:mm");
@@ -61,8 +69,8 @@ public class SessioniWizardController {
     @FXML private TableColumn<Sessione, String> cVia;
     @FXML private TableColumn<Sessione, String> cNum;
     @FXML private TableColumn<Sessione, String> cCap;
-    @FXML private TableColumn<Sessione, String> cAla;    // se nel modello è Aula, rinomina qui e sotto
-    @FXML private TableColumn<Sessione, String> cPosti;  // se nel modello è PostiMax, adatta sotto
+    @FXML private TableColumn<Sessione, String> cAla;
+    @FXML private TableColumn<Sessione, String> cPosti;
 
     /* ====== Stato ====== */
     private Corso corso;
@@ -72,9 +80,9 @@ public class SessioniWizardController {
     @FXML
     private void initialize() {
         dialogPane.setStyle(
-            "-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);" +
-            "-fx-border-color:" + BORDER_SOFT + ";" +
-            "-fx-background-radius:12; -fx-border-radius:12;"
+                "-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);" +
+                "-fx-border-color:" + BORDER_SOFT + ";" +
+                "-fx-background-radius:12; -fx-border-radius:12;"
         );
 
         table.setEditable(true);
@@ -89,8 +97,6 @@ public class SessioniWizardController {
         setupColumns();
         setupRowFactory();
         setupOkCancelButtons();
-        
-        
 
         table.setPlaceholder(new Label("Nessuna sessione. Premi «Nuovo» per aggiungerne una."));
         makeFullBleed();
@@ -112,29 +118,28 @@ public class SessioniWizardController {
         table.setItems(model);
     }
 
-    public List<Sessione> buildResult() { return new ArrayList<>(model); }
-
-    /* ====== Pulsanti barra comandi (collega onAction nell’FXML) ====== */
-@FXML
-private void onNuovo(ActionEvent e) {
-    // data suggerita: ultimo + passo (settimanale di default)
-    LocalDate suggested = null;
-    if (!model.isEmpty()) {
-        Sessione last = model.get(model.size()-1);
-        LocalDate lastDate = last.getData();
-        if (lastDate != null) {
-            suggested = computeNthDate(lastDate, corso != null ? corso.getFrequenza() : null, 1);
-        }
+    public List<Sessione> buildResult() {
+        return new ArrayList<>(model);
     }
-    SessionePresenza s = new SessionePresenza(); // default in presenza
-    s.setCorso(corso);
-    s.setData(suggested);           // SOLO data; NO orari/cap/posti
-    model.add(s);
-    table.getSelectionModel().select(model.size() - 1);
-    table.scrollTo(model.size() - 1);
-}
 
-
+    /* ====== Pulsanti barra comandi ====== */
+    @FXML
+    private void onNuovo(ActionEvent e) {
+        LocalDate suggested = null;
+        if (!model.isEmpty()) {
+            Sessione last = model.get(model.size() - 1);
+            LocalDate lastDate = last.getData();
+            if (lastDate != null) {
+                suggested = computeNthDate(lastDate, corso != null ? corso.getFrequenza() : null, 1);
+            }
+        }
+        SessionePresenza s = new SessionePresenza(); // default in presenza
+        s.setCorso(corso);
+        s.setData(suggested); // solo data
+        model.add(s);
+        table.getSelectionModel().select(model.size() - 1);
+        table.scrollTo(model.size() - 1);
+    }
 
     @FXML
     private void onRimuovi(ActionEvent e) {
@@ -145,16 +150,19 @@ private void onNuovo(ActionEvent e) {
     /* ====== Colonne ed editor ====== */
     private void setupColumns() {
         cData.setText("Data");
-        cData.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue()!=null && cd.getValue().getData()!=null ? DF.format(cd.getValue().getData()) : ""));
+        cData.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue() != null && cd.getValue().getData() != null ? DF.format(cd.getValue().getData()) : ""));
         cData.setCellFactory(tc -> new TextCell());
 
         cInizio.setText("Inizio");
-        cInizio.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue()!=null && cd.getValue().getOraInizio()!=null ? HF.format(cd.getValue().getOraInizio()) : ""));
+        cInizio.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue() != null && cd.getValue().getOraInizio() != null ? HF.format(cd.getValue().getOraInizio()) : ""));
         cInizio.setCellFactory(tc -> new TimeCell(true));
         cInizio.setEditable(true);
 
         cFine.setText("Fine");
-        cFine.setCellValueFactory(cd -> new SimpleStringProperty(cd.getValue()!=null && cd.getValue().getOraFine()!=null ? HF.format(cd.getValue().getOraFine()) : ""));
+        cFine.setCellValueFactory(cd -> new SimpleStringProperty(
+                cd.getValue() != null && cd.getValue().getOraFine() != null ? HF.format(cd.getValue().getOraFine()) : ""));
         cFine.setCellFactory(tc -> new TimeCell(false));
         cFine.setEditable(true);
 
@@ -163,13 +171,12 @@ private void onNuovo(ActionEvent e) {
         cTipo.setCellFactory(tc -> new TipoCell());
         cTipo.setEditable(true);
 
-        // Campi specifici: riquadro SOLO quando applicabile
         setupEditableColumn(cPiattaforma, "Piattaforma", FieldKind.K_PIATTAFORMA);
         setupEditableColumn(cVia,         "Via",         FieldKind.K_VIA);
         setupEditableColumn(cNum,         "Num",         FieldKind.K_NUM);
         setupEditableColumn(cCap,         "CAP",         FieldKind.K_CAP);
-        setupEditableColumn(cAla,         "Aula",        FieldKind.K_AULA);  // se è "Aula" nel modello, ok
-        setupEditableColumn(cPosti,       "Posti",       FieldKind.K_POSTI); // se è "PostiMax", vedi commit()
+        setupEditableColumn(cAla,         "Aula",        FieldKind.K_AULA);
+        setupEditableColumn(cPosti,       "Posti",       FieldKind.K_POSTI);
     }
 
     private void setupEditableColumn(final TableColumn<Sessione, String> col, final String header, final int kind) {
@@ -189,13 +196,9 @@ private void onNuovo(ActionEvent e) {
             switch (kind) {
                 case FieldKind.K_VIA:   return safe(sp.getVia());
                 case FieldKind.K_NUM:   return safe(sp.getNum());
-                case FieldKind.K_CAP:
-                    int cap = sp.getCap();
-                    return (cap <= 0 ? "" : String.valueOf(cap));
-                case FieldKind.K_AULA:  return safe(sp.getAula());             // <-- se è getAula(), cambia qui
-                case FieldKind.K_POSTI:
-                    int posti = sp.getPostiMax();
-                    return (posti <= 0 ? "" : String.valueOf(posti));
+                case FieldKind.K_CAP:   return sp.getCap() <= 0 ? "" : String.valueOf(sp.getCap());
+                case FieldKind.K_AULA:  return safe(sp.getAula());
+                case FieldKind.K_POSTI: return sp.getPostiMax() <= 0 ? "" : String.valueOf(sp.getPostiMax());
                 default: return "";
             }
         }
@@ -221,7 +224,7 @@ private void onNuovo(ActionEvent e) {
         }
     }
 
-    /** TextField “riquadro” quando applicabile; cella vuota quando non applicabile. */
+    /** TextField quando applicabile; cella vuota quando non applicabile. */
     private final class EditableFieldCell extends TableCell<Sessione, String> {
         private final int kind;
         private final TextField tf = new TextField();
@@ -233,7 +236,7 @@ private void onNuovo(ActionEvent e) {
             tf.setMaxWidth(Double.MAX_VALUE);
             tf.setOnAction(ev -> commit());
             tf.focusedProperty().addListener((o, was, is) -> { if (!is) commit(); });
-            setContentDisplay(ContentDisplay.GRAPHIC_ONLY); // evita testo “fantasma”
+            setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         }
 
         private void commit() {
@@ -242,13 +245,14 @@ private void onNuovo(ActionEvent e) {
             Sessione s = table.getItems().get(idx);
             if (s instanceof SessioneOnline) {
                 if (kind == FieldKind.K_PIATTAFORMA) trySetPiattaforma((SessioneOnline) s, tf.getText());
-            } else if (s instanceof SessionePresenza sp) {
+            } else if (s instanceof SessionePresenza) {
+                SessionePresenza sp = (SessionePresenza) s;
                 switch (kind) {
                     case FieldKind.K_VIA:   sp.setVia(tf.getText()); break;
                     case FieldKind.K_NUM:   sp.setNum(tf.getText()); break;
                     case FieldKind.K_CAP:   sp.setCap(parseIntOrZero(tf.getText())); break;
-                    case FieldKind.K_AULA:  sp.setAula(tf.getText()); break;         // <-- se è setAula(), cambia qui
-                    case FieldKind.K_POSTI: sp.setPostiMax(parseIntOrZero(tf.getText())); break; // <-- se è setPostiMax(), cambia qui
+                    case FieldKind.K_AULA:  sp.setAula(tf.getText()); break;
+                    case FieldKind.K_POSTI: sp.setPostiMax(parseIntOrZero(tf.getText())); break;
                 }
             }
             table.refresh();
@@ -260,14 +264,14 @@ private void onNuovo(ActionEvent e) {
 
             Sessione s = (Sessione) getTableRow().getItem();
             boolean applicable = (s instanceof SessioneOnline) ? (kind == FieldKind.K_PIATTAFORMA)
-                                                               : (kind != FieldKind.K_PIATTAFORMA);
+                    : (kind != FieldKind.K_PIATTAFORMA);
 
             if (applicable) {
                 tf.setText(item == null ? "" : item);
                 tf.setDisable(false);
-                setGraphic(tf);                  // mostra il riquadro
+                setGraphic(tf);
             } else {
-                setGraphic(null);                // cella “vuota” (niente riquadro)
+                setGraphic(null);
             }
         }
     }
@@ -292,6 +296,9 @@ private void onNuovo(ActionEvent e) {
             cb.setStyle(INPUT_STYLE);
             HBox.setHgrow(cb, Priority.ALWAYS);
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+
+            // >>> Rimuove sfondo bianco del bottone freccia sulla combo degli orari
+            Platform.runLater(() -> clearArrowBackground(cb));
         }
 
         @Override protected void updateItem(String item, boolean empty) {
@@ -303,12 +310,17 @@ private void onNuovo(ActionEvent e) {
             cb.setOnAction(ev -> {
                 Sessione s = (Sessione) getTableRow().getItem();
                 LocalTime t = cb.getValue();
-                if (s instanceof SessioneOnline so) {
+                if (s instanceof SessioneOnline) {
+                    SessioneOnline so = (SessioneOnline) s;
                     if (isStart) so.setOraInizio(t); else so.setOraFine(t);
-                } else if (s instanceof SessionePresenza sp) {
+                } else if (s instanceof SessionePresenza) {
+                    SessionePresenza sp = (SessionePresenza) s;
                     if (isStart) sp.setOraInizio(t); else sp.setOraFine(t);
                 }
             });
+
+            // Protezione extra (skin ricaricata dopo refresh)
+            Platform.runLater(() -> clearArrowBackground(cb));
             setGraphic(wrapper);
         }
     }
@@ -330,99 +342,88 @@ private void onNuovo(ActionEvent e) {
     }
 
     /* ====== Tipo ====== */
-   /** Colonna "Tipo": testo sempre visibile su tema scuro */
-private final class TipoCell extends TableCell<Sessione, String> {
-    private final ComboBox<String> combo = new ComboBox<>();
+    private final class TipoCell extends TableCell<Sessione, String> {
+        private final ComboBox<String> combo = new ComboBox<>();
 
-    TipoCell() {
-        combo.getItems().addAll("Online", "In presenza");
-        combo.setVisibleRowCount(6);
-        combo.setPrefWidth(Double.MAX_VALUE);
+        TipoCell() {
+            combo.getItems().addAll("Online", "In presenza");
+            combo.setVisibleRowCount(6);
+            combo.setPrefWidth(Double.MAX_VALUE);
+            combo.setStyle(
+                    "-fx-background-color:#2b3438; -fx-background-radius:8; " +
+                    "-fx-border-color:" + BORDER_SOFT + "; -fx-border-radius:8;"
+            );
 
-        // stile scuro del riquadro
-        combo.setStyle(
-            "-fx-background-color:#2b3438; -fx-background-radius:8; " +
-            "-fx-border-color:" + BORDER_SOFT + "; -fx-border-radius:8;"
-        );
+            combo.setButtonCell(new ListCell<>() {
+                @Override protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty ? null : item);
+                    setGraphic(null);
+                    setStyle("-fx-text-fill:" + TXT_MAIN + "; -fx-font-weight:600;");
+                }
+            });
+            combo.setCellFactory(lv -> new ListCell<>() {
+                @Override protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty ? null : item);
+                    setGraphic(null);
+                    setStyle("-fx-text-fill:" + TXT_MAIN + ";");
+                }
+            });
 
-        // 🔧 testo SEMPRE leggibile (sia in lista che nel bottone chiuso)
-        combo.setButtonCell(new ListCell<>() {
-            @Override protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? null : item);
-                setGraphic(null);
-                setStyle("-fx-text-fill:" + TXT_MAIN + "; -fx-font-weight:600;");
-            }
-        });
-        combo.setCellFactory(lv -> new ListCell<>() {
-            @Override protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? null : item);
-                setGraphic(null);
-                setStyle("-fx-text-fill:" + TXT_MAIN + ";");
-            }
-        });
+            combo.setOnAction(ev -> {
+                int idx = getIndex();
+                if (idx < 0 || idx >= getTableView().getItems().size()) return;
+                Sessione s = getTableView().getItems().get(idx);
 
-        // assicura che non appaia "spento"
-        combo.setDisable(false);
-        combo.setOpacity(1.0);
+                LocalDate d  = s.getData();
+                LocalTime oi = s.getOraInizio();
+                LocalTime of = s.getOraFine();
 
-        // cambia il tipo della riga
-        combo.setOnAction(ev -> {
-            int idx = getIndex();
-            if (idx < 0 || idx >= getTableView().getItems().size()) return;
-            Sessione s = getTableView().getItems().get(idx);
+                if ("Online".equalsIgnoreCase(combo.getValue()) && !(s instanceof SessioneOnline)) {
+                    SessioneOnline on = new SessioneOnline();
+                    on.setCorso(corso); on.setData(d); on.setOraInizio(oi); on.setOraFine(of);
+                    try { on.setPiattaforma(tryGetPiattaformaFromAny(s)); } catch (Throwable ignore) {}
+                    getTableView().getItems().set(idx, on);
+                } else if ("In presenza".equalsIgnoreCase(combo.getValue()) && !(s instanceof SessionePresenza)) {
+                    SessionePresenza sp = new SessionePresenza();
+                    sp.setCorso(corso); sp.setData(d); sp.setOraInizio(oi); sp.setOraFine(of);
+                    getTableView().getItems().set(idx, sp);
+                }
+                getTableView().refresh();
+            });
 
-            LocalDate d  = s.getData();
-            LocalTime oi = s.getOraInizio();
-            LocalTime of = s.getOraFine();
+            // >>> rimuovi sfondo bianco dell’arrow-button anche qui
+            Platform.runLater(() -> clearArrowBackground(combo));
 
-            if ("Online".equalsIgnoreCase(combo.getValue()) && !(s instanceof SessioneOnline)) {
-                SessioneOnline on = new SessioneOnline();
-                on.setCorso(corso); on.setData(d); on.setOraInizio(oi); on.setOraFine(of);
-                try { on.setPiattaforma(tryGetPiattaformaFromAny(s)); } catch (Throwable ignore) {}
-                getTableView().getItems().set(idx, on);
-            } else if ("In presenza".equalsIgnoreCase(combo.getValue()) && !(s instanceof SessionePresenza)) {
-                SessionePresenza sp = new SessionePresenza();
-                sp.setCorso(corso); sp.setData(d); sp.setOraInizio(oi); sp.setOraFine(of);
-                getTableView().getItems().set(idx, sp);
-            }
-            getTableView().refresh();
-        });
-
-        // usa solo il graphic per evitare testo "fantasma"
-        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-    }
-
-    @Override protected void updateItem(String item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty || getTableRow() == null || getTableRow().getItem() == null) {
-            setGraphic(null); setText(null); return;
+            setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         }
-        Sessione s = (Sessione) getTableRow().getItem();
-        combo.setValue(s instanceof SessionePresenza ? "In presenza" : "Online");
-        // assicurati che non eredi opacità dal row/cell
-        combo.setDisable(false);
-        combo.setOpacity(1.0);
-        setGraphic(combo);
-        setText(null);
-    }
-}
 
+        @Override protected void updateItem(String item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                setGraphic(null); setText(null); return;
+            }
+            Sessione s = (Sessione) getTableRow().getItem();
+            combo.setValue(s instanceof SessionePresenza ? "In presenza" : "Online");
+            Platform.runLater(() -> clearArrowBackground(combo)); // protezione post-refresh
+            setGraphic(combo);
+            setText(null);
+        }
+    }
 
     /* ====== Tema tabella ====== */
     private void applyTableBaseTheme() {
         table.setStyle(
-            "-fx-background-color:" + BG_CARD + ";" +
-            "-fx-control-inner-background:" + BG_CARD + ";" +
-            "-fx-text-background-color:" + TXT_MAIN + ";" +
-            "-fx-table-cell-border-color:" + BORDER_SOFT + ";" +
-            "-fx-table-header-border-color:" + BORDER_SOFT + ";" +
-            "-fx-background-insets:0; -fx-padding:0;"
+                "-fx-background-color:" + BG_CARD + ";" +
+                "-fx-control-inner-background:" + BG_CARD + ";" +
+                "-fx-text-background-color:" + TXT_MAIN + ";" +
+                "-fx-table-cell-border-color:" + BORDER_SOFT + ";" +
+                "-fx-table-header-border-color:" + BORDER_SOFT + ";" +
+                "-fx-background-insets:0; -fx-padding:0;"
         );
     }
 
-    /** Header scuro leggibile (come AssociaRicette) */
     private void fixTableHeaderTheme() {
         final String GRID = BORDER_SOFT;
         Platform.runLater(() -> {
@@ -506,41 +507,38 @@ private final class TipoCell extends TableCell<Sessione, String> {
                     "-fx-border-color:" + BORDER_SOFT + "; -fx-border-radius:10; -fx-background-radius:10; -fx-padding:8 14;");
         }
     }
-    
 
     /* ====== Validazione ====== */
     private Optional<String> validateBeforeClose() {
-    for (int i = 0; i < model.size(); i++) {
-        Sessione s = model.get(i);
+        for (int i = 0; i < model.size(); i++) {
+            Sessione s = model.get(i);
 
-        // ONLINE: piattaforma obbligatoria
-        if (s instanceof SessioneOnline so) {
-            String p = tryGetPiattaforma(so);
-            if (p == null || p.trim().isEmpty()) {
-                return Optional.of("Inserisci la piattaforma (riga " + (i+1) + ")");
+            if (s instanceof SessioneOnline) {
+                String p = tryGetPiattaforma((SessioneOnline) s);
+                if (p == null || p.trim().isEmpty()) {
+                    return Optional.of("Inserisci la piattaforma (riga " + (i+1) + ")");
+                }
             }
+
+            if (s instanceof SessionePresenza) {
+                SessionePresenza sp = (SessionePresenza) s;
+                if (isBlank(sp.getVia()) || isBlank(sp.getNum()) || isBlank(sp.getAula()) || sp.getPostiMax() <= 0) {
+                    return Optional.of("Compila tutti i campi della riga " + (i+1) + " (via/numero/aula/posti).");
+                }
+                if (!isValidCAP(String.valueOf(sp.getCap()))) {
+                    return Optional.of("CAP non valido (riga " + (i+1) + ")");
+                }
+            }
+
+            if (s.getData() == null)
+                return Optional.of("Imposta la data per la riga " + (i+1));
+            if (s.getOraInizio() == null || s.getOraFine() == null)
+                return Optional.of("Imposta orari per la riga " + (i+1));
+            if (s.getOraFine().isBefore(s.getOraInizio()))
+                return Optional.of("L’orario di fine deve essere successivo all’inizio (riga " + (i+1) + ")");
         }
-
-        // PRESENZA: indirizzo obbligatorio
-        if (s instanceof SessionePresenza sp) {
-            if (isBlank(sp.getVia()) || isBlank(sp.getNum()) || isBlank(sp.getAula())|| sp.getPostiMax() <= 0) {
-                return Optional.of("Compila tutti i campi della (riga " + (i+1) + ")");
-            }
-            if (!isValidCAP(String.valueOf(sp.getCap()))) {
-                return Optional.of("CAP non valido (riga " + (i+1) + ")");
-            }
-        }
-
-        if (s.getData() == null)
-            return Optional.of("Imposta la data per la riga " + (i+1));
-        if (s.getOraInizio() == null || s.getOraFine() == null)
-            return Optional.of("Imposta orari per la riga " + (i+1));
-        if (s.getOraFine().isBefore(s.getOraInizio()))
-            return Optional.of("L’orario di fine deve essere successivo all’inizio (riga " + (i+1) + ")");
+        return Optional.empty();
     }
-    return Optional.empty();
-}
-
 
     /* ====== Tools ====== */
     private static boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
@@ -566,17 +564,15 @@ private final class TipoCell extends TableCell<Sessione, String> {
             catch (Exception ignore) { /* no-op */ }
         }
     }
-    
-    /** Rende il Dialog a pieno spazio: elimina cornici/padding bianchi e colora tutte le aree interne. */
+
+    /** Rende il Dialog a pieno spazio e tema scuro uniforme. */
     private void makeFullBleed() {
-        // 1) Stesso sfondo ovunque
-        dialogPane.setBackground(new javafx.scene.layout.Background(
-            new javafx.scene.layout.BackgroundFill(javafx.scene.paint.Color.web(BG_CARD), null, null)
+        dialogPane.setBackground(new Background(
+                new BackgroundFill(javafx.scene.paint.Color.web(BG_CARD), null, null)
         ));
         dialogPane.setPadding(Insets.EMPTY);
 
         Platform.runLater(() -> {
-            // Aree interne del DialogPane
             Node header = dialogPane.lookup(".header-panel");
             Node content = dialogPane.lookup(".content");
             Node buttonBar = dialogPane.lookup(".button-bar");
@@ -587,82 +583,73 @@ private final class TipoCell extends TableCell<Sessione, String> {
             setDarkNoPadding(buttonBar, BG_HDR);
             setDarkNoPadding(graphic, BG_HDR);
 
-            // 2) ScrollPane/Viewport della TableView (toglie alone bianco)
             Node scroll = table.lookup(".scroll-pane");
             if (scroll instanceof Region sp) {
-                sp.setBackground(new javafx.scene.layout.Background(
-                    new javafx.scene.layout.BackgroundFill(javafx.scene.paint.Color.web(BG_CARD), null, null)
+                sp.setBackground(new Background(
+                        new BackgroundFill(javafx.scene.paint.Color.web(BG_CARD), null, null)
                 ));
                 sp.setPadding(Insets.EMPTY);
                 sp.setStyle("-fx-background-insets:0; -fx-padding:0;");
             }
             Node viewport = table.lookup(".viewport");
             if (viewport instanceof Region vp) {
-                vp.setBackground(new javafx.scene.layout.Background(
-                    new javafx.scene.layout.BackgroundFill(javafx.scene.paint.Color.web(BG_CARD), null, null)
+                vp.setBackground(new Background(
+                        new BackgroundFill(javafx.scene.paint.Color.web(BG_CARD), null, null)
                 ));
-                if (vp instanceof Region) ((Region) vp).setPadding(Insets.EMPTY);
+                ((Region) vp).setPadding(Insets.EMPTY);
             }
             for (Node corner : table.lookupAll(".corner")) {
                 if (corner instanceof Region rc) {
-                    rc.setBackground(new javafx.scene.layout.Background(
-                        new javafx.scene.layout.BackgroundFill(javafx.scene.paint.Color.web(BG_HDR), null, null)
+                    rc.setBackground(new Background(
+                            new BackgroundFill(javafx.scene.paint.Color.web(BG_HDR), null, null)
                     ));
                 }
             }
 
-            // 3) La tabella deve occupare tutto
             if (dialogPane.getContent() instanceof Region root) {
-                root.setPadding(Insets.EMPTY);            // importantissimo
-                root.setStyle("-fx-background-color:" + BG_CARD + ";"); // uniforma
+                root.setPadding(Insets.EMPTY);
+                root.setStyle("-fx-background-color:" + BG_CARD + ";");
             }
             VBox.setVgrow(table, Priority.ALWAYS);
             table.setMinHeight(0);
             table.setPrefHeight(Region.USE_COMPUTED_SIZE);
             table.setMaxHeight(Double.MAX_VALUE);
 
-            // 4) (Opzionale) porta il dialogo a dimensione finestra/“pseudo-fullscreen”
             try {
                 Stage st = (Stage) dialogPane.getScene().getWindow();
-                // full area utilizzabile (senza coprire taskbar)
                 var vb = Screen.getPrimary().getVisualBounds();
                 st.setX(vb.getMinX());
                 st.setY(vb.getMinY());
                 st.setWidth(vb.getWidth());
                 st.setHeight(vb.getHeight());
-                // se vuoi proprio massimizzato:
-                // st.setMaximized(true);
-            } catch (Throwable ignore) { /* se non è Stage, ignora */ }
+            } catch (Throwable ignore) { }
         });
     }
 
     private static void setDarkNoPadding(Node n, String bg) {
         if (n instanceof Region r) {
-            r.setBackground(new javafx.scene.layout.Background(
-                new javafx.scene.layout.BackgroundFill(javafx.scene.paint.Color.web(bg), null, null)
+            r.setBackground(new Background(
+                    new BackgroundFill(javafx.scene.paint.Color.web(bg), null, null)
             ));
             r.setPadding(Insets.EMPTY);
             r.setStyle((r.getStyle() == null ? "" : r.getStyle()) + "; -fx-background-insets:0; -fx-padding:0;");
         }
     }
-    
 
     /** Inizializza con N righe “vuote” ma con DATA proposta da dataInizio + frequenza. */
     public void initWithCorsoAndBlank(Corso c, int initialRows) {
-        initWithCorso(c);             // imposta corso e items=model
-        addBlankRows(c, initialRows); // crea N righe con sola data
+        initWithCorso(c);
+        addBlankRows(c, initialRows);
     }
 
-    /** Crea N righe, solo DATA precompilata. */
     private void addBlankRows(Corso c, int n) {
         if (n <= 0) return;
         LocalDate start = (c != null) ? c.getDataInizio() : null;
         String    freq  = (c != null) ? c.getFrequenza()  : null;
         for (int i = 0; i < n; i++) {
-            SessionePresenza sp = new SessionePresenza();     // default "in presenza"
+            SessionePresenza sp = new SessionePresenza();
             sp.setCorso(c);
-            sp.setData(computeNthDate(start, freq, i));       // << data proposta
-            // NON impostiamo orari/via/num/cap/aula/posti: restano null/vuoti
+            sp.setData(computeNthDate(start, freq, i));
             model.add(sp);
         }
         if (!model.isEmpty()) {
@@ -671,10 +658,9 @@ private final class TipoCell extends TableCell<Sessione, String> {
         }
     }
 
-    /** Calcola la i-esima data partendo da start e frequenza corso. */
     private LocalDate computeNthDate(LocalDate start, String freq, int index) {
         if (start == null) return null;
-        int steps = index; // 0-based
+        int steps = index;
         String f = (freq == null) ? "" : freq.trim().toLowerCase(java.util.Locale.ROOT);
         return switch (f) {
             case "ogni 2 giorni" -> start.plusDays(2L * steps);
@@ -684,5 +670,17 @@ private final class TipoCell extends TableCell<Sessione, String> {
         };
     }
 
-
+    /* ====== FIX freccette: rimuove sfondo dell’arrow-button ====== */
+    private static void clearArrowBackground(Node rootOfControl) {
+        if (rootOfControl == null) return;
+        Node arrowBtn = rootOfControl.lookup(".arrow-button"); // bottone contenitore della freccia
+        if (arrowBtn instanceof Region r) {
+            r.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-background-insets: 0;");
+        }
+        Node arrow = rootOfControl.lookup(".arrow"); // la freccia vera e propria
+        if (arrow instanceof Region r2) {
+            // usa il colore di mark del tema; resta visibile senza box bianco
+            r2.setStyle("-fx-background-color: -fx-mark-color;");
+        }
+    }
 }

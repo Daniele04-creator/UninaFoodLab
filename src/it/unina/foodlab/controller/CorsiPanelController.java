@@ -700,7 +700,7 @@ public class CorsiPanelController {
 	 */
 	private String askChoice(String title, String header, List<String> options, String preselect) {
 		if (options == null || options.isEmpty()) {
-			showInfo("Nessuna opzione disponibile.");
+			showInfoDark("Nessuna opzione disponibile.");
 			return null;
 		}
 
@@ -979,7 +979,7 @@ public class CorsiPanelController {
 							return null;
 						}
 					};
-					replaceTask.setOnSucceeded(ev2 -> showInfo("Sessioni aggiornate."));
+					replaceTask.setOnSucceeded(ev2 -> showInfoDark("Sessioni aggiornate."));
 					replaceTask.setOnFailed(ev2 -> {
 						Throwable ex2 = replaceTask.getException();
 						showError("Errore salvataggio sessioni: " + (ex2 != null ? ex2.getMessage() : "sconosciuto"));
@@ -1511,13 +1511,6 @@ public class CorsiPanelController {
 		a.showAndWait();
 	}
 
-	private void showInfo(String msg) {
-		Alert a = new Alert(Alert.AlertType.INFORMATION);
-		a.setHeaderText(null);
-		a.setContentText(msg);
-		a.showAndWait();
-	}
-
 	private boolean isOwnedByLoggedChef(Corso c) {
 		if (c == null || c.getChef() == null || isBlank(c.getChef().getCF_Chef()))
 			return false;
@@ -1592,7 +1585,7 @@ public class CorsiPanelController {
 			return;
 
 		if (!isOwnedByLoggedChef(sel)) {
-			showInfo("Puoi modificare solo i corsi del tuo profilo.");
+			showInfoDark("Puoi modificare solo i corsi del tuo profilo.");
 			return;
 		}
 

@@ -1082,138 +1082,136 @@ public class CorsiPanelController {
 
 	/* ================== UI: Menu Filtri (Date inline + '×') ================== */
 
-	private void buildAndAttachFiltersContextMenu() {
-		filtersMenu = new ContextMenu();
-		filtersMenu.setStyle(
-				// colori coerenti con la tabella
-				"-fx-background-color:#20282b;" + "-fx-background-insets:0;" + "-fx-background-radius:14;"
-						+ "-fx-border-color: rgba(255,255,255,0.06);" + "-fx-border-radius:14;" + "-fx-border-width:1;"
-						+ "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.2, 0, 6);" +
-						// spegne blu di focus/selection del menu
-						"-fx-base:#20282b;" + "-fx-control-inner-background:#20282b;"
-						+ "-fx-selection-bar: transparent;" + "-fx-accent: transparent;"
-						+ "-fx-focus-color: transparent;" + "-fx-faint-focus-color: transparent;");
+	    private void buildAndAttachFiltersContextMenu() {
+    filtersMenu = new ContextMenu();
+    filtersMenu.setStyle(
+    	    // colori coerenti con la tabella
+    	    "-fx-background-color:#20282b;" +
+    	    "-fx-background-insets:0;" +
+    	    "-fx-background-radius:14;" +
+    	    "-fx-border-color: rgba(255,255,255,0.06);" +
+    	    "-fx-border-radius:14;" +
+    	    "-fx-border-width:1;" +
+    	    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.2, 0, 6);" +
+    	    // spegne blu di focus/selection del menu
+    	    "-fx-base:#20282b;" +
+    	    "-fx-control-inner-background:#20282b;" +
+    	    "-fx-selection-bar: transparent;" +
+    	    "-fx-accent: transparent;" +
+    	    "-fx-focus-color: transparent;" +
+    	    "-fx-faint-focus-color: transparent;"
+    	);
 
-		// Date
-		CustomMenuItem rowFrom = createDateRow("Inizio da", true);
-		CustomMenuItem rowTo = createDateRow("Fine fino a", false);
+    // Date
+    CustomMenuItem rowFrom = createDateRow("Inizio da", true);
+    CustomMenuItem rowTo   = createDateRow("Fine fino a", false);
+    
+    rowFrom.setStyle("-fx-background-color: transparent;");
+    rowTo.setStyle("-fx-background-color: transparent;");
 
-		rowFrom.setStyle("-fx-background-color: transparent;");
-		rowTo.setStyle("-fx-background-color: transparent;");
+    // Argomento
+    CustomMenuItem rowArg = createFilterRow("Argomento", "(tutte)", iconPathList(), e -> {
+        String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
+        filtroArg = normalizeAllToNull(scelto);
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, () -> {
+        filtroArg = null;
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, b -> btnClearArg = b, l -> labArgomentoVal = l);
 
-		// Argomento
-		CustomMenuItem rowArg = createFilterRow("Argomento", "(tutte)", iconPathList(), e -> {
-			String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
-			filtroArg = normalizeAllToNull(scelto);
-			refilter();
-			updateFiltersUI();
-			updatePrettyFilterRows();
-		}, () -> {
-			filtroArg = null;
-			refilter();
-			updateFiltersUI();
-			updatePrettyFilterRows();
-		}, b -> btnClearArg = b, l -> labArgomentoVal = l);
+    rowArg.setStyle("-fx-background-color: transparent;");
+   
+    CustomMenuItem rowFreq = createFilterRow("Frequenza", "(tutte)", iconPathCalendar(), e -> {
+        String scelto = askChoice("Filtro Frequenza", "Seleziona frequenza", distinctFrequenze(), filtroFreq);
+        filtroFreq = normalizeAllToNull(scelto);
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, () -> {
+        filtroFreq = null;
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, b -> btnClearFreq = b, l -> labFrequenzaVal = l);
 
-		rowArg.setStyle("-fx-background-color: transparent;");
+    rowFreq.setStyle("-fx-background-color: transparent;");
 
-		CustomMenuItem rowFreq = createFilterRow("Frequenza", "(tutte)", iconPathCalendar(), e -> {
-			String scelto = askChoice("Filtro Frequenza", "Seleziona frequenza", distinctFrequenze(), filtroFreq);
-			filtroFreq = normalizeAllToNull(scelto);
-			refilter();
-			updateFiltersUI();
-			updatePrettyFilterRows();
-		}, () -> {
-			filtroFreq = null;
-			refilter();
-			updateFiltersUI();
-			updatePrettyFilterRows();
-		}, b -> btnClearFreq = b, l -> labFrequenzaVal = l);
+    // Stato  <<<<<<<<<< NEW
+    CustomMenuItem rowStato = createFilterRow("Stato", "(tutti)", iconPathStatus(), e -> {
+        String scelto = askChoice("Filtro Stato", "Seleziona stato",
+                distinctStati(), filtroStato);
+        filtroStato = normalizeAllToNull(scelto);
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, () -> {
+        filtroStato = null;
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, b -> btnClearStato = b, l -> labStatoVal = l);
 
-		rowFreq.setStyle("-fx-background-color: transparent;");
+    rowStato.setStyle("-fx-background-color: transparent;");
 
-		// Stato <<<<<<<<<< NEW
-		CustomMenuItem rowStato = createFilterRow("Stato", "(tutti)", iconPathStatus(), e -> {
-			String scelto = askChoice("Filtro Stato", "Seleziona stato", distinctStati(), filtroStato);
-			filtroStato = normalizeAllToNull(scelto);
-			refilter();
-			updateFiltersUI();
-			updatePrettyFilterRows();
-		}, () -> {
-			filtroStato = null;
-			refilter();
-			updateFiltersUI();
-			updatePrettyFilterRows();
-		}, b -> btnClearStato = b, l -> labStatoVal = l);
+    // Chef
+    CustomMenuItem rowChef = createFilterRow("Chef", "(tutte)", iconPathChefHat(), e -> {
+        String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
+        filtroChef = normalizeAllToNull(scelto);
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, () -> {
+        filtroChef = null;
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, b -> btnClearChef = b, l -> labChefVal = l);
 
-		rowStato.setStyle("-fx-background-color: transparent;");
+    rowChef.setStyle("-fx-background-color: transparent;");
 
-		// Chef
-		CustomMenuItem rowChef = createFilterRow("Chef", "(tutte)", iconPathChefHat(), e -> {
-			String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
-			filtroChef = normalizeAllToNull(scelto);
-			refilter();
-			updateFiltersUI();
-			updatePrettyFilterRows();
-		}, () -> {
-			filtroChef = null;
-			refilter();
-			updateFiltersUI();
-			updatePrettyFilterRows();
-		}, b -> btnClearChef = b, l -> labChefVal = l);
+    // ID
+    CustomMenuItem rowId = createFilterRow("ID", "(tutte)", iconPathId(), e -> {
+        String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
+        filtroId = normalizeAllToNull(scelto);
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, () -> {
+        filtroId = null;
+        refilter(); updateFiltersUI(); updatePrettyFilterRows();
+    }, b -> btnClearId = b, l -> labIdVal = l);
 
-		rowChef.setStyle("-fx-background-color: transparent;");
+    rowId.setStyle("-fx-background-color: transparent;");
 
-		// ID
-		CustomMenuItem rowId = createFilterRow("ID", "(tutte)", iconPathId(), e -> {
-			String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
-			filtroId = normalizeAllToNull(scelto);
-			refilter();
-			updateFiltersUI();
-			updatePrettyFilterRows();
-		}, () -> {
-			filtroId = null;
-			refilter();
-			updateFiltersUI();
-			updatePrettyFilterRows();
-		}, b -> btnClearId = b, l -> labIdVal = l);
+    CustomMenuItem sep1 = separatorItem();
+    CustomMenuItem sep2 = separatorItem();
+    
+    sep1.setStyle("-fx-background-color: transparent;");
 
-		rowId.setStyle("-fx-background-color: transparent;");
 
-		CustomMenuItem sep1 = separatorItem();
-		CustomMenuItem sep2 = separatorItem();
+    // >>> Bottone rosso "Pulisci tutti i filtri" (CustomMenuItem)
+    CustomMenuItem clearBtn = createClearAllButtonItem();
+    
+    clearBtn.setStyle("-fx-background-color: transparent;");
 
-		sep1.setStyle("-fx-background-color: transparent;");
 
-		// >>> Bottone rosso "Pulisci tutti i filtri" (CustomMenuItem)
-		CustomMenuItem clearBtn = createClearAllButtonItem();
+    filtersMenu.getItems().setAll(rowFrom, rowTo, sep1, rowArg, rowFreq, rowStato, rowChef, rowId, sep2, clearBtn);
 
-		clearBtn.setStyle("-fx-background-color: transparent;");
+    if (btnFilters != null) {
+        btnFilters.getItems().clear(); // Pulisce eventuali voci predefinite del MenuButton
 
-		filtersMenu.getItems().setAll(rowFrom, rowTo, sep1, rowArg, rowFreq, rowStato, rowChef, rowId, sep2, clearBtn);
+        // Gestore per il click del mouse
+        btnFilters.setOnMousePressed(e -> {
+            if (filtersMenu.isShowing()) {
+                filtersMenu.hide();
+            } else {
+                filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
+            }
+            e.consume(); // Consuma l'evento per evitare che il MenuButton tenti di mostrare un menu vuoto
+        });
 
-		if (btnFilters != null) {
-			btnFilters.getItems().clear();
-			btnFilters.setOnMousePressed(e -> {
-				if (filtersMenu.isShowing())
-					filtersMenu.hide();
-				filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
-				e.consume();
-			});
-			btnFilters.setOnKeyPressed(ke -> {
-				switch (ke.getCode()) {
-				case SPACE, ENTER -> {
-					if (filtersMenu.isShowing())
-						filtersMenu.hide();
-					filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
-					ke.consume();
-				}
-				default -> {
-				}
-				}
-			});
-		}
-	}
+        // Gestore per la tastiera (ENTER o SPAZIO) per coerenza
+        btnFilters.setOnKeyPressed(ke -> {
+            switch (ke.getCode()) {
+                case SPACE, ENTER -> {
+                    if (filtersMenu.isShowing()) {
+                        filtersMenu.hide();
+                    } else {
+                        filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
+                    }
+                    ke.consume();
+                }
+                default -> {}
+            }
+        });
+    }
+}
 
 	private CustomMenuItem createClearAllButtonItem() {
 		final String ACCENT = "#1fb57a";
@@ -1745,28 +1743,53 @@ public class CorsiPanelController {
 	}
 
 	private Optional<SessionePresenza> choosePresenza(List<SessionePresenza> presenze) {
-		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-		DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
-		Map<String, SessionePresenza> map = new LinkedHashMap<>();
-		for (SessionePresenza sp : presenze) {
-			String data = (sp.getData() != null) ? df.format(sp.getData()) : "";
-			String orari = (sp.getOraInizio() != null ? tf.format(sp.getOraInizio()) : "") + "-"
-					+ (sp.getOraFine() != null ? tf.format(sp.getOraFine()) : "");
-			String indirizzo = joinNonEmpty(" ", nz(sp.getVia()), nz(sp.getNum()), nz(sp.getCap())).trim();
-			String base = (data + " " + orari + " " + indirizzo).trim();
-			String key = base;
-			int suffix = 2;
-			while (map.containsKey(key))
-				key = base + " (" + (suffix++) + ")";
-			map.put(key, sp);
-		}
-		ChoiceDialog<String> d = new ChoiceDialog<>(firstKeyOr(map, ""), map.keySet());
-		d.setTitle("Seleziona la sessione in presenza");
-		d.setHeaderText("Scegli la sessione a cui associare le ricette");
-		d.setContentText(null);
-		Optional<String> pick = d.showAndWait();
-		return pick.map(map::get);
-	}
+    	// Questa parte per creare le opzioni rimane invariata
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
+        Map<String, SessionePresenza> map = new LinkedHashMap<>();
+        for (SessionePresenza sp : presenze) {
+            String data = (sp.getData() != null) ? df.format(sp.getData()) : "";
+            String orari = (sp.getOraInizio() != null ? tf.format(sp.getOraInizio()) : "") + "-" + (sp.getOraFine() != null ? tf.format(sp.getOraFine()) : "");
+            String indirizzo = joinNonEmpty(" ", nz(sp.getVia()), nz(sp.getNum()), nz(sp.getCap())).trim();
+            String base = (data + " " + orari + " " + indirizzo).trim();
+            String key = base;
+            int suffix = 2;
+            while (map.containsKey(key)) key = base + " (" + (suffix++) + ")";
+            map.put(key, sp);
+        }
+
+        // 1. Creiamo un Dialog generico, non un ChoiceDialog
+        Dialog<String> dlg = new Dialog<>();
+        dlg.setTitle("Seleziona la sessione in presenza");
+        dlg.setHeaderText("Scegli la sessione a cui associare le ricette");
+
+        // 2. Definiamo i bottoni
+        ButtonType OK = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        ButtonType CANCEL = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dlg.getDialogPane().getButtonTypes().setAll(OK, CANCEL);
+
+        // 3. Creiamo il ComboBox con le opzioni
+        ComboBox<String> cb = new ComboBox<>(FXCollections.observableArrayList(map.keySet()));
+        cb.setEditable(false);
+        cb.getSelectionModel().select(firstKeyOr(map, "")); // Pre-seleziona il primo elemento
+
+        // 4. Mettiamo il ComboBox nel pannello del dialogo
+        HBox box = new HBox(10, cb);
+        box.setPadding(new Insets(6, 0, 0, 0));
+        dlg.getDialogPane().setContent(box);
+
+        // 5. APPLICHIAMO LO STILE ESATTAMENTE COME IN askChoice
+        styleDarkDialog(dlg.getDialogPane());
+        styleDarkCombo(cb);
+        styleDarkButtons(dlg.getDialogPane(), OK, CANCEL);
+
+        // 6. Impostiamo il convertitore del risultato e mostriamo il dialogo
+        dlg.setResultConverter(bt -> (bt == OK) ? cb.getValue() : null);
+        Optional<String> pick = dlg.showAndWait();
+
+        // Questa riga finale per mappare la stringa scelta all'oggetto SessionePresenza rimane invariata
+        return pick.map(map::get);
+    }
 
 	/* ================== Utility ================== */
 

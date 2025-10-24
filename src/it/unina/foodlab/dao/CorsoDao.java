@@ -12,20 +12,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * DAO dei corsi.
- * - Supporta schema qualificato (es. "public") per evitare ambiguità di tabella.
- * - Owner opzionale: puoi limitare findAll ai corsi dell'owner per coerenza UI.
- * - Transazioni esplicite per creare corso + sessioni in modo atomico.
- * - Niente Stream/Lambda.
- */
 public class CorsoDao {
 
-    /** Schema del database (es. "public"). Mai null/vuoto. */
+  
     private final String schema;
-    /** CF del proprietario (owner) per operazioni protette. Mai null/vuoto. */
     private final String ownerCfChef;
-    /** Se true, findAll() restituisce solo corsi dell'owner; se false, restituisce tutti. */
     private final boolean restrictFindAllToOwner;
 
     public CorsoDao(String ownerCfChef) {
@@ -42,9 +33,6 @@ public class CorsoDao {
         this.restrictFindAllToOwner = restrictFindAllToOwner;
     }
 
-    /* =========================
-       SQL (generate con schema)
-       ========================= */
 
     private String tbl(String name) { return schema + "." + name; }
 
@@ -120,11 +108,6 @@ public class CorsoDao {
             + "ORDER BY LOWER(f), f";
     }
 
-    /* =========================
-       QUERY CORSI
-       ========================= */
-
-    /** Restituisce TUTTI i corsi o solo quelli dell'owner (in base a restrictFindAllToOwner). */
     public List<Corso> findAll() throws Exception {
         List<Corso> out = new ArrayList<Corso>();
         try (Connection conn = Db.get();
@@ -141,7 +124,6 @@ public class CorsoDao {
         return out;
     }
 
-    /** Restituisce il corso SOLO se appartiene all'owner (utile per edit/controllo). */
     public Corso findById(long id) throws Exception {
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlFindByIdOwner())) {
@@ -153,12 +135,11 @@ public class CorsoDao {
         }
     }
 
-    /** Inserisce SOLO il corso (non le sessioni). */
     public long insert(Corso corso) throws Exception {
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlInsertCorso())) {
             bindWithoutOwner(ps, corso);
-            ps.setString(6, ownerCfChef); // ownership forzata
+            ps.setString(6, ownerCfChef); 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getLong(1);
                 throw new SQLException("Insert corso: ID non restituito");
@@ -166,7 +147,7 @@ public class CorsoDao {
         }
     }
 
-    /** Aggiorna il corso dell'owner. */
+
     public void update(Corso corso) throws Exception {
         if (corso.getIdCorso() <= 0) throw new IllegalArgumentException("idCorso mancante");
         try (Connection conn = Db.get();
@@ -179,7 +160,7 @@ public class CorsoDao {
         }
     }
 
-    /** Elimina il corso dell'owner. */
+ 
     public void delete(long id) throws Exception {
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlDeleteCorso())) {
@@ -190,9 +171,6 @@ public class CorsoDao {
         }
     }
 
-    /* =========================
-       CREAZIONE ATOMICA: CORSO + SESSIONI
-       ========================= */
 
     public long insertWithSessions(Corso c, List<Sessione> sessions) throws Exception {
         if (c == null) throw new IllegalArgumentException("Corso nullo");
@@ -205,7 +183,7 @@ public class CorsoDao {
                 conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
                 conn.setAutoCommit(false);
 
-                long idCorso = insertCorso(conn, c); // imposta anche c.idCorso
+                long idCorso = insertCorso(conn, c);
                 for (int i = 0; i < sessions.size(); i++) {
                     insertSession(conn, idCorso, sessions.get(i));
                 }
@@ -272,9 +250,8 @@ public class CorsoDao {
         }
     }
 
-    /* =========================
-       OPZIONI DISTINCT (per editor)
-       ========================= */
+   
+  
 
     public List<String> findDistinctArgomenti() throws Exception {
         List<String> out = new ArrayList<String>();
@@ -296,9 +273,7 @@ public class CorsoDao {
         return out;
     }
 
-    /* =========================
-       UTILS
-       ========================= */
+   
 
     private Corso mapRow(ResultSet rs) throws SQLException {
         Corso c = new Corso();
@@ -321,14 +296,13 @@ public class CorsoDao {
         chef.setNome(rs.getString("nome"));
         chef.setCognome(rs.getString("cognome"));
         chef.setUsername(rs.getString("username"));
-        // password presente nel result-set ma NON usarla in UI
         chef.setPassword(rs.getString("password"));
         c.setChef(chef);
 
         return c;
     }
 
-    /** Bind campi (senza owner) per insert/update + validazioni minime. */
+   
     private void bindWithoutOwner(PreparedStatement ps, Corso c) throws SQLException {
         LocalDate di = c.getDataInizio();
         LocalDate df = c.getDataFine();
@@ -356,10 +330,7 @@ public class CorsoDao {
     public String getSchema() { return schema; }
     public boolean isRestrictFindAllToOwner() { return restrictFindAllToOwner; }
 
-    /**
-     * Piccolo check per capire SUBITO da dove stai leggendo.
-     * Esempio d'uso in debug: System.out.println(corsoDao.sanityCheck());
-     */
+   
     public String sanityCheck() {
         Connection conn = null;
         try {

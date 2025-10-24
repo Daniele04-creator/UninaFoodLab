@@ -32,21 +32,18 @@ import org.jfree.data.category.DefaultCategoryDataset;
 
 import java.awt.Color;
 
-/**
- * Report mensile: selezione Mese/Anno (ComboBox), griglia valori e 2 grafici.
- * Tema scuro inline, senza CSS esterno.
- */
+
 public class ReportController {
 
-    /* ====== wiring da CorsiPanelController ====== */
+  
     private final String cfChef;
-    private Parent previousRoot; // per tornare indietro
+    private Parent previousRoot; 
     public void setPreviousRoot(Parent n) { this.previousRoot = n; }
 
-    /* ====== DAO ====== */
+    
     private final ReportDao reportDao = new ReportDao();
 
-    /* ====== FXML ====== */
+   
     @FXML private BorderPane root;
 
     @FXML private Button btnIndietro;
@@ -58,12 +55,12 @@ public class ReportController {
     @FXML private VBox   cardValori;
     @FXML private GridPane gridValori;
 
-    @FXML private ScrollPane spCharts;   // opzionale (metti fx:id nello FXML)
+    @FXML private ScrollPane spCharts;  
     @FXML private VBox   rightCharts;
 
     public ReportController(String cfChef) { this.cfChef = cfChef; }
 
-    /* ====== Init ====== */
+    
     @FXML
     private void initialize() {
         initComboMeseAnno();
@@ -73,15 +70,15 @@ public class ReportController {
         ensureGridColumns();
         fixChartsArea();
 
-        // titolo iniziale
+       
         YearMonth ym = getSelectedYearMonth();
         if (lblTitolo != null) lblTitolo.setText("Report Mensile - " + ym.getMonth() + " " + ym.getYear());
 
-        // Genera subito il report per non mostrare una pagina vuota
+       
         Platform.runLater(() -> onGenera(null));
     }
 
-    /* ====== UI setup ====== */
+  
 
     private void initComboMeseAnno() {
         if (cbMese != null) {
@@ -105,13 +102,13 @@ public class ReportController {
    private <T> void styleReadableCombo(ComboBox<T> cb) {
     if (cb == null) return;
 
-    // base
+ 
     cb.setStyle("-fx-background-color:#2e3845; -fx-background-radius:8; "
             + "-fx-border-color:#3a4657; -fx-border-radius:8; "
             + "-fx-padding:4 10; -fx-focus-color: transparent; "
             + "-fx-faint-focus-color: transparent; -fx-accent: transparent;");
 
-    // cella visibile (chiusa)
+ 
     cb.setButtonCell(new ListCell<>() {
         @Override
         protected void updateItem(T item, boolean empty) {
@@ -121,7 +118,7 @@ public class ReportController {
         }
     });
 
-    // celle popup
+    
     cb.setCellFactory(lv -> new ListCell<>() {
         @Override
         protected void updateItem(T item, boolean empty) {
@@ -131,7 +128,7 @@ public class ReportController {
         }
     });
 
-    // popup scuro
+    
     cb.showingProperty().addListener((obs, o, on) -> {
         if (!on) return;
         Scene sc = cb.getScene();
@@ -185,7 +182,7 @@ public class ReportController {
         return YearMonth.from(LocalDate.now());
     }
 
-    /* ====== Azioni ====== */
+   
 
     @FXML
     private void onGenera(ActionEvent e) {
@@ -196,7 +193,7 @@ public class ReportController {
             ReportMensile r = reportDao.getReportMensile(cfChef, ym);
             if (lblTitolo != null) lblTitolo.setText("Report Mensile - " + ym.getMonth() + " " + ym.getYear());
 
-            // ======= valori testuali =======
+          
             ensureGridColumns();
             gridValori.getChildren().clear();
             addRow("Corsi totali:",      str(r.totaleCorsi()),                 0);
@@ -206,10 +203,10 @@ public class ReportController {
             addRow("Ricette - Max:",     (r.maxRicettePratiche()==null   ? "—" : String.valueOf(r.maxRicettePratiche())), 4);
             addRow("Ricette - Min:",     (r.minRicettePratiche()==null   ? "—" : String.valueOf(r.minRicettePratiche())), 5);
 
-            // ======= grafici =======
+           
             if (rightCharts != null) rightCharts.getChildren().clear();
 
-            // Chart 1: conteggi
+          
             DefaultCategoryDataset ds1 = new DefaultCategoryDataset();
             ds1.addValue(r.totaleCorsi(),    "Conteggi", "Corsi");
             ds1.addValue(r.totaleOnline(),   "Conteggi", "Online");
@@ -225,7 +222,7 @@ public class ReportController {
             if (rightCharts != null) rightCharts.getChildren().add(wrapChart(v1));
             animateDataset(ds1);
 
-            // Chart 2: ricette
+        
             DefaultCategoryDataset ds2 = new DefaultCategoryDataset();
             ds2.addValue(zeroIfNull(r.minRicettePratiche()),   "Ricette", "Min");
             ds2.addValue(zeroIfNull(r.mediaRicettePratiche()), "Ricette", "Media");
@@ -265,7 +262,7 @@ public class ReportController {
         }
     }
 
-    /* ====== Helpers UI (griglia valori) ====== */
+    
 
     private void addRow(String label, String value, int row) {
         Label l = new Label(label);
@@ -287,14 +284,14 @@ public class ReportController {
 
     private double zeroIfNull(Number n) { return (n == null) ? 0.0 : n.doubleValue(); }
 
-    /* ====== Helpers grafici (tema scuro coerente) ====== */
+   
 
     private void styleChart(JFreeChart chart, Color accent) {
-        chart.setBackgroundPaint(new Color(0x20,0x28,0x2b)); // #20282b
-        chart.getTitle().setPaint(new Color(0xE9,0xF5,0xEC)); // #e9f5ec
+        chart.setBackgroundPaint(new Color(0x20,0x28,0x2b)); 
+        chart.getTitle().setPaint(new Color(0xE9,0xF5,0xEC)); 
 
         if (chart.getPlot() instanceof CategoryPlot plot) {
-            plot.setBackgroundPaint(new Color(0x24,0x2c,0x2f)); // #242c2f
+            plot.setBackgroundPaint(new Color(0x24,0x2c,0x2f)); 
             plot.setDomainGridlinePaint(new Color(255,255,255,30));
             plot.setRangeGridlinePaint(new Color(255,255,255,30));
 
@@ -323,10 +320,9 @@ public class ReportController {
     }
 
     private void animateDataset(DefaultCategoryDataset ds) {
-        // Stub per eventuali animazioni future.
+         
     }
 
-    /* ====== Error handling ====== */
 
     private void showError(Throwable ex) {
         Alert a = new Alert(Alert.AlertType.ERROR);

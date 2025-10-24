@@ -25,49 +25,45 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Preview delle sessioni di un corso in stile "card".
- * - Filtri: Tutte / Online / In presenza + ricerca per testo
- * - Doppio click su SessionePresenza: mostra le ricette associate (read-only)
- */
+
 public class SessioniPreviewController {
 
-    /* ====== Palette coerente con il resto ====== */
-    private static final String BG_SURFACE = "#20282b";   // fondo dialog
-    private static final String BG_CARD    = "#242c2f";   // card
+    
+    private static final String BG_SURFACE = "#20282b";  
+    private static final String BG_CARD    = "#242c2f";   
     private static final String TXT_MAIN   = "#e9f5ec";
     private static final String GRID_SOFT  = "rgba(255,255,255,0.08)";
     private static final String ACCENT     = "#1fb57a";
     private static final String HOVER_BG   = "rgba(31,181,122,0.16)";
-    private static final String TYPE_ONLINE   = "#3b82f6"; // azzurro (chip/bordo ONLINE)
-    private static final String TYPE_PRESENZA = "#10b981"; // verde (chip/bordo PRESENZA)
+    private static final String TYPE_ONLINE   = "#3b82f6"; 
+    private static final String TYPE_PRESENZA = "#10b981";
 
 
-    /* ====== FXML ====== */
+  
     @FXML private DialogPane dialogPane;
     @FXML private Label lblHeader;
     @FXML private ListView<Sessione> lv;
     @FXML private ToggleButton tgAll, tgOnline, tgPresenza;
     @FXML private TextField txtSearch;
 
-    /* ====== Stato ====== */
+    
     private final ObservableList<Sessione> backing = FXCollections.observableArrayList();
     private final FilteredList<Sessione> filtered = new FilteredList<Sessione>(backing, s -> true);
     private Corso corso;
     private SessioneDao sessioneDao;
 
-    /** Inizializzazione dati esterni. */
+    
     public void init(Corso corso, List<Sessione> sessioni, SessioneDao sessioneDao) {
         this.corso = corso;
         this.sessioneDao = sessioneDao;
 
-        // Header
+       
         if (lblHeader != null) {
             String titolo = (corso != null && corso.getArgomento() != null) ? corso.getArgomento() : "Corso";
             lblHeader.setText("Sessioni — " + titolo);
         }
 
-        // Dialog styling
+        
         if (dialogPane != null) {
             dialogPane.setStyle(
                 "-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);" +
@@ -76,7 +72,7 @@ public class SessioniPreviewController {
             );
         }
 
-        // ListView: dati + cell factory "card"
+       
         if (lv != null) {
             lv.setItems(filtered);
             lv.setStyle("-fx-background-color:" + BG_SURFACE + "; -fx-control-inner-background:" + BG_SURFACE + ";");
@@ -86,7 +82,7 @@ public class SessioniPreviewController {
                     return new CardCell();
                 }
             });
-            // doppio click
+            
             lv.setOnMouseClicked(e -> {
                 if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
                     Sessione sel = lv.getSelectionModel().getSelectedItem();
@@ -97,7 +93,7 @@ public class SessioniPreviewController {
             });
         }
 
-        // Bottoni filtro: di default "Tutte"
+       
         if (tgAll != null) {
             tgAll.setSelected(true);
             tgAll.setOnAction(e -> {
@@ -124,19 +120,18 @@ public class SessioniPreviewController {
             });
         }
 
-        // Ricerca
+        
         if (txtSearch != null) {
             txtSearch.textProperty().addListener((o,a,b) -> refilter());
-            txtSearch.setPromptText("Cerca"); // come screenshot
+            txtSearch.setPromptText("Cerca"); 
         }
 
-        // Dati iniziali
+       
         backing.clear();
         if (sessioni != null) backing.addAll(sessioni);
         refilter();
     }
 
-    /* =================== Filtro =================== */
     private void refilter() {
         final boolean onlyOnline   = tgOnline != null && tgOnline.isSelected();
         final boolean onlyPresenza = tgPresenza != null && tgPresenza.isSelected();
@@ -176,7 +171,7 @@ public class SessioniPreviewController {
         return s != null && s.toLowerCase(java.util.Locale.ROOT).contains(pieceLower);
     }
 
-    /* ============ Dialog: ricette associate ============ */
+   
     private void openRicetteDialog(SessionePresenza sp) {
         List<Ricetta> lista;
         try {
@@ -204,7 +199,7 @@ public class SessioniPreviewController {
         pane.setContent(tv);
 
         dlg.setDialogPane(pane);
-     // Stile dark per il bottone "Chiudi"
+    
         Button closeBtn = (Button) pane.lookupButton(ButtonType.CLOSE);
         if (closeBtn != null) {
             closeBtn.setText("Chiudi");
@@ -238,7 +233,7 @@ public class SessioniPreviewController {
     tv.setTableMenuButtonVisible(false);
     tv.setFixedCellSize(40);
 
-    // Tema scuro coerente + niente selezione blu
+   
     tv.setStyle(
         "-fx-background-color:" + BG_SURFACE + ";" +
         "-fx-control-inner-background:" + BG_SURFACE + ";" +
@@ -252,14 +247,14 @@ public class SessioniPreviewController {
         "-fx-background-insets:0; -fx-padding:0;"
     );
 
-    // Colonne
+    
     TableColumn<Ricetta, String> colNome = new TableColumn<>("Nome");
     colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
 
     TableColumn<Ricetta, String> colDiff = new TableColumn<>("Difficoltà");
     colDiff.setCellValueFactory(new PropertyValueFactory<>("difficolta"));
     colDiff.setPrefWidth(140);
-    // chip colore per difficoltà
+   
     colDiff.setCellFactory(tc -> new TableCell<>() {
         private final Label chip = new Label();
         @Override protected void updateItem(String s, boolean empty) {
@@ -290,7 +285,7 @@ public class SessioniPreviewController {
 
     TableColumn<Ricetta, String> colDesc = new TableColumn<>("Descrizione");
     colDesc.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
-    // ellissi su una riga
+  
     colDesc.setCellFactory(tc -> new TableCell<>() {
         private final Label lbl = new Label();
         { lbl.setStyle("-fx-text-fill:#cfe5d9;"); lbl.setEllipsisString("…"); }
@@ -305,7 +300,7 @@ public class SessioniPreviewController {
     tv.getColumns().setAll(colNome, colDiff, colTempo, colDesc);
     if (data != null) tv.getItems().addAll(data);
 
-    // Header scuro
+   
     Platform.runLater(() -> {
         for (Node n : tv.lookupAll(".column-header")) {
             if (n instanceof Region r) {
@@ -323,12 +318,12 @@ public class SessioniPreviewController {
         if (filler != null) filler.setStyle("-fx-background-color:" + BG_CARD + ";");
     });
 
-    // Placeholder
+   
     Label ph = new Label("Nessuna ricetta associata.");
     ph.setStyle("-fx-text-fill:#b7c5cf; -fx-font-weight:700;");
     tv.setPlaceholder(ph);
 
-    // Riga “card-like” (hover/selected)
+   
     tv.setRowFactory(t -> new TableRow<>() {
         @Override protected void updateItem(Ricetta item, boolean empty) {
             super.updateItem(item, empty);
@@ -347,12 +342,12 @@ public class SessioniPreviewController {
 }
 
 
-    /* =================== Card cell =================== */
+ 
     private final class CardCell extends ListCell<Sessione> {
         private final VBox card = new VBox();
         private final Label labTipo = new Label();
         private final Label labRiga2 = new Label();
-        private final Label labRiga3 = new Label(); // dettaglio (piattaforma o indirizzo)
+        private final Label labRiga3 = new Label(); 
 
         CardCell() {
             super();
@@ -363,7 +358,7 @@ public class SessioniPreviewController {
             card.setBackground(new Background(new BackgroundFill(Color.web(BG_CARD), new CornerRadii(12), Insets.EMPTY)));
             card.setBorder(new Border(new BorderStroke(Color.web(GRID_SOFT),
                     BorderStrokeStyle.SOLID, new CornerRadii(12), new BorderWidths(1))));
-            // testo
+             
             labTipo.setTextFill(Color.web(TXT_MAIN));
             labTipo.setStyle("-fx-font-weight: 700; -fx-font-size: 13.5px;");
             labRiga2.setTextFill(Color.web(TXT_MAIN));
@@ -374,7 +369,7 @@ public class SessioniPreviewController {
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             setGraphic(card);
 
-            // hover/selected styling
+           
             hoverProperty().addListener((o, w, h) -> paint());
             selectedProperty().addListener((o, w, s) -> paint());
         }
@@ -400,7 +395,7 @@ public class SessioniPreviewController {
     String orari = (s.getOraInizio() != null ? tf.format(s.getOraInizio()) : "") +
             "–" + (s.getOraFine() != null ? tf.format(s.getOraFine()) : "");
 
-    String color = typeColor(s); // <<--- nuovo
+    String color = typeColor(s); 
 
     if (s instanceof SessioneOnline so) {
         labTipo.setText("ONLINE");
@@ -415,7 +410,7 @@ public class SessioniPreviewController {
         labRiga3.setText(ind.trim());
     }
 
-    // chip tipo colorata
+   
     labTipo.setStyle("-fx-text-fill:white; -fx-font-weight:800; -fx-font-size:12.5px; "
             + "-fx-background-color:" + color + "; -fx-background-radius:9999; -fx-padding:2 8;");
 }
@@ -423,7 +418,7 @@ public class SessioniPreviewController {
 
        private void paint() {
     	    boolean accented = isHover() || isSelected();
-    	    String color = getItem() == null ? ACCENT : typeColor(getItem()); // <<--- nuovo
+    	    String color = getItem() == null ? ACCENT : typeColor(getItem());
     	    if (accented) {
     	        card.setStyle(
     	            "-fx-background-color: linear-gradient(to right," + color + " 0px," + color + " 3px, transparent 3px), " + HOVER_BG + ";" +
@@ -442,7 +437,7 @@ public class SessioniPreviewController {
 
     }
 
-    /* =================== piccoli helpers =================== */
+    
     private static String nz(String s) { return s == null ? "" : s; }
 
     private static String join(String sep, String... parts) {
@@ -468,7 +463,7 @@ public class SessioniPreviewController {
         a.showAndWait();
     }
     
-    /** Ritorna il colore di accento in base al tipo di sessione. */
+ 
     private static String typeColor(Sessione s) {
         return (s instanceof SessioneOnline) ? TYPE_ONLINE : TYPE_PRESENZA;
     }

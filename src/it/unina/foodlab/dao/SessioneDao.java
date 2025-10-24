@@ -13,23 +13,18 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * DAO Sessioni. - Protegge tutte le operazioni tramite owner (fk_cf_chef). -
- * Gestisce ONLINE, PRESENZA e link N<->N con RICETTA. - Niente stream/lambda;
- * transazioni dove servono.
- */
+
 public class SessioneDao {
 
-	/* ============ CONFIG SCHEMA/TABELLE ============ */
+	
 	private static final String TBL_ONLINE = "sessione_online";
 	private static final String TBL_PRESENZA = "sessione_presenza";
 	private static final String TBL_CORSO = "corso";
 	private static final String TBL_RICETTA = "ricetta";
-	private static final String TBL_LINK = "sessione_presenza_ricetta"; // ponte
+	private static final String TBL_LINK = "sessione_presenza_ricetta";
 
-	// Colonne della tabella ponte
-	private static final String COL_FK_SESS = "fk_id_sess_pr"; // -> sessione_presenza."idSessionePresenza"
-	private static final String COL_FK_RIC = "fk_id_ricetta"; // -> ricetta.id_ricetta
+	private static final String COL_FK_SESS = "fk_id_sess_pr"; 
+	private static final String COL_FK_RIC = "fk_id_ricetta";
 
 	private final String ownerCfChef;
 
@@ -40,10 +35,6 @@ public class SessioneDao {
 		this.ownerCfChef = ownerCfChef.trim();
 	}
 
-	/* ========================= QUERY SQL COSTANTI ========================= */
-
-	// Union normalizzata delle sessioni (id, tipo, campi comuni)
-	// Union normalizzata delle sessioni (id, tipo, campi comuni)
 	private static final String SQL_BASE_SELECT = ("""
 	    SELECT x.id, x.fk_id_corso, x.data, x.ora_inizio, x.ora_fine, x.tipo,
 	           x.piattaforma, x.via, x.num, x.cap, x.aula, x.posti_max
@@ -86,7 +77,6 @@ public class SessioneDao {
 			 WHERE %s = ? AND %s = ?
 			""").formatted(TBL_LINK, COL_FK_SESS, COL_FK_RIC);
 
-	/* ========================= READ ========================= */
 
 	public Sessione findById(int id) throws Exception {
 		String sql = SQL_BASE_SELECT + " WHERE x.id = ? AND c.fk_cf_chef = ?";
@@ -143,9 +133,7 @@ public class SessioneDao {
 		return out;
 	}
 
-	/*
-	 * ========================= WRITE (ONLINE/PRESENZA) =========================
-	 */
+
 
 	public int insert(Sessione s) throws Exception {
 		ensureCourseOwned(s.getCorso().getIdCorso());
@@ -254,7 +242,7 @@ public class SessioneDao {
 
 		try (Connection conn = Db.get()) {
 			int tot = 0;
-			// ONLINE
+		
 			String sqlDelOnline = ("""
 					    DELETE FROM %s
 					     WHERE idsessioneonline=? AND fk_id_corso IN (SELECT id_corso FROM %s WHERE fk_cf_chef=?)
@@ -264,7 +252,7 @@ public class SessioneDao {
 				ps.setString(2, ownerCfChef);
 				tot += ps.executeUpdate();
 			}
-			// PRESENZA (prima pulizia tabella ponte)
+		
 			String sqlDelLinks = ("""
 					    DELETE FROM %s WHERE %s=?
 					""").formatted(TBL_LINK, COL_FK_SESS);
@@ -286,7 +274,7 @@ public class SessioneDao {
 		}
 	}
 
-	/** Salvataggio batch in singola transazione. */
+
 	public void saveAll(List<Sessione> sessioni) throws Exception {
 		if (sessioni == null || sessioni.isEmpty())
 			return;
@@ -312,10 +300,6 @@ public class SessioneDao {
 		}
 	}
 
-	/*
-	 * ========================= LINK SESSIONE_PRESENZA <-> RICETTA
-	 * =========================
-	 */
 
 	public List<Ricetta> findRicetteBySessionePresenza(int idSessionePresenza) throws Exception {
 		List<Ricetta> out = new ArrayList<Ricetta>();
@@ -336,7 +320,7 @@ public class SessioneDao {
 		try (Connection conn = Db.get(); PreparedStatement ps = conn.prepareStatement(SQL_ADD_LINK)) {
 			ps.setInt(1, idSessionePresenza);
 			ps.setLong(2, idRicetta);
-			ps.executeUpdate(); // 0 se già presente (OK)
+			ps.executeUpdate(); 
 		}
 	}
 
@@ -349,11 +333,7 @@ public class SessioneDao {
 			ps.executeUpdate();
 		}
 	}
-
-	/**
-	 * Sostituisce tutte le ricette collegate a una sessione in presenza. (DELETE +
-	 * INSERT batch in transazione)
-	 */
+	
 	public void replaceRicetteForSessionePresenza(int idSessionePresenza, List<Long> idRicette) throws Exception {
 		if (idSessionePresenza <= 0)
 			throw new IllegalArgumentException("idSessionePresenza non valido");
@@ -411,15 +391,7 @@ public class SessioneDao {
 		}
 	}
 
-	/*
-	 * ========================= REPLACE TUTTE LE SESSIONI DEL CORSO
-	 * =========================
-	 */
-
-	/**
-	 * Elimina tutte le sessioni (e i link ricette) di un corso e inserisce la nuova
-	 * lista. Usa la stessa connessione/tx per consistenza.
-	 */
+	
 	public void replaceForCorso(long corsoId, List<Sessione> nuove) throws Exception {
 		ensureCourseOwned(corsoId);
 
@@ -427,7 +399,7 @@ public class SessioneDao {
 			boolean old = conn.getAutoCommit();
 			conn.setAutoCommit(false);
 			try {
-				// 1) Rimuovi link ricette delle sessioni in presenza del corso
+				
 				String delLinks = ("""
 						    DELETE FROM %s
 						     WHERE %s IN (
@@ -441,7 +413,7 @@ public class SessioneDao {
 					ps.executeUpdate();
 				}
 
-				// 2) Cancella tutte le sessioni del corso
+				
 				String delOnline = ("""
 						    DELETE FROM %s WHERE fk_id_corso = ?
 						""").formatted(TBL_ONLINE);
@@ -457,7 +429,7 @@ public class SessioneDao {
 					ps.executeUpdate();
 				}
 
-				// 3) Inserisci le nuove (riusando la stessa connessione)
+		
 				if (nuove != null) {
 					for (int i = 0; i < nuove.size(); i++) {
 						Sessione s = nuove.get(i);
@@ -467,7 +439,7 @@ public class SessioneDao {
 						if (s.getCorso() == null || s.getCorso().getIdCorso() != corsoId) {
 							Corso c = new Corso();
 							c.setIdCorso(corsoId);
-							s.setCorso(c); // richiede setCorso nel modello
+							s.setCorso(c); 
 						}
 
 						insertOn(conn, s);
@@ -484,7 +456,7 @@ public class SessioneDao {
 		}
 	}
 
-	/* ========================= HELPERS ========================= */
+	
 
 	private void bindCommon(PreparedStatement ps, Sessione s) throws SQLException {
 		if (s.getCorso() == null || s.getCorso().getIdCorso() <= 0)
@@ -602,7 +574,7 @@ public class SessioneDao {
 		return ownerCfChef;
 	}
 
-	/* ===== Varianti “on-connection” per transazioni reali ===== */
+
 
 	private int insertOn(Connection conn, Sessione s) throws Exception {
 		if (s instanceof SessioneOnline) {

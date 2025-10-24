@@ -11,10 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * DAO Ricette: CRUD semplice + associazioni con sessioni in presenza.
- * Niente stream/lambda. SQL in costanti per leggibilità.
- */
+
 public class RicettaDao {
 
     private static final String SQL_FIND_ALL = ""
@@ -66,7 +63,7 @@ public class RicettaDao {
 
     public RicettaDao() { }
 
-    // ================== CRUD BASE ==================
+
 
     public List<Ricetta> findAll() throws Exception {
         List<Ricetta> out = new ArrayList<Ricetta>();
@@ -160,7 +157,6 @@ public class RicettaDao {
         }
     }
 
-    // ================== ASSOCIAZIONE N<->N (PRESENZA <-> RICETTA) ==================
 
     public List<SessionePresenza> listSessioniByRicetta(long idRicetta) throws Exception {
         List<SessionePresenza> out = new ArrayList<SessionePresenza>();
@@ -200,7 +196,6 @@ public class RicettaDao {
         }
     }
 
-    /** Collega idRicetta -> idSessionePresenza (idempotente). */
     public void addSessione(long idRicetta, int idSessionePresenza) throws Exception {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -209,14 +204,13 @@ public class RicettaDao {
             ps = conn.prepareStatement(SQL_ADD_LINK);
             ps.setInt(1, idSessionePresenza);
             ps.setLong(2, idRicetta);
-            ps.executeUpdate(); // 0 se già presente (OK)
+            ps.executeUpdate(); 
         } finally {
             closeQuiet(ps);
             closeQuiet(conn);
         }
     }
 
-    /** Scollega idRicetta <-/-> idSessionePresenza. */
     public void removeSessione(long idRicetta, int idSessionePresenza) throws Exception {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -232,11 +226,6 @@ public class RicettaDao {
         }
     }
 
-    /**
-     * Utility: sincronizza in un colpo solo le ricette associate a una sessione pratica,
-     * calcolando internamente il delta (aggiunte/rimozioni) e usando una piccola transazione.
-     * Utile come fallback se non si hanno metodi equivalenti nel SessioneDao.
-     */
     public void syncSessioneRicette(int idSessionePresenza, Set<Long> nuoviIds) throws Exception {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -247,7 +236,6 @@ public class RicettaDao {
             oldAuto = conn.getAutoCommit();
             conn.setAutoCommit(false);
 
-            // Leggi attuali
             Set<Long> attuali = new HashSet<Long>();
             ps = conn.prepareStatement(SQL_LIST_RICETTE_BY_SESSIONE);
             ps.setInt(1, idSessionePresenza);
@@ -258,7 +246,6 @@ public class RicettaDao {
             rs.close(); rs = null;
             ps.close(); ps = null;
 
-            // Aggiunte
             ps = conn.prepareStatement(SQL_ADD_LINK);
             for (Long idAdd : nuoviIds) {
                 if (!attuali.contains(idAdd)) {
@@ -270,7 +257,6 @@ public class RicettaDao {
             ps.executeBatch();
             ps.close(); ps = null;
 
-            // Rimozioni
             ps = conn.prepareStatement(SQL_REMOVE_LINK);
             for (Long idRem : attuali) {
                 if (!nuoviIds.contains(idRem)) {
@@ -297,14 +283,14 @@ public class RicettaDao {
         }
     }
 
-    // ================== MAPPER & VALIDAZIONE ==================
+
 
     private Ricetta mapRow(ResultSet rs) throws SQLException {
         Ricetta r = new Ricetta();
         r.setIdRicetta(rs.getLong("id_ricetta"));
         r.setNome(rs.getString("nome"));
         r.setDescrizione(rs.getString("descrizione"));
-        r.setDifficolta(rs.getString("difficolta")); // facile | medio | difficile
+        r.setDifficolta(rs.getString("difficolta"));
         r.setTempoPreparazione(rs.getInt("tempo_preparazione"));
         return r;
     }
@@ -317,7 +303,6 @@ public class RicettaDao {
         if (r.getTempoPreparazione() < 0) throw new SQLException("Tempo di preparazione non può essere negativo");
     }
 
-    // ================== Helpers ==================
     private static void closeQuiet(AutoCloseable c) {
         if (c != null) { try { c.close(); } catch (Exception ignore) {} }
     }

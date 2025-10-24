@@ -36,15 +36,11 @@ import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Controller del Login.
- * - Nessun CSS esterno: tutto via FXML inline.
- * - Niente stream/lambda: handler e listener espliciti.
- * - Logica invariata, UX più robuste.
- */
+
+ 
 public class LoginController {
 
-    /* =================== Costanti =================== */
+  
 
     private static final String FXML_LOGIN     = "/it/unina/foodlab/ui/LoginFrame.fxml";
     private static final String FXML_REGISTRAZ = "/it/unina/foodlab/ui/RegisterChefDialog.fxml";
@@ -58,16 +54,16 @@ public class LoginController {
     private static final String MSG_OPEN_REG_ERR   = "Impossibile aprire la registrazione.";
     private static final String TITLE_APP          = "UninaFoodLab - Corsi di ";
 
-    // SVG occhio (aperto/chiuso)
+  
     private static final String EYE_OPEN  = "M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12zm11 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
     private static final String EYE_SLASH = "M2 5l19 14-1.5 2L.5 7 2 5zm3.3 2.4C7.7 6.2 9.7 5 12 5c7 0 11 7 11 7-.7 1.1-1.7 2.3-3 3.3L18.6 13c.3-.6.4-1.2.4-1.9a5 5 0 0 0-5-5c-.7 0-1.3.1-1.9.4L5.3 7.4z";
 
-    /* =================== UI =================== */
+ 
 
     @FXML private VBox card;
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
-    @FXML private TextField passwordVisibleField; // quando "mostra" è attivo
+    @FXML private TextField passwordVisibleField; 
     @FXML private ToggleButton toggleVisibilityButton;
     @FXML private SVGPath eyeIcon;
     @FXML private Label errorLabel;
@@ -75,12 +71,12 @@ public class LoginController {
     @FXML private Button registerButton;
     @FXML private ProgressIndicator spinner;
 
-    /* =================== Altri membri =================== */
+    
 
     private final ChefDao chefDao = new ChefDao();
     private Stage stage;
 
-    /* =================== API pubbliche =================== */
+   
 
     public void setStage(Stage stage) { this.stage = stage; }
 
@@ -92,7 +88,7 @@ public class LoginController {
         });
     }
 
-    /* =================== Ciclo di vita =================== */
+   
 
     @FXML
     private void initialize() {
@@ -101,7 +97,7 @@ public class LoginController {
         bindActions();
     }
 
-    /* =================== Inizializzazioni =================== */
+   
 
     private void bindActions() {
         if (loginButton != null) {
@@ -137,17 +133,17 @@ public class LoginController {
         }
     }
 
-    /** Configura il toggle "mostra/nascondi" password SENZA lambda. */
+  
     private void initPasswordToggle() {
         if (passwordVisibleField == null || passwordField == null || toggleVisibilityButton == null) return;
 
-        // Sincronizza i due campi
+        
         passwordVisibleField.textProperty().bindBidirectional(passwordField.textProperty());
 
-        // Stato iniziale: nascosta
+        
         setPasswordVisible(false);
 
-        // Listener selectedProperty
+        
         toggleVisibilityButton.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> obs, Boolean was, Boolean selected) {
@@ -156,7 +152,7 @@ public class LoginController {
             }
         });
 
-        // Effetto pressione (tattile) senza lambda
+        
         toggleVisibilityButton.setOnMousePressed(new EventHandler<MouseEvent>() {
             @Override public void handle(MouseEvent event) { toggleVisibilityButton.setOpacity(0.75); }
         });
@@ -189,7 +185,7 @@ public class LoginController {
         }
     }
 
-    /* =================== Azioni =================== */
+ 
 
     private void onLogin() {
         String username = safeText(usernameField);
@@ -221,7 +217,7 @@ public class LoginController {
                     SessioneDao sessioneDao = new SessioneDao(cf);
 
                     showCorsiScene(chef, corsoDao, sessioneDao);
-                    return; // successo
+                    return;
                 }
             }
         } catch (Exception ex) {
@@ -298,7 +294,7 @@ public class LoginController {
         }
     }
 
-    /* =================== Navigazione =================== */
+   
 
     private void showCorsiScene(Chef chef, CorsoDao corsoDao, SessioneDao sessioneDao) throws IOException {
         URL fxml = getResource(FXML_CORSI);
@@ -334,7 +330,7 @@ public class LoginController {
         else sc.setRoot(root);
     }
 
-    /* =================== Helpers UI =================== */
+  
 
     private Stage resolveStage() {
         if (stage != null) return stage;
@@ -419,7 +415,7 @@ public class LoginController {
         });
     }
 
-    /* =================== Utils =================== */
+
 
     private static String safeText(TextField tf) {
         if (tf == null || tf.getText() == null) return "";

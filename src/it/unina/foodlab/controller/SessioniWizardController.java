@@ -27,15 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Wizard di gestione sessioni di un corso.
- * - Tema scuro coerente
- * - Editor inline per data/orari/campi specifici
- * - Rimozione alone bianco delle freccette (arrow-button) nei ComboBox
- */
+
 public class SessioniWizardController {
 
-    /* ====== Palette / stile base ====== */
     private static final String BG_CARD     = "#20282b";
     private static final String BG_HDR      = "#242c2f";
     private static final String TXT_MAIN    = "#e9f5ec";
@@ -55,7 +49,6 @@ public class SessioniWizardController {
     private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter HF = DateTimeFormatter.ofPattern("HH:mm");
 
-    /* ========== FXML ========== */
     @FXML private DialogPane dialogPane;
     @FXML private ButtonType okButtonType;
     @FXML private ButtonType cancelButtonType;
@@ -72,11 +65,10 @@ public class SessioniWizardController {
     @FXML private TableColumn<Sessione, String> cAla;
     @FXML private TableColumn<Sessione, String> cPosti;
 
-    /* ====== Stato ====== */
     private Corso corso;
     private final ObservableList<Sessione> model = FXCollections.observableArrayList();
 
-    /* ========== init ========== */
+   
     @FXML
     private void initialize() {
         dialogPane.setStyle(
@@ -102,7 +94,7 @@ public class SessioniWizardController {
         makeFullBleed();
     }
 
-    /* ====== API ====== */
+
     public void initWithCorso(Corso c) {
         if (c == null) throw new IllegalStateException("Corso nullo");
         this.corso = c;
@@ -122,7 +114,7 @@ public class SessioniWizardController {
         return new ArrayList<>(model);
     }
 
-    /* ====== Pulsanti barra comandi ====== */
+   
     @FXML
     private void onNuovo(ActionEvent e) {
         LocalDate suggested = null;
@@ -133,9 +125,9 @@ public class SessioniWizardController {
                 suggested = computeNthDate(lastDate, corso != null ? corso.getFrequenza() : null, 1);
             }
         }
-        SessionePresenza s = new SessionePresenza(); // default in presenza
+        SessionePresenza s = new SessionePresenza();
         s.setCorso(corso);
-        s.setData(suggested); // solo data
+        s.setData(suggested);
         model.add(s);
         table.getSelectionModel().select(model.size() - 1);
         table.scrollTo(model.size() - 1);
@@ -147,7 +139,7 @@ public class SessioniWizardController {
         if (idx >= 0 && idx < model.size()) model.remove(idx);
     }
 
-    /* ====== Colonne ed editor ====== */
+    
     private void setupColumns() {
         cData.setText("Data");
         cData.setCellValueFactory(cd -> new SimpleStringProperty(
@@ -215,7 +207,7 @@ public class SessioniWizardController {
         FieldKind(int k){ this.kind = k; }
     }
 
-    /** Cella testo base. */
+   
     private static final class TextCell extends TableCell<Sessione, String> {
         @Override protected void updateItem(String item, boolean empty) {
             super.updateItem(item, empty);
@@ -224,7 +216,7 @@ public class SessioniWizardController {
         }
     }
 
-    /** TextField quando applicabile; cella vuota quando non applicabile. */
+   
     private final class EditableFieldCell extends TableCell<Sessione, String> {
         private final int kind;
         private final TextField tf = new TextField();
@@ -276,7 +268,6 @@ public class SessioniWizardController {
         }
     }
 
-    /* ====== Orari ====== */
     private final class TimeCell extends TableCell<Sessione, String> {
         private final boolean isStart;
         private final ComboBox<LocalTime> cb = new ComboBox<>(buildTimes(15));
@@ -297,7 +288,7 @@ public class SessioniWizardController {
             HBox.setHgrow(cb, Priority.ALWAYS);
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
 
-            // >>> Rimuove sfondo bianco del bottone freccia sulla combo degli orari
+            
             Platform.runLater(() -> clearArrowBackground(cb));
         }
 
@@ -319,7 +310,7 @@ public class SessioniWizardController {
                 }
             });
 
-            // Protezione extra (skin ricaricata dopo refresh)
+         
             Platform.runLater(() -> clearArrowBackground(cb));
             setGraphic(wrapper);
         }
@@ -341,7 +332,7 @@ public class SessioniWizardController {
         try { return LocalTime.parse(s, HF); } catch (Exception e) { return null; }
     }
 
-    /* ====== Tipo ====== */
+ 
     private final class TipoCell extends TableCell<Sessione, String> {
         private final ComboBox<String> combo = new ComboBox<>();
 
@@ -393,7 +384,7 @@ public class SessioniWizardController {
                 getTableView().refresh();
             });
 
-            // >>> rimuovi sfondo bianco dell’arrow-button anche qui
+         
             Platform.runLater(() -> clearArrowBackground(combo));
 
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
@@ -406,13 +397,12 @@ public class SessioniWizardController {
             }
             Sessione s = (Sessione) getTableRow().getItem();
             combo.setValue(s instanceof SessionePresenza ? "In presenza" : "Online");
-            Platform.runLater(() -> clearArrowBackground(combo)); // protezione post-refresh
+            Platform.runLater(() -> clearArrowBackground(combo));  
             setGraphic(combo);
             setText(null);
         }
     }
 
-    /* ====== Tema tabella ====== */
     private void applyTableBaseTheme() {
         table.setStyle(
                 "-fx-background-color:" + BG_CARD + ";" +
@@ -451,7 +441,7 @@ public class SessioniWizardController {
         table.widthProperty().addListener((obs, a, b) -> fixTableHeaderTheme());
     }
 
-    /* ====== Riga evidenziata ====== */
+
     private void setupRowFactory() {
         table.setRowFactory(tv -> {
             final TableRow<Sessione> row = new TableRow<>() {
@@ -479,7 +469,7 @@ public class SessioniWizardController {
         }
     }
 
-    /* ====== OK/Annulla ====== */
+
     private void setupOkCancelButtons() {
         final Button okBtn = (okButtonType != null)
                 ? (Button) dialogPane.lookupButton(okButtonType)
@@ -508,7 +498,7 @@ public class SessioniWizardController {
         }
     }
 
-    /* ====== Validazione ====== */
+ 
     private Optional<String> validateBeforeClose() {
         for (int i = 0; i < model.size(); i++) {
             Sessione s = model.get(i);
@@ -540,7 +530,7 @@ public class SessioniWizardController {
         return Optional.empty();
     }
 
-    /* ====== Tools ====== */
+
     private static boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
     private static boolean isValidCAP(String s){ return s != null && s.matches("\\d{5}"); }
     private static int parseIntOrZero(String s){ try{ return Integer.parseInt(s.trim()); }catch(Exception e){ return 0; } }
@@ -561,11 +551,10 @@ public class SessioniWizardController {
         try { on.setPiattaforma(value); }
         catch (Throwable t) {
             try { on.getClass().getMethod("setPuntaforma", String.class).invoke(on, value); }
-            catch (Exception ignore) { /* no-op */ }
+            catch (Exception ignore) { }
         }
     }
 
-    /** Rende il Dialog a pieno spazio e tema scuro uniforme. */
     private void makeFullBleed() {
         dialogPane.setBackground(new Background(
                 new BackgroundFill(javafx.scene.paint.Color.web(BG_CARD), null, null)
@@ -636,7 +625,7 @@ public class SessioniWizardController {
         }
     }
 
-    /** Inizializza con N righe “vuote” ma con DATA proposta da dataInizio + frequenza. */
+   
     public void initWithCorsoAndBlank(Corso c, int initialRows) {
         initWithCorso(c);
         addBlankRows(c, initialRows);
@@ -666,20 +655,19 @@ public class SessioniWizardController {
             case "ogni 2 giorni" -> start.plusDays(2L * steps);
             case "bisettimanale" -> start.plusWeeks(2L * steps);
             case "mensile"       -> start.plusMonths(steps);
-            default              -> start.plusWeeks(steps); // settimanale
+            default              -> start.plusWeeks(steps); 
         };
     }
 
-    /* ====== FIX freccette: rimuove sfondo dell’arrow-button ====== */
+   
     private static void clearArrowBackground(Node rootOfControl) {
         if (rootOfControl == null) return;
-        Node arrowBtn = rootOfControl.lookup(".arrow-button"); // bottone contenitore della freccia
+        Node arrowBtn = rootOfControl.lookup(".arrow-button"); 
         if (arrowBtn instanceof Region r) {
             r.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-background-insets: 0;");
         }
-        Node arrow = rootOfControl.lookup(".arrow"); // la freccia vera e propria
+        Node arrow = rootOfControl.lookup(".arrow"); 
         if (arrow instanceof Region r2) {
-            // usa il colore di mark del tema; resta visibile senza box bianco
             r2.setStyle("-fx-background-color: -fx-mark-color;");
         }
     }

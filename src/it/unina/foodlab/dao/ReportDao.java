@@ -1,8 +1,6 @@
 package it.unina.foodlab.dao;
 
 import it.unina.foodlab.util.Db;
-// Se hai spostato il record nel package model, sostituisci l'import:
-// import it.unina.foodlab.model.ReportMensile;
 import it.unina.foodlab.util.ReportMensile;
 
 import java.math.BigDecimal;
@@ -11,22 +9,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 
-/**
- * DAO per il report mensile dell'area Chef.
- * Calcola:
- *  - numero totale corsi attivi nel mese
- *  - numero sessioni online e in presenza del mese
- *  - statistiche (min/max/media) sul numero di ricette per sessione in presenza
- *
- * Finestra temporale: [primoGiornoIncluso, primoGiornoDelMeseSuccessivoEscluso]
- *
- * N.B.: I campi di conteggio sono sempre valorizzati (0 se nessuna riga).
- *       Le metriche sulle ricette (min/max/media) possono risultare null
- *       se nel mese non ci sono sessioni in presenza.
- */
 public class ReportDao {
 
-    // Adegua i nomi dei campi se nel DB usi naming diverso (rispettando eventuali doppi apici)
     private static final String SQL_REPORT_MENSILE = """
         WITH sess AS (
             -- Tutte le sessioni del mese, marcate col tipo
@@ -62,15 +46,6 @@ public class ReportDao {
           LEFT JOIN ric r ON r.id_sessione = j.id_sessione
         """;
 
-    /**
-     * Calcola il report per l'utente (cf fiscale) nel mese indicato.
-     *
-     * @param cfChef codice fiscale dello chef (non nullo/vuoto)
-     * @param month  mese di riferimento (YearMonth)
-     * @return ReportMensile con i conteggi; le metriche sulle ricette possono essere {@code null}
-     * @throws SQLException se la query fallisce o la connessione fallisce
-     * @throws IllegalArgumentException se parametri non validi
-     */
     public ReportMensile getReportMensile(String cfChef, YearMonth month) throws SQLException {
         if (cfChef == null || cfChef.isBlank()) {
             throw new IllegalArgumentException("cfChef mancante o vuoto");
@@ -79,7 +54,7 @@ public class ReportDao {
             throw new IllegalArgumentException("month mancante");
         }
 
-        // [primo giorno del mese alle 00:00, primo giorno del mese successivo alle 00:00)
+       
         LocalDate startDate = month.atDay(1);
         LocalDate startNext = month.plusMonths(1).atDay(1);
         LocalDateTime from = startDate.atStartOfDay();
@@ -88,7 +63,6 @@ public class ReportDao {
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(SQL, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
 
-            // Parametri: 1..2 (ONLINE) 3..4 (PRESENZA) 5 (owner)
             ps.setTimestamp(1, Timestamp.valueOf(from));
             ps.setTimestamp(2, Timestamp.valueOf(to));
             ps.setTimestamp(3, Timestamp.valueOf(from));
@@ -101,7 +75,7 @@ public class ReportDao {
                     final int    totaleOnline   = rs.getInt("totale_online");
                     final int    totalePratiche = rs.getInt("totale_pratiche");
 
-                    // media come DECIMAL, può essere null se nessuna sessione pratica
+                 
                     final BigDecimal mediaBD = rs.getBigDecimal("media_ricette");
                     final Double media = (mediaBD != null ? mediaBD.doubleValue() : null);
 
@@ -115,10 +89,9 @@ public class ReportDao {
             }
         }
 
-        // Nessun dato per il mese richiesto: ritorna un DTO con conteggi a 0 e metriche null
+       
         return new ReportMensile(0, 0, 0, null, null, null);
     }
 
-    // Alias per compatibilità col testo del commento precedente
     private static final String SQL = SQL_REPORT_MENSILE;
 }

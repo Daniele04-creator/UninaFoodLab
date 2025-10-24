@@ -8,7 +8,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseEvent; // <— IMPORTANTE per la firma dell’handler
+import javafx.scene.input.MouseEvent; 
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Paint;
@@ -20,7 +20,7 @@ import java.time.LocalDate;
 
 public class RegisterChefController {
 
-    /* ====== FXML ====== */
+   
     @FXML private TextField nomeField;
     @FXML private TextField cognomeField;
     @FXML private TextField cfField;
@@ -35,21 +35,21 @@ public class RegisterChefController {
     @FXML private Label errorLabel;
     @FXML private Button registerButton;
 
-    /* ====== DAO ====== */
+   
     private final ChefDao chefDao = new ChefDao();
 
-    /* ====== Icone occhio ====== */
+  
     private static final String EYE_OPEN  = "M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12zm11 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
     private static final String EYE_SLASH = "M2 5l19 14-1.5 2L.5 7 2 5zm3.3 2.4C7.7 6.2 9.7 5 12 5c7 0 11 7 11 7-.7 1.1-1.7 2.3-3 3.3L18.6 13c.3-.6.4-1.2.4-1.9a5 5 0 0 0-5-5c-.7 0-1.3.1-1.9.4L5.3 7.4z";
 
-    /* ====== Regole di validazione ====== */
+    
     private static final String REGEX_NOME      = "^[A-Za-zÀ-ÖØ-öø-ÿ'`\\-\\s]{2,50}$";
     private static final String REGEX_COGNOME   = REGEX_NOME;
     private static final String REGEX_CF_CHEF   = "^CH\\d{3}$";
     private static final String REGEX_USERNAME  = "^[A-Za-z0-9_.]{3,20}$";
     private static final int    MIN_PWD_LEN     = 6;
 
-    /* ====== Palette scura coerente ====== */
+ 
     private static final String BG_DARK      = "#1f2937";
     private static final String BG_DARK_2    = "#2b3542";
     private static final String TEXT_LIGHT   = "#e5e7eb";
@@ -76,8 +76,7 @@ public class RegisterChefController {
         }
     }
 
-    /* ==================== Handler FXML richiesto ==================== */
-    /** Collegato in FXML con onMouseClicked="#showCalendarPopup" */
+    
     @FXML
     private void showCalendarPopup(MouseEvent e) {
         if (nascitaPicker != null) {
@@ -86,9 +85,8 @@ public class RegisterChefController {
         }
     }
 
-    /* ==================== Submit / Registrazione ==================== */
-
-    /** Collega in FXML: onAction="#onRegister" sul bottone Registra */
+   
+ 
     @FXML
     public void onRegister() {
         clearError();
@@ -111,7 +109,7 @@ public class RegisterChefController {
         }
     }
 
-    /* ===== resto metodi identici alla versione precedente (UI/validazione/theme) ===== */
+    
 
     private void setUiDisabled(boolean disabled) {
         if (registerButton != null) registerButton.setDisable(disabled);

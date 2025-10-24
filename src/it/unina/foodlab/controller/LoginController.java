@@ -4,7 +4,6 @@ import it.unina.foodlab.dao.ChefDao;
 import it.unina.foodlab.dao.CorsoDao;
 import it.unina.foodlab.dao.SessioneDao;
 import it.unina.foodlab.model.Chef;
-import it.unina.foodlab.util.AppSession;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
@@ -216,7 +215,7 @@ public class LoginController {
                     err = MSG_CHEF_MANCANTE;
                 } else {
                     String cf = chef.getCF_Chef().trim();
-                    AppSession.setCfChef(cf);
+                    chef.setCF_Chef(cf);
 
                     CorsoDao corsoDao = new CorsoDao(cf);
                     SessioneDao sessioneDao = new SessioneDao(cf);

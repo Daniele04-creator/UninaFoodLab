@@ -12,24 +12,24 @@
                    -fx-background-radius:12; -fx-border-radius:12;
                    -fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;">
 
-    <!-- ButtonType del dialog (non hanno onAction) -->
+    
     <buttonTypes>
         <ButtonType fx:id="cancelButtonType" text="Annulla"  buttonData="CANCEL_CLOSE"/>
         <ButtonType fx:id="okButtonType"     text="Conferma" buttonData="OK_DONE"/>
     </buttonTypes>
 
     <content>
-        <!-- BorderPane full-bleed: niente padding = nessuna cornice bianca -->
+        
         <BorderPane style="-fx-background-color:#20282b; -fx-padding:0;">
 
-            <!-- Header testuale (coerente col tema) -->
+            
             <top>
                 <Label text="Imposta modalità e dettagli per ciascuna sessione:"
                        style="-fx-background-color:#242c2f; -fx-text-fill:#e9f5ec;
                               -fx-font-weight:800; -fx-padding:10 12;" />
             </top>
 
-            <!-- Tabella al centro: occupa tutto lo spazio -->
+            
             <center>
                 <TableView fx:id="table" editable="true"
                            BorderPane.alignment="CENTER"
@@ -65,7 +65,7 @@
                 </TableView>
             </center>
 
-            <!-- Barra comandi in basso -->
+            
             <bottom>
                 <HBox spacing="10" alignment="CENTER"
                       style="-fx-background-color:#20282b; -fx-padding:12 0 0 0;">

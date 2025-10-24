@@ -11,7 +11,7 @@ public class Ricetta {
     private String difficolta; 
     private int tempoPreparazione; 
 
-    /** Associazione N<->N con SessionePresenza */
+    
     private final List<SessionePresenza> sessioni = new ArrayList<>();
 
     public Ricetta() {}
@@ -24,7 +24,7 @@ public class Ricetta {
         this.tempoPreparazione = tempoPreparazione;
     }
 
-    // ================== Getters/Setters ==================
+    
 
     public long getIdRicetta() {
         return idRicetta;
@@ -66,7 +66,7 @@ public class Ricetta {
         this.tempoPreparazione = tempoPreparazione;
     }
 
-    // ================== Associazione N<->N ==================
+    
 
     public List<SessionePresenza> getSessioni() {
         return Collections.unmodifiableList(sessioni);
@@ -75,7 +75,7 @@ public class Ricetta {
     public boolean addSessione(SessionePresenza s) {
         if (s != null && !sessioni.contains(s)) {
             sessioni.add(s);
-            s._linkRicetta(this); // collega dall'altro lato
+            s._linkRicetta(this); 
             return true;
         }
         return false;
@@ -83,20 +83,20 @@ public class Ricetta {
 
     public boolean removeSessione(SessionePresenza s) {
         if (s != null && sessioni.remove(s)) {
-            s._unlinkRicetta(this); // scollega dall'altro lato
+            s._unlinkRicetta(this); 
             return true;
         }
         return false;
     }
 
-    /** Uso interno da SessionePresenza per evitare ricorsione */
+    
     void _linkSessione(SessionePresenza s) {
         if (s != null && !sessioni.contains(s)) {
             sessioni.add(s);
         }
     }
 
-    /** Uso interno da SessionePresenza per evitare ricorsione */
+    
     void _unlinkSessione(SessionePresenza s) {
         sessioni.remove(s);
     }

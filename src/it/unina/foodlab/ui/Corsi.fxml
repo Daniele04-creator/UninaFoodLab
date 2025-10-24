@@ -12,7 +12,7 @@
             style="-fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;
                    -fx-background-color: linear-gradient(to bottom,#0e1114,#0b1014);">
 
-    <!-- ============== SIDEBAR SINISTRA ============== -->
+    
     <left>
         <VBox spacing="12" BorderPane.alignment="CENTER"
               style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
@@ -21,14 +21,14 @@
                      -fx-padding:16;">
             <children>
 
-                <!-- logo/titolo (facoltativo) -->
+                
                 <HBox spacing="8" alignment="CENTER_LEFT">
                    
                 </HBox>
 
                 <Separator/>
 
-                <!-- Azione rapida -->
+                
                 <Button fx:id="btnReport" maxWidth="Infinity" prefHeight="44"
                         style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10;
                                -fx-font-weight:bold; -fx-padding:10 12; -fx-content-display:left;
@@ -45,7 +45,7 @@
         </VBox>
     </left>
 
-    <!-- ============== TOP BAR ============== -->
+    
     <top>
         <HBox spacing="12" alignment="CENTER_LEFT" BorderPane.alignment="CENTER"
               style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
@@ -59,7 +59,7 @@
 
                 <Region HBox.hgrow="ALWAYS"/>
 
-                <!-- Filtri (il menu viene costruito a runtime dal controller) -->
+                
                 <MenuButton fx:id="btnFilters" text="Filtri"
                             contentDisplay="LEFT" graphicTextGap="8"
                             style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10; -fx-padding:8 10;">
@@ -69,7 +69,7 @@
                         </ImageView>
                     </graphic>
                     <tooltip><Tooltip text="Filtri avanzati"/></tooltip>
-                    <!-- Placeholder items: il controller li ignora e usa un ContextMenu custom -->
+                    
                     <items>
                         <MenuItem fx:id="miFiltroArg"  text="Argomento"/>
                         <MenuItem fx:id="miFiltroFreq" text="Frequenza"/>
@@ -90,12 +90,12 @@
         </HBox>
     </top>
 
-    <!-- ============== TABELLA + BOTTOM BAR ============== -->
+    
     <center>
         <VBox spacing="12" style="-fx-padding: 12 20 14 14;">
             <children>
 
-                <!-- Card tabella scura -->
+                
                 <HBox spacing="0"
                       style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
                              -fx-border-color: rgba(255,255,255,0.06);
@@ -119,7 +119,7 @@
         <TableColumn fx:id="colArg"    text="Argomento"  prefWidth="260" style="-fx-alignment: CENTER_LEFT;"/>
         <TableColumn fx:id="colFreq"   text="Frequenza"  prefWidth="140" style="-fx-alignment: CENTER_LEFT;"/>
 
-        <!-- >>> NUOVA COLONNA STATO (coerente con il controller) <<< -->
+        
         <TableColumn fx:id="colStato"  text="Stato"      prefWidth="120" style="-fx-alignment: CENTER;"/>
 
         <TableColumn fx:id="colInizio" text="Inizio"     prefWidth="130" style="-fx-alignment: CENTER;"/>
@@ -138,7 +138,7 @@ Crea il primo corso per iniziare a pianificare le sessioni."
                     </children>
                 </HBox>
 
-                <!-- Bottom bar azioni -->
+                
                 <HBox spacing="12" alignment="CENTER_RIGHT"
                       style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
                              -fx-background-radius:12; -fx-padding:12 14;">

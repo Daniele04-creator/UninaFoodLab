@@ -15,7 +15,7 @@
             style="-fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:14px;
                    -fx-background-color: linear-gradient(to bottom,#0e1114,#0b1014);">
 
-    <!-- PANNELLO SINISTRO: BRAND / PAYOFF -->
+    
     <left>
         <VBox spacing="18" BorderPane.alignment="CENTER"
               style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022); -fx-background-radius:0 18 18 0; -fx-padding:28;">
@@ -42,7 +42,7 @@
         </VBox>
     </left>
 
-    <!-- PANNELLO DESTRO: CARD FORM -->
+    
     <center>
         <StackPane style="-fx-padding: 32;">
             <children>
@@ -62,7 +62,7 @@
                         <VBox spacing="14" fillWidth="true" alignment="CENTER">
                             <children>
 
-                                <!-- NOME -->
+                                
                                 <HBox alignment="CENTER_LEFT" spacing="10"
                                       style="-fx-background-color: rgba(255,255,255,0.06);
                                              -fx-border-color: rgba(255,255,255,0.10);
@@ -78,7 +78,7 @@
                                     </children>
                                 </HBox>
 
-                                <!-- COGNOME -->
+                                
                                 <HBox alignment="CENTER_LEFT" spacing="10"
                                       style="-fx-background-color: rgba(255,255,255,0.06);
                                              -fx-border-color: rgba(255,255,255,0.10);
@@ -94,7 +94,7 @@
                                     </children>
                                 </HBox>
 
-                                <!-- CODICE FISCALE -->
+                                
                                 <HBox alignment="CENTER_LEFT" spacing="10"
                                       style="-fx-background-color: rgba(255,255,255,0.06);
                                              -fx-border-color: rgba(255,255,255,0.10);
@@ -109,7 +109,7 @@
                                     </children>
                                 </HBox>
 
-                                <!-- DATA DI NASCITA (DatePicker con sola icona a sx) -->
+                                
                                 <HBox alignment="CENTER_LEFT" spacing="10"
                                       style="-fx-background-color: rgba(255,255,255,0.06);
                                              -fx-border-color: rgba(255,255,255,0.10);
@@ -126,7 +126,7 @@
                                     </children>
                                 </HBox>
 
-                                <!-- USERNAME -->
+                                
                                 <HBox alignment="CENTER_LEFT" spacing="10"
                                       style="-fx-background-color: rgba(255,255,255,0.06);
                                              -fx-border-color: rgba(255,255,255,0.10);
@@ -142,7 +142,7 @@
                                     </children>
                                 </HBox>
 
-                                <!-- PASSWORD + OCCHIO -->
+                                
                                 <HBox alignment="CENTER_LEFT" spacing="10"
                                       style="-fx-background-color: rgba(255,255,255,0.06);
                                              -fx-border-color: rgba(255,255,255,0.10);
@@ -181,12 +181,12 @@
                                     </children>
                                 </HBox>
 
-                                <!-- MESSAGGIO ERRORE -->
+                                
                                 <Label fx:id="errorLabel" managed="false" visible="false"
                                        style="-fx-text-fill:#ffd0cc; -fx-background-color: rgba(240,152,141,0.14);
                                               -fx-padding:8 12; -fx-background-radius:12;"/>
 
-                                <!-- AZIONI -->
+                                
                                 <HBox spacing="12" alignment="CENTER">
                                     <children>
                                         <Button fx:id="registerButton" text="Registrati"

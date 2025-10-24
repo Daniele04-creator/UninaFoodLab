@@ -31,7 +31,7 @@
         <GridPane hgap="16" vgap="16" style="-fx-padding:20;">
             <children>
 
-                <!-- ARGOMENTO -->
+                
                 <Label text="Argomento"
                        style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"
                        GridPane.rowIndex="0" GridPane.columnIndex="0"/>
@@ -61,7 +61,7 @@
                     </children>
                 </HBox>
 
-                <!-- FREQUENZA -->
+                
                 <Label text="Frequenza"
                        style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"
                        GridPane.rowIndex="1" GridPane.columnIndex="0"/>
@@ -78,7 +78,7 @@
                     </children>
                 </HBox>
 
-                <!-- DATA INIZIO -->
+                
                 <Label text="Data Inizio"
                        style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"
                        GridPane.rowIndex="2" GridPane.columnIndex="0"/>
@@ -98,7 +98,7 @@
                     </children>
                 </HBox>
 
-                <!-- SESSIONI -->
+                
                 <Label text="Sessioni"
                        style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"
                        GridPane.rowIndex="3" GridPane.columnIndex="0"/>

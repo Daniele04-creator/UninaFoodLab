@@ -14,7 +14,7 @@ public class SessionePresenza extends Sessione {
     private String aula;
     private int postiMax;
 
-    /** Associazione N<->N con Ricetta */
+    
     private final List<Ricetta> ricette = new ArrayList<>();
 
     public SessionePresenza() { }
@@ -56,22 +56,20 @@ public class SessionePresenza extends Sessione {
     public int getPostiMax() { return postiMax; }
     public void setPostiMax(int postiMax) { this.postiMax = postiMax; }
 
-    /**
-     * Ritorna una vista non modificabile dell'elenco ricette.
-     * Usa add/remove per modificare mantenendo la consistenza bidirezionale.
-     */
+  
+     
     public List<Ricetta> getRicette() {
         return Collections.unmodifiableList(ricette);
     }
 
-    // ================== Associazione N<->N ==================
+    
 
     public boolean addRicetta(Ricetta r) {
         if (r == null) return false;
         if (!ricette.contains(r)) {
             boolean added = ricette.add(r);
             if (added) {
-                r._linkSessione(this); // collega dall'altro lato senza loop
+                r._linkSessione(this); 
             }
             return added;
         }
@@ -81,25 +79,25 @@ public class SessionePresenza extends Sessione {
     public boolean removeRicetta(Ricetta r) {
         if (r == null) return false;
         if (ricette.remove(r)) {
-            r._unlinkSessione(this); // scollega dall'altro lato senza loop
+            r._unlinkSessione(this); 
             return true;
         }
         return false;
     }
 
-    /** Solo per uso interno dai metodi della classe Ricetta, evita ricorsione. */
+    
     void _linkRicetta(Ricetta r) {
         if (r != null && !ricette.contains(r)) {
             ricette.add(r);
         }
     }
 
-    /** Solo per uso interno dai metodi della classe Ricetta, evita ricorsione. */
+    
     void _unlinkRicetta(Ricetta r) {
         ricette.remove(r);
     }
 
-    // ================== Altri metodi ==================
+    
 
     @Override
     public String getModalita() {

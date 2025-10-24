@@ -32,7 +32,7 @@
         <VBox spacing="14" fillWidth="true">
             <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
 
-            <!-- Filtri -->
+            
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <children>
                     <ToggleButton fx:id="tgAll" text="Tutte" selected="true"
@@ -50,7 +50,7 @@
                 </children>
             </HBox>
 
-            <!-- Lista -->
+            
             <ListView fx:id="lv" prefHeight="480"
                       style="-fx-background-color:#20282b; -fx-control-inner-background:#20282b;
                              -fx-text-background-color:#e9f5ec; -fx-background-insets:0;

@@ -4,7 +4,6 @@ import it.unina.foodlab.dao.SessioneDao;
 import it.unina.foodlab.model.Ricetta;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
@@ -24,13 +23,8 @@ import javafx.stage.Stage;
 
 import java.util.*;
 
-/**
- * Dialog: associa una o più ricette a una SessionePresenza.
- * Multi-selezione (checkbox + SHIFT/CTRL + SPACE), stile dark coerente.
- */
 public class AssociaRicetteController extends Dialog<List<Long>> {
 
-    /* ===== Theme ===== */
     private static final String BG_SURFACE = "#20282b";
     private static final String BG_CARD    = "#242c2f";
     private static final String TXT_MAIN   = "#e9f5ec";
@@ -39,7 +33,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
     private static final String ACCENT     = "#1fb57a";
     private static final String HOVER_BG   = "rgba(31,181,122,0.18)";
 
-    /* ===== FXML ===== */
+    
     @FXML private VBox root;
     @FXML private TextField txtSearch;
     @FXML private ChoiceBox<String>  chDifficolta;
@@ -50,13 +44,13 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
     @FXML private TableColumn<Riga, Number>  colTempo;
     @FXML private Region topBarSpacer;
 
-    /* ===== State / deps ===== */
+    
     private final SessioneDao sessioneDao;
     private final int idSessionePresenza;
     private final List<Ricetta> tutteLeRicette;
     private final List<Ricetta> ricetteGiaAssociate;
 
-    private final ObservableSet<Long> selectedIds = FXCRONT(); // shorthand helper below creates an ObservableSet
+    private final ObservableSet<Long> selectedIds = FXCRONT();
     private FilteredList<Riga> filtered;
 
     public AssociaRicetteController(SessioneDao sessioneDao,
@@ -76,14 +70,14 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 
     @FXML
     private void initialize() {
-        // Dialog base
+       
         getDialogPane().setContent(root);
         styleDialogPaneDark(getDialogPane());
         styleDialogButtonsDark(getDialogPane());
         getDialogPane().setPrefSize(960, 620);
         setResizable(true);
         Platform.runLater(() -> {
-            // Allarga un po’ la finestra
+           
             Stage st = (Stage) getDialogPane().getScene().getWindow();
             if (st != null) {
                 st.sizeToScene();
@@ -92,22 +86,22 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
             }
         });
 
-        // Filtro difficoltà
+       
         chDifficolta.setItems(FXCollections.observableArrayList("Tutte","Facile","Medio","Difficile"));
         chDifficolta.getSelectionModel().selectFirst();
         styleChoiceBoxDark(chDifficolta);
 
-        // Search
+        
         styleTextFieldDark(txtSearch, "Cerca per nome o descrizione");
 
-        // Table
+        
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setTableMenuButtonVisible(false);
         table.setPlaceholder(styledPlaceholder("Nessuna ricetta trovata."));
         table.setFixedCellSize(40);
         styleTableDark(table);
 
-        // Columns
+        
         colChk.setPrefWidth(60);
         colChk.setStyle("-fx-alignment: CENTER;");
         colChk.setCellValueFactory(c -> c.getValue().checked);
@@ -128,10 +122,10 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
                 if (empty || s == null) { setGraphic(null); return; }
                 chip.setText(s);
                 String bg = switch (s.trim().toLowerCase(Locale.ROOT)) {
-                    case "facile"    -> "#10b981"; // verde
-                    case "medio"     -> "#f59e0b"; // ambra
-                    case "difficile" -> "#ef4444"; // rosso
-                    default          -> "#6b7280"; // grigio
+                    case "facile"    -> "#10b981"; 
+                    case "medio"     -> "#f59e0b"; 
+                    case "difficile" -> "#ef4444"; 
+                    default          -> "#6b7280"; 
                 };
                 chip.setStyle("-fx-background-color:"+bg+"; -fx-text-fill:white; -fx-font-weight:700; -fx-font-size:12px; -fx-background-radius:999; -fx-padding:2 8;");
                 setGraphic(chip);
@@ -166,7 +160,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         });
 
 
-        // multi-select + SPACE toggles all selected
+        
         table.setEditable(true);
         colChk.setEditable(true);
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -182,7 +176,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
             }
         });
 
-        // single RowFactory: paint + ctrl-click toggle
+       
         table.setRowFactory(tv -> {
     TableRow<Riga> row = new TableRow<>() {
         @Override
@@ -209,13 +203,13 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 });
 
 
-        // Data
+       
         ObservableList<Riga> righe = FXCollections.observableArrayList();
         for (Ricetta r : tutteLeRicette) {
             if (r != null) righe.add(new Riga(r));
         }
 
-        // wire checkbox <-> selectedIds
+        
         righe.forEach(r ->
             r.checked.addListener((obs, oldV, newV) -> {
                 if (Boolean.TRUE.equals(newV)) selectedIds.add(r.idRicetta);
@@ -226,22 +220,22 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         filtered = new FilteredList<>(righe, r -> true);
         table.setItems(filtered);
 
-        // pre-selezione da DB
+      
         for (Ricetta r : ricetteGiaAssociate) {
             if (r != null) selectedIds.add(r.getIdRicetta());
         }
         filtered.forEach(r -> r.checked.set(selectedIds.contains(r.idRicetta)));
 
-        // filtro testo/difficoltà
+        
         txtSearch.textProperty().addListener((o,ov,nv) -> applyFilter());
         chDifficolta.valueProperty().addListener((o,ov,nv) -> applyFilter());
 
-        // bottoni “Tutte / Nessuna” applicati alle righe visibili
+        
         if (btnSelAll   != null) btnSelAll.setOnAction(this::selectAll);
         if (btnSelNone  != null) btnSelNone.setOnAction(this::selectNone);
     }
 
-    /* ===== Filter ===== */
+   
     private void applyFilter() {
         if (filtered == null) return;
         final String q = (txtSearch.getText() == null) ? "" : txtSearch.getText().trim().toLowerCase(Locale.ROOT);
@@ -260,8 +254,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
     private void selectAll(ActionEvent e)   { if (filtered != null) filtered.forEach(r -> r.checked.set(true)); }
     private void selectNone(ActionEvent e)  { if (filtered != null) filtered.forEach(r -> r.checked.set(false)); }
 
-    /* ===== Save ===== */
-    /** Da usare così: controller.salvaSeConfermato(showAndWait()); */
+    
     public void salvaSeConfermato(Optional<List<Long>> resultOpt) {
         if (resultOpt == null || resultOpt.isEmpty()) return;
         List<Long> selectedNow = resultOpt.get();
@@ -280,7 +273,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         }
     }
 
-    /* ===== Row / Table paint ===== */
+   
     private void paintRow(TableRow<Riga> row) {
         if (row == null || row.isEmpty() || row.getItem() == null) {
             row.setStyle(""); row.setCursor(Cursor.DEFAULT); return;
@@ -360,7 +353,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         return ph;
     }
 
-    /* ===== Dark Dialog / Controls ===== */
+   
     private void styleDialogPaneDark(DialogPane pane) {
         pane.setStyle(
             "-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);" +
@@ -387,10 +380,10 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
     private void styleChoiceBoxDark(ChoiceBox<String> cb) {
         if (cb == null) return;
         cb.setStyle("-fx-background-color:#2e3845; -fx-background-radius:8; -fx-border-color:#3a4657; -fx-border-radius:8; -fx-padding:4 10;");
-        // forza il colore del label “button” quando la choice è chiusa
+       
         cb.skinProperty().addListener((obs, o, n) -> forceChoiceBoxLabelColor(cb, "#e9f5ec"));
         Platform.runLater(() -> forceChoiceBoxLabelColor(cb, "#e9f5ec"));
-        // popup scuro
+       
         cb.showingProperty().addListener((obs, was, is) -> {
             if (is) {
                 Scene sc = cb.getScene();
@@ -417,13 +410,13 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         tf.setStyle("-fx-background-color:#2e3845; -fx-control-inner-background:#2e3845; -fx-text-fill:#e9f5ec; -fx-prompt-text-fill:rgba(255,255,255,0.65); -fx-background-radius:10; -fx-border-color:#3a4657; -fx-border-radius:10; -fx-padding:6 10;");
     }
 
-    /* ===== Helpers ===== */
+   
     private static boolean containsIgnoreCase(String s, String q) {
         return s != null && q != null && s.toLowerCase(Locale.ROOT).contains(q);
     }
     private static ObservableSet<Long> FXCRONT() { return FXCollections.observableSet(); }
 
-    /* ===== Row model ===== */
+
     public static class Riga {
         final long idRicetta;
         final javafx.beans.property.SimpleBooleanProperty checked = new javafx.beans.property.SimpleBooleanProperty(false);
@@ -448,23 +441,21 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         public javafx.beans.property.BooleanProperty checkedProperty() { return checked; }
     }
 
-    /* ===== Dark alerts ===== */
-    /** Alert INFO scuro, senza header né icona, testo ben leggibile. */
+   
     private void showInfoDark(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title == null ? "Messaggio" : title);
 
-        // niente header/icona (evita la banda chiara)
+       
         alert.setHeaderText(null);
         alert.setGraphic(null);
 
-        // testo nel contenuto, colore leggibile
         Label content = new Label(message == null ? "" : message);
         content.setWrapText(true);
         content.setStyle("-fx-text-fill:#e9f5ec; -fx-font-size:14px; -fx-font-weight:600;");
         alert.getDialogPane().setContent(content);
 
-        // stile dark coerente
+      
         DialogPane dp = alert.getDialogPane();
         dp.setStyle(
             "-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);" +
@@ -478,13 +469,13 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
             "-fx-accent: transparent;"
         );
 
-        // rimuovi eventuali residui di header/grafica
+        
         Node header = dp.lookup(".header-panel");
         if (header instanceof Region r) r.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
         Node graphic = dp.lookup(".graphic-container");
         if (graphic instanceof Region g) g.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
 
-        // bottone OK in stile brand
+        
         Button okBtn = (Button) dp.lookupButton(ButtonType.OK);
         if (okBtn != null) {
             okBtn.setText("Conferma");

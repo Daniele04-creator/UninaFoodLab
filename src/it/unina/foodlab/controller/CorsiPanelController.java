@@ -40,25 +40,22 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-/**
- * Gestione elenco corsi con filtri, CRUD, wizard sessioni, associazione
- * ricette, anteprima sessioni e UI più leggibile (senza CSS esterno).
- */
+
 public class CorsiPanelController {
 
 	private static final String ALL_OPTION = "Tutte";
 	private static final int FILTERS_BADGE_MAX_CHARS = 32;
-	// in CorsiPanelController
+	
 	private final javafx.collections.ObservableList<String> argomentiCondivisi = javafx.collections.FXCollections
 			.observableArrayList();
 
-	/* ----------- TOP BAR ----------- */
+	
 	@FXML
 	private MenuButton btnFilters;
 	@FXML
 	private Button btnRefresh, btnReport;
 
-	/* ----------- TABELLA ----------- */
+	
 	@FXML
 	private TableView<Corso> table;
 	@FXML
@@ -74,13 +71,13 @@ public class CorsiPanelController {
 	@FXML
 	private TableColumn<Corso, String> colChef;
 
-	/* ----------- BOTTOM BAR ----------- */
+	
 	@FXML
 	private Button btnNew, btnEdit, btnDelete, btnAssocRicette;
 	@FXML
-	private TableColumn<Corso, String> colStato; // aggiungi in FXML a destra di Argomento/Frequenza
+	private TableColumn<Corso, String> colStato; 
 
-	/* ----------- DATI/STATE ----------- */
+	
 	private final ObservableList<Corso> backing = FXCollections.observableArrayList();
 	private final FilteredList<Corso> filtered = new FilteredList<>(backing, c -> true);
 	private final SortedList<Corso> sorted = new SortedList<>(filtered);
@@ -89,22 +86,21 @@ public class CorsiPanelController {
 	private SessioneDao sessioneDao;
 	private RicettaDao ricettaDao;
 
-	/* Filtri correnti */
+	
 	private String filtroArg = null;
 	private String filtroFreq = null;
 	private String filtroChef = null;
 	private String filtroId = null;
-	private String filtroStato = null; // <— NEW
+	private String filtroStato = null;
 	private LocalDate dateFrom = null;
 	private LocalDate dateTo = null;
 
-	/* --- Menu Filtri --- */
 	private ContextMenu filtersMenu;
 	private Label labArgomentoVal, labFrequenzaVal, labChefVal, labIdVal, labStatoVal;
 	private Button btnClearArg, btnClearFreq, btnClearChef, btnClearId, btnClearStato;
 
-	/* --- UI Comfort Mode --- */
-	private boolean comfortable = true; // righe alte + font più grande
+	
+	private boolean comfortable = true;
 	private static final double ROW_HEIGHT_COMFORT = 56;
 	private static final double ROW_HEIGHT_COMPACT = 36;
 
@@ -114,23 +110,23 @@ public class CorsiPanelController {
 		table.setItems(sorted);
 		sorted.comparatorProperty().bind(table.comparatorProperty());
 
-		// Selezione singola
+		
 		table.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		table.getSelectionModel().setCellSelectionEnabled(false);
 
-		// Stili di base e metrica "comfort"
-		applyComfortMetrics(); // altezza riga + padding + font
-		applyTableStyling(); // tema scuro coerente
-		installRowFactory(); // hover/selection eleganti + doppio click
+		
+		applyComfortMetrics(); 
+		applyTableStyling(); 
+		installRowFactory(); 
 
-		// Re-applica stile quando cambia skin/size/columns
+		
 		table.skinProperty().addListener((obs, o, n) -> Platform.runLater(this::applyTableStyling));
 		table.getColumns()
 				.addListener((javafx.collections.ListChangeListener<? super TableColumn<Corso, ?>>) c -> Platform
 						.runLater(this::applyTableStyling));
 		table.widthProperty().addListener((o, a, b) -> Platform.runLater(this::applyTableStyling));
 
-		// Bottoni abilitati solo se selezione presente e di proprietà
+		
 		table.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, sel) -> {
 			boolean has = sel != null;
 			boolean own = isOwnedByLoggedChef(sel);
@@ -139,17 +135,17 @@ public class CorsiPanelController {
 			btnAssocRicette.setDisable(!has || !own);
 		});
 
-		// Filtri UI
+	
 		hookFilterMenuButtonStyling();
 		styleFilterMenuButton();
 		buildAndAttachFiltersContextMenu();
 		updatePrettyFilterRows();
 		updateFiltersUI();
 
-		// Azioni
+		
 		btnRefresh.setOnAction(e -> {
-			playRefreshAnimation(btnRefresh); // 🔄 effetto visivo
-			reload(); // tua logica di ricarica
+			playRefreshAnimation(btnRefresh); 
+			reload(); 
 		});
 
 		btnReport.setOnAction(e -> openReportMode());
@@ -158,14 +154,14 @@ public class CorsiPanelController {
 		btnDelete.setOnAction(e -> onDelete());
 		btnAssocRicette.setOnAction(e -> onAssociateRecipes());
 
-		// Ordinamento predefinito per data inizio (desc)
+	
 		table.getSortOrder().add(colInizio);
 		colInizio.setSortType(TableColumn.SortType.DESCENDING);
 
-		// Placeholder quando non ci sono corsi
+		
 		installPrettyPlaceholder();
 
-		// Min size finestra comoda
+		
 		Platform.runLater(() -> {
 			if (table == null || table.getScene() == null)
 				return;
@@ -180,16 +176,16 @@ public class CorsiPanelController {
 		});
 	}
 
-	/* ================== TABELLA ================== */
+	
 
 	private final DateTimeFormatter DF = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	private void initTableColumns() {
-		// ID
+		
 		colId.setCellValueFactory(new PropertyValueFactory<>("idCorso"));
 		colId.setStyle("-fx-alignment: CENTER;");
 
-		// Argomento (bold)
+		
 		colArg.setCellValueFactory(new PropertyValueFactory<>("argomento"));
 		colArg.setCellFactory(tc -> new TableCell<Corso, String>() {
 			private final Label lbl = makeCellLabel(true);
@@ -206,7 +202,7 @@ public class CorsiPanelController {
 			}
 		});
 
-		// Frequenza
+		
 		colFreq.setCellValueFactory(new PropertyValueFactory<>("frequenza"));
 		colFreq.setCellFactory(tc -> new TableCell<Corso, String>() {
 			private final Label lbl = makeCellLabel(false);
@@ -223,7 +219,7 @@ public class CorsiPanelController {
 			}
 		});
 
-		// STATO (chip)
+	
 		colStato.setCellValueFactory(cd -> Bindings.createStringBinding(() -> statoOf(cd.getValue())));
 		colStato.setCellFactory(tc -> new TableCell<Corso, String>() {
 			private final Label chip = new Label();
@@ -248,7 +244,7 @@ public class CorsiPanelController {
 			}
 		});
 
-		// Inizio
+		
 		colInizio.setCellValueFactory(new PropertyValueFactory<>("dataInizio"));
 		colInizio.setCellFactory(tc -> new TableCell<Corso, LocalDate>() {
 			private final Label lbl = makeCellLabel(false);
@@ -268,7 +264,7 @@ public class CorsiPanelController {
 			}
 		});
 
-		// Fine
+	
 		colFine.setCellValueFactory(new PropertyValueFactory<>("dataFine"));
 		colFine.setCellFactory(tc -> new TableCell<Corso, LocalDate>() {
 			private final Label lbl = makeCellLabel(false);
@@ -288,7 +284,7 @@ public class CorsiPanelController {
 			}
 		});
 
-		// Chef (nome cognome, fallback CF)
+		
 		colChef.setCellValueFactory(cd -> Bindings.createStringBinding(() -> {
 			Corso c = cd.getValue();
 			if (c == null || c.getChef() == null)
@@ -313,7 +309,7 @@ public class CorsiPanelController {
 			}
 		});
 
-		// Policy e larghezze comode
+	
 		Platform.runLater(() -> {
 			table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 			colId.setMaxWidth(80);
@@ -326,12 +322,12 @@ public class CorsiPanelController {
 			colChef.setPrefWidth(220);
 		});
 
-		// Ordinamento iniziale
+		
 		table.getSortOrder().setAll(colInizio);
 		colInizio.setSortType(TableColumn.SortType.DESCENDING);
 	}
 
-	/** Label per celle con padding e font coerenti (no CSS esterno). */
+	
 	private Label makeCellLabel(boolean bold) {
 		Label l = new Label();
 		l.setPadding(new Insets(2, 10, 2, 10));
@@ -341,17 +337,16 @@ public class CorsiPanelController {
 		return l;
 	}
 
-	/** Metrica comoda/compatta (puoi fare un toggle se vuoi). */
+	
 	private void applyComfortMetrics() {
 		double h = comfortable ? ROW_HEIGHT_COMFORT : ROW_HEIGHT_COMPACT;
 		table.setFixedCellSize(h);
-		// Per evitare spazi strani, lascia che la TableView calcoli l'altezza vista.
+		
 	}
 
-	/** Tema scuro con bordi soft e testo leggibile. */
 	private void applyTableStyling() {
-		final String BG = "#20282b"; // celle
-		final String BG_HDR = "#242c2f"; // header
+		final String BG = "#20282b"; 
+		final String BG_HDR = "#242c2f"; 
 		final String TXT = "#e9f5ec";
 		final String GRID = "rgba(255,255,255,0.06)";
 
@@ -359,7 +354,7 @@ public class CorsiPanelController {
 				+ "-fx-text-background-color:#e9f5ec;" + "-fx-table-cell-border-color: rgba(255,255,255,0.06);"
 				+ "-fx-table-header-border-color: rgba(255,255,255,0.06);" + "-fx-selection-bar: transparent;"
 				+ "-fx-selection-bar-non-focused: transparent;" +
-				// spegne focus blu della table e dei figli
+				
 				"-fx-focus-color: transparent;" + "-fx-faint-focus-color: transparent;" + "-fx-accent: transparent;"
 				+ "-fx-background-insets: 0;" + "-fx-padding: 6;");
 
@@ -413,9 +408,7 @@ public class CorsiPanelController {
 		return "";
 	}
 
-	/** Riga con hover/selection “card-like” e doppio click → anteprima sessioni. */
-
-	/** Placeholder carino quando non ci sono corsi. */
+	
 	private void installPrettyPlaceholder() {
 		Label ph = new Label("Non hai ancora corsi.\nCrea il primo corso per iniziare a pianificare le sessioni.");
 		ph.setAlignment(Pos.CENTER);
@@ -424,14 +417,12 @@ public class CorsiPanelController {
 		table.setPlaceholder(ph);
 	}
 
-	/* ================== CARICAMENTO ================== */
-
-	// dopo reload() o dove preferisci
+	
 	private void refreshTitleWithCount() {
 		if (table == null)
 			return;
 
-		// se la Scene non è ancora attaccata, riprova al prossimo tick FX
+		
 		if (table.getScene() == null) {
 			Platform.runLater(this::refreshTitleWithCount);
 			return;
@@ -446,8 +437,7 @@ public class CorsiPanelController {
 		this.sessioneDao = sessioneDao;
 		this.ricettaDao = ricettaDao;
 
-		// se la TableView non è ancora in scena, aspetta che venga attaccata e poi
-		// ricarica
+		
 		if (table == null || table.getScene() == null) {
 			table.sceneProperty().addListener((obs, oldScene, newScene) -> {
 				if (newScene != null) {
@@ -463,8 +453,7 @@ public class CorsiPanelController {
 		this.corsoDao = corsoDao;
 		this.sessioneDao = sessioneDao;
 
-		// se la TableView non è ancora in scena, aspetta che venga attaccata e poi
-		// ricarica
+		
 		if (table == null || table.getScene() == null) {
 			table.sceneProperty().addListener((obs, oldScene, newScene) -> {
 				if (newScene != null) {
@@ -476,7 +465,7 @@ public class CorsiPanelController {
 		}
 	}
 
-	// call in reload()
+	
 	private void reload() {
 		if (corsoDao == null) {
 			showError("DAO non inizializzato. Effettua il login.");
@@ -495,9 +484,7 @@ public class CorsiPanelController {
 		}
 	}
 
-	/**
-	 * Effetto rotazione dell'icona del bottone refresh per dare feedback visivo.
-	 */
+	
 	private void playRefreshAnimation(Button btn) {
 		if (btn == null)
 			return;
@@ -509,11 +496,7 @@ public class CorsiPanelController {
 		rt.play();
 	}
 
-	// tooltip su ogni riga (argomento + periodo + chef)
-	/**
-	 * Riga con hover/selection “card-like” e doppio click → anteprima sessioni,
-	 * senza cambiare la selezione quando il mouse passa sopra.
-	 */
+	
 	private void installRowFactory() {
 		table.setRowFactory(tv -> {
 			TableRow<Corso> row = new TableRow<>() {
@@ -524,27 +507,27 @@ public class CorsiPanelController {
 				}
 			};
 
-			// SOLO stile in hover, NIENTE selezione forzata
+			
 			row.setOnMouseEntered(e -> applyRowStyle(row, true, row.isSelected()));
 			row.setOnMouseExited(e -> applyRowStyle(row, false, row.isSelected()));
 			row.hoverProperty().addListener((o, w, h) -> applyRowStyle(row, h, row.isSelected()));
 			row.selectedProperty().addListener((o, w, s) -> applyRowStyle(row, row.isHover(), s));
 
-			// Selezione solo con click; doppio click apre le sessioni
+			
 			row.setOnMouseClicked(e -> {
 				if (row.isEmpty())
 					return;
 				if (e.getClickCount() == 2 && e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
 					openSessioniPreview(row.getItem());
 				} else if (e.getClickCount() == 1 && e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
-					table.getSelectionModel().select(row.getIndex()); // selezione esplicita SOLO al click
+					table.getSelectionModel().select(row.getIndex()); 
 				}
 			});
 			return row;
 		});
 	}
 
-	/* ================== FILTRI ================== */
+	
 	private void refilter() {
 		filtered.setPredicate(c -> {
 			if (c == null)
@@ -589,7 +572,7 @@ public class CorsiPanelController {
 	}
 
 	private void clearAllFilters() {
-		filtroArg = filtroFreq = filtroChef = filtroId = filtroStato = null; // <—
+		filtroArg = filtroFreq = filtroChef = filtroId = filtroStato = null; 
 		dateFrom = dateTo = null;
 		refilter();
 		updateFiltersUI();
@@ -607,7 +590,7 @@ public class CorsiPanelController {
 		appendIf(sb, !isBlank(filtroFreq), "Freq=" + filtroFreq);
 		appendIf(sb, !isBlank(filtroChef), "Chef=" + filtroChef);
 		appendIf(sb, !isBlank(filtroId), "ID=" + filtroId);
-		appendIf(sb, !isBlank(filtroStato), "Stato=" + filtroStato); // <— NEW
+		appendIf(sb, !isBlank(filtroStato), "Stato=" + filtroStato); 
 		if (dateFrom != null || dateTo != null)
 			appendIf(sb, true, formatDateRange(dateFrom, dateTo));
 
@@ -694,30 +677,26 @@ public class CorsiPanelController {
 		return full.isEmpty() ? nz(ch.getCF_Chef()) : full;
 	}
 
-	/**
-	 * Dialog dark coerente con l'app: restituisce la scelta o null se
-	 * Annulla/chiuso.
-	 */
 	private String askChoice(String title, String header, List<String> options, String preselect) {
 		if (options == null || options.isEmpty()) {
 			showInfoDark("Nessuna opzione disponibile.");
 			return null;
 		}
 
-		// Dialog base
+		
 		Dialog<String> dlg = new Dialog<>();
 		dlg.setTitle(title);
 		dlg.setHeaderText(header);
 
-		// Bottoni
+		
 		ButtonType OK = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
 		ButtonType CANCEL = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
 		dlg.getDialogPane().getButtonTypes().setAll(OK, CANCEL);
 
-		// Contenuto: combobox + padding
+	
 		ComboBox<String> cb = new ComboBox<>(FXCollections.observableArrayList(options));
 		cb.setEditable(false);
-		// preselect (case insensitive)
+		
 		String def = options.get(0);
 		if (preselect != null) {
 			for (String opt : options) {
@@ -729,29 +708,29 @@ public class CorsiPanelController {
 		}
 		cb.getSelectionModel().select(def);
 
-		// Layout semplice
+		
 		HBox box = new HBox(10, cb);
 		box.setPadding(new Insets(6, 0, 0, 0));
 		dlg.getDialogPane().setContent(box);
 
-		// Applica stile dark coerente
+		
 		styleDarkDialog(dlg.getDialogPane());
 		styleDarkCombo(cb);
 		styleDarkButtons(dlg.getDialogPane(), OK, CANCEL);
 
-		// Mostra e ritorna
+		
 		dlg.setResultConverter(bt -> (bt == OK) ? cb.getValue() : null);
 		Optional<String> res = dlg.showAndWait();
 		return res.orElse(null);
 	}
 
-	/** Stile dark per il DialogPane + header/scrollbar + rimozione focus blu. */
+	
 	private void styleDarkDialog(DialogPane pane) {
 		pane.setStyle("-fx-background-color:#20282b;" + "-fx-background-radius:12;"
 				+ "-fx-border-color: rgba(255,255,255,0.08);" + "-fx-border-radius:12;" + "-fx-border-width:1;"
 				+ "-fx-padding:14;" + "-fx-focus-color: transparent;" + "-fx-faint-focus-color: transparent;"
 				+ "-fx-accent: transparent;");
-		// header
+		
 		Node header = pane.lookup(".header-panel");
 		if (header != null) {
 			header.setStyle("-fx-background-color: transparent; -fx-padding: 0 0 8 0;");
@@ -760,23 +739,23 @@ public class CorsiPanelController {
 				l.setStyle("-fx-text-fill:#e9f5ec; -fx-font-weight:800; -fx-font-size:14.5px;");
 			}
 		}
-		// contenuto
+		
 		Node content = pane.lookup(".content");
 		if (content instanceof Region r) {
 			r.setStyle("-fx-background-color: transparent; -fx-text-fill:#e9f5ec;");
 		}
 	}
 
-	/** Stile dark per ComboBox (niente alone blu). */
+	
 	private void styleDarkCombo(ComboBox<String> cb) {
-		// base: sfondo/padding/bordo + disattiva il blu di focus
+		
 		cb.setStyle("-fx-background-color:#2e3845;" + "-fx-control-inner-background:#2e3845;"
 				+ "-fx-background-radius:8;" + "-fx-border-color:#3a4657;" + "-fx-border-radius:8;"
 				+ "-fx-padding: 4 10 4 10;" + "-fx-focus-color: transparent;" + "-fx-faint-focus-color: transparent;"
 				+ "-fx-accent: transparent;" + "-fx-opacity:1;");
 		cb.setDisable(false);
 
-		// ===== 1) BUTTON CELL (testo visibile quando la combo è chiusa) =====
+		
 		cb.setButtonCell(new ListCell<>() {
 			@Override
 			protected void updateItem(String item, boolean empty) {
@@ -791,7 +770,7 @@ public class CorsiPanelController {
 			}
 		});
 
-		// ===== 2) CELLE DEL POPUP (lista aperta) =====
+		
 		cb.setCellFactory(lv -> new ListCell<>() {
 			@Override
 			protected void updateItem(String item, boolean empty) {
@@ -806,10 +785,10 @@ public class CorsiPanelController {
 			}
 		});
 
-		// ===== 3) Popup list scura coerente =====
+		
 		cb.showingProperty().addListener((obs, was, is) -> {
 			if (is) {
-				// prova a raggiungere la ListView del popup e i suoi elementi
+				
 				Scene sc = cb.getScene();
 				if (sc != null) {
 					for (Node n : sc.getRoot().lookupAll(".list-view")) {
@@ -819,21 +798,20 @@ public class CorsiPanelController {
 								+ "-fx-accent: transparent;");
 					}
 					for (Node n : sc.getRoot().lookupAll(".list-cell")) {
-						// fallback nel caso la cellFactory non agganci tutto
+						
 						n.setStyle("-fx-text-fill:#e9f5ec; -fx-background-color: transparent;");
 					}
 				}
 			}
 		});
 
-		// ===== 4) Editor (non usato perché non editable, ma per sicurezza) =====
+		
 		if (cb.getEditor() != null) {
 			cb.getEditor().setStyle("-fx-background-color: transparent; -fx-text-fill:#e5e7eb;"
 					+ "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-accent: transparent;");
 		}
 	}
 
-	/** Stile dark per i bottoni del dialog (OK verde, Annulla neutro). */
 	private void styleDarkButtons(DialogPane pane, ButtonType okType, ButtonType cancelType) {
 		Button ok = (Button) pane.lookupButton(okType);
 		if (ok != null) {
@@ -863,7 +841,7 @@ public class CorsiPanelController {
 		return ALL_OPTION.equalsIgnoreCase(value.trim()) ? null : value.trim();
 	}
 
-	/* ================== REPORT ================== */
+	
 	private void openReportMode() {
 		if (corsoDao == null) {
 			showError("DAO non inizializzato. Effettua il login.");
@@ -907,7 +885,7 @@ public class CorsiPanelController {
 		}
 	}
 
-	/* ================== CRUD/ASSOCIA ================== */
+	
 	private void onEdit() {
 		final Corso sel = table.getSelectionModel().getSelectedItem();
 		if (sel == null)
@@ -1035,7 +1013,7 @@ public class CorsiPanelController {
 				}
 			}
 
-			// pre-carica N righe nel wizard
+			
 			Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo, Math.max(0, nuovo.getNumSessioni()));
 			if (!sessOpt.isPresent())
 				return;
@@ -1047,7 +1025,7 @@ public class CorsiPanelController {
 			nuovo.setIdCorso(id);
 			backing.add(nuovo);
 			table.getSelectionModel().select(nuovo);
-			// allinea lista argomenti condivisa
+			
 			String arg = nuovo.getArgomento();
 			if (arg != null && !arg.isBlank() && !argomentiCondivisi.contains(arg)) {
 				arg = arg.trim();
@@ -1080,12 +1058,12 @@ public class CorsiPanelController {
 
 	}
 
-	/* ================== UI: Menu Filtri (Date inline + '×') ================== */
+
 
 	    private void buildAndAttachFiltersContextMenu() {
     filtersMenu = new ContextMenu();
     filtersMenu.setStyle(
-    	    // colori coerenti con la tabella
+    	   
     	    "-fx-background-color:#20282b;" +
     	    "-fx-background-insets:0;" +
     	    "-fx-background-radius:14;" +
@@ -1093,7 +1071,7 @@ public class CorsiPanelController {
     	    "-fx-border-radius:14;" +
     	    "-fx-border-width:1;" +
     	    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.2, 0, 6);" +
-    	    // spegne blu di focus/selection del menu
+    	  
     	    "-fx-base:#20282b;" +
     	    "-fx-control-inner-background:#20282b;" +
     	    "-fx-selection-bar: transparent;" +
@@ -1102,14 +1080,14 @@ public class CorsiPanelController {
     	    "-fx-faint-focus-color: transparent;"
     	);
 
-    // Date
+    
     CustomMenuItem rowFrom = createDateRow("Inizio da", true);
     CustomMenuItem rowTo   = createDateRow("Fine fino a", false);
     
     rowFrom.setStyle("-fx-background-color: transparent;");
     rowTo.setStyle("-fx-background-color: transparent;");
 
-    // Argomento
+    
     CustomMenuItem rowArg = createFilterRow("Argomento", "(tutte)", iconPathList(), e -> {
         String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
         filtroArg = normalizeAllToNull(scelto);
@@ -1132,7 +1110,7 @@ public class CorsiPanelController {
 
     rowFreq.setStyle("-fx-background-color: transparent;");
 
-    // Stato  <<<<<<<<<< NEW
+    
     CustomMenuItem rowStato = createFilterRow("Stato", "(tutti)", iconPathStatus(), e -> {
         String scelto = askChoice("Filtro Stato", "Seleziona stato",
                 distinctStati(), filtroStato);
@@ -1145,7 +1123,7 @@ public class CorsiPanelController {
 
     rowStato.setStyle("-fx-background-color: transparent;");
 
-    // Chef
+   
     CustomMenuItem rowChef = createFilterRow("Chef", "(tutte)", iconPathChefHat(), e -> {
         String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
         filtroChef = normalizeAllToNull(scelto);
@@ -1157,7 +1135,7 @@ public class CorsiPanelController {
 
     rowChef.setStyle("-fx-background-color: transparent;");
 
-    // ID
+    
     CustomMenuItem rowId = createFilterRow("ID", "(tutte)", iconPathId(), e -> {
         String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
         filtroId = normalizeAllToNull(scelto);
@@ -1175,7 +1153,7 @@ public class CorsiPanelController {
     sep1.setStyle("-fx-background-color: transparent;");
 
 
-    // >>> Bottone rosso "Pulisci tutti i filtri" (CustomMenuItem)
+   
     CustomMenuItem clearBtn = createClearAllButtonItem();
     
     clearBtn.setStyle("-fx-background-color: transparent;");
@@ -1184,19 +1162,19 @@ public class CorsiPanelController {
     filtersMenu.getItems().setAll(rowFrom, rowTo, sep1, rowArg, rowFreq, rowStato, rowChef, rowId, sep2, clearBtn);
 
     if (btnFilters != null) {
-        btnFilters.getItems().clear(); // Pulisce eventuali voci predefinite del MenuButton
+        btnFilters.getItems().clear(); 
 
-        // Gestore per il click del mouse
+        
         btnFilters.setOnMousePressed(e -> {
             if (filtersMenu.isShowing()) {
                 filtersMenu.hide();
             } else {
                 filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
             }
-            e.consume(); // Consuma l'evento per evitare che il MenuButton tenti di mostrare un menu vuoto
+            e.consume(); 
         });
 
-        // Gestore per la tastiera (ENTER o SPAZIO) per coerenza
+        
         btnFilters.setOnKeyPressed(ke -> {
             switch (ke.getCode()) {
                 case SPACE, ENTER -> {
@@ -1216,7 +1194,7 @@ public class CorsiPanelController {
 	private CustomMenuItem createClearAllButtonItem() {
 		final String ACCENT = "#1fb57a";
 
-		// icona (scopa)
+	
 		javafx.scene.shape.SVGPath svg = new javafx.scene.shape.SVGPath();
 		svg.setContent("M3 14l6-6 1 1-6 6H3zm7-7l2-2 5 5-2 2-5-5zm7 6l-2 2 2 2h2v-2l-2-2z");
 		svg.setStyle("-fx-fill:white; -fx-min-width:16; -fx-min-height:16; -fx-max-width:16; -fx-max-height:16;");
@@ -1227,7 +1205,7 @@ public class CorsiPanelController {
 		HBox btn = new HBox(8, svg, text);
 		btn.setAlignment(Pos.CENTER_LEFT);
 		btn.setPadding(new Insets(8, 12, 8, 12));
-		btn.setStyle("-fx-background-color:#ef4444; -fx-background-radius:10;"); // rosso “azione”
+		btn.setStyle("-fx-background-color:#ef4444; -fx-background-radius:10;"); 
 		btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color:#dc2626; -fx-background-radius:10;"));
 		btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color:#ef4444; -fx-background-radius:10;"));
 		btn.setOnMouseClicked(e -> {
@@ -1378,8 +1356,8 @@ public class CorsiPanelController {
 	private void styleDatePickerInline(DatePicker dp) {
 		if (dp == null)
 			return;
-		final String TEXT_LIGHT = "#e5e7eb"; // colore testo chiaro
-		final String BG = "#2e3845"; // sfondo chiaro ma sufficiente
+		final String TEXT_LIGHT = "#e5e7eb"; 
+		final String BG = "#2e3845"; 
 		final String BORDER = "#3a4657";
 
 		dp.setEditable(false);
@@ -1449,13 +1427,13 @@ public class CorsiPanelController {
 
 	}
 
-	/* ================== Helpers vari ================== */
+	
 
 	private static void applyRowStyle(TableRow<Corso> row, boolean hovered, boolean selected) {
-		final String ACCENT = "#1fb57a"; // barra verde
-		final String SELECT_BG = "rgba(31,181,122,0.14)"; // selezione
-		final String HOVER_BG = "rgba(255,255,255,0.07)"; // hover
-		final String ZEBRA_BG = "rgba(255,255,255,0.03)"; // zebra righe pari
+		final String ACCENT = "#1fb57a"; 
+		final String SELECT_BG = "rgba(31,181,122,0.14)"; 
+		final String HOVER_BG = "rgba(255,255,255,0.07)"; 
+		final String ZEBRA_BG = "rgba(255,255,255,0.03)";
 		final String CLEAR = "transparent";
 
 		if (row == null || row.isEmpty() || row.getItem() == null) {
@@ -1518,7 +1496,7 @@ public class CorsiPanelController {
 		return !isBlank(owner) && c.getChef().getCF_Chef().equalsIgnoreCase(owner);
 	}
 
-	/** Colori e freccetta del bottone "Filtri" */
+	
 	private void styleFilterMenuButton() {
 		final String BG = "#2b3438";
 		final String TXT = "#e9f5ec";
@@ -1549,7 +1527,7 @@ public class CorsiPanelController {
 		btnFilters.textProperty().addListener((o, oldText, newText) -> Platform.runLater(this::styleFilterMenuButton));
 	}
 
-	/* ================== DAO Setter ================== */
+
 
 	private void openSessioniPreview(Corso corso) {
 		if (corso == null)
@@ -1578,7 +1556,7 @@ public class CorsiPanelController {
 		}
 	}
 
-	/* ==================== ASSOCIAZIONE RICETTE ==================== */
+
 	private void onAssociateRecipes() {
 		Corso sel = table.getSelectionModel().getSelectedItem();
 		if (sel == null)
@@ -1681,7 +1659,7 @@ public class CorsiPanelController {
 		}
 	}
 
-	// OVERLOAD: apre il wizard con N righe “vuote”
+	
 	private Optional<List<Sessione>> openSessioniWizard(Corso corso, int initialRows) {
 		try {
 			FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/SessioniWizard.fxml"));
@@ -1689,9 +1667,9 @@ public class CorsiPanelController {
 
 			SessioniWizardController ctrl = fx.getController();
 
-			// se N > 0 pre-popoliamo, altrimenti init normale
+			
 			if (initialRows > 0) {
-				ctrl.initWithCorsoAndBlank(corso, initialRows); // <— metodo che aggiungi nel wizard
+				ctrl.initWithCorsoAndBlank(corso, initialRows);
 			} else {
 				ctrl.initWithCorso(corso);
 			}
@@ -1736,7 +1714,6 @@ public class CorsiPanelController {
 	}
 
 	private Optional<SessionePresenza> choosePresenza(List<SessionePresenza> presenze) {
-    	// Questa parte per creare le opzioni rimane invariata
         DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
         Map<String, SessionePresenza> map = new LinkedHashMap<>();
@@ -1751,40 +1728,35 @@ public class CorsiPanelController {
             map.put(key, sp);
         }
 
-        // 1. Creiamo un Dialog generico, non un ChoiceDialog
         Dialog<String> dlg = new Dialog<>();
         dlg.setTitle("Seleziona la sessione in presenza");
         dlg.setHeaderText("Scegli la sessione a cui associare le ricette");
 
-        // 2. Definiamo i bottoni
         ButtonType OK = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
         ButtonType CANCEL = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
         dlg.getDialogPane().getButtonTypes().setAll(OK, CANCEL);
 
-        // 3. Creiamo il ComboBox con le opzioni
         ComboBox<String> cb = new ComboBox<>(FXCollections.observableArrayList(map.keySet()));
         cb.setEditable(false);
-        cb.getSelectionModel().select(firstKeyOr(map, "")); // Pre-seleziona il primo elemento
+        cb.getSelectionModel().select(firstKeyOr(map, "")); 
 
-        // 4. Mettiamo il ComboBox nel pannello del dialogo
         HBox box = new HBox(10, cb);
         box.setPadding(new Insets(6, 0, 0, 0));
         dlg.getDialogPane().setContent(box);
 
-        // 5. APPLICHIAMO LO STILE ESATTAMENTE COME IN askChoice
+     
         styleDarkDialog(dlg.getDialogPane());
         styleDarkCombo(cb);
         styleDarkButtons(dlg.getDialogPane(), OK, CANCEL);
 
-        // 6. Impostiamo il convertitore del risultato e mostriamo il dialogo
         dlg.setResultConverter(bt -> (bt == OK) ? cb.getValue() : null);
         Optional<String> pick = dlg.showAndWait();
 
-        // Questa riga finale per mappare la stringa scelta all'oggetto SessionePresenza rimane invariata
+        
         return pick.map(map::get);
     }
 
-	/* ================== Utility ================== */
+	
 
 	private static void appendIf(StringBuilder sb, boolean cond, String piece) {
 		if (!cond)
@@ -1822,48 +1794,46 @@ public class CorsiPanelController {
 
 	private void refreshArgomentiCondivisi() {
 		try {
-			// implementa in CorsoDao: SELECT DISTINCT argomento FROM corso ORDER BY
-			// argomento
+			
 			java.util.List<String> distinct = corsoDao.findDistinctArgomenti();
 			argomentiCondivisi.setAll(distinct != null ? distinct : java.util.Collections.emptyList());
 		} catch (Exception ex) {
-			// fallback: lascia la lista com’è
+			
 		}
 	}
 
-	/** Mostra un messaggio informativo in stile dark, coerente con l’app. */
-	/** Alert informativo scuro, senza header né icona. Testo ben leggibile. */
+	
 	private void showInfoDark(String message) {
 		Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
-		// NIENTE header, NIENTE icona (altrimenti resta la banda chiara)
+	
 		alert.setHeaderText(null);
 		alert.setGraphic(null);
 
-		// testo nel CORPO (non nell'header)
+		
 		Label content = new Label(message == null ? "" : message);
 		content.setWrapText(true);
 		content.setStyle("-fx-text-fill:#e9f5ec; -fx-font-size:14px; -fx-font-weight:600;");
 		alert.getDialogPane().setContent(content);
 
-		// stile dark coerente
+		
 		DialogPane dp = alert.getDialogPane();
 		dp.setStyle("-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);"
 				+ "-fx-border-color: rgba(255,255,255,0.08);" + "-fx-border-width: 1;" + "-fx-border-radius: 12;"
 				+ "-fx-background-radius: 12;" + "-fx-padding: 14;" + "-fx-focus-color: transparent;"
 				+ "-fx-faint-focus-color: transparent;" + "-fx-accent: transparent;");
-		// header panel (se esiste) completamente trasparente
+		
 		Node header = dp.lookup(".header-panel");
 		if (header instanceof Region r) {
 			r.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
 		}
-		// graphic container (icona info) via
+		
 		Node graphic = dp.lookup(".graphic-container");
 		if (graphic instanceof Region g) {
 			g.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
 		}
 
-		// bottone OK in stile brand
+		
 		Button okBtn = (Button) dp.lookupButton(ButtonType.OK);
 		if (okBtn != null) {
 			okBtn.setText("OK");
@@ -1881,10 +1851,8 @@ public class CorsiPanelController {
 		alert.showAndWait();
 	}
 
-	/**
-	 * Mostra un dialogo di conferma in stile dark. Ritorna true se l'utente preme
-	 * "Conferma", false se preme "Annulla" o chiude la finestra.
-	 */
+	
+	
 	private boolean showConfirmDark(String titolo, String messaggio) {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 		alert.setTitle(titolo == null ? "Conferma" : titolo);
@@ -1902,7 +1870,7 @@ public class CorsiPanelController {
 				+ "-fx-background-radius: 12;" + "-fx-padding: 14;" + "-fx-focus-color: transparent;"
 				+ "-fx-faint-focus-color: transparent;");
 
-		// Rimuovi header/graphic panel chiari
+		
 		Node header = dp.lookup(".header-panel");
 		if (header instanceof Region r) {
 			r.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
@@ -1912,7 +1880,7 @@ public class CorsiPanelController {
 			g.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
 		}
 
-		// === Bottoni ===
+		
 		ButtonType confermaType = new ButtonType("Conferma", ButtonBar.ButtonData.OK_DONE);
 		ButtonType annullaType = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
 		dp.getButtonTypes().setAll(confermaType, annullaType);

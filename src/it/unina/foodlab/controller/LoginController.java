@@ -40,24 +40,6 @@ import java.util.Objects;
  
 public class LoginController {
 
-  
-
-    private static final String FXML_LOGIN     = "/it/unina/foodlab/ui/LoginFrame.fxml";
-    private static final String FXML_REGISTRAZ = "/it/unina/foodlab/ui/RegisterChefDialog.fxml";
-    private static final String FXML_CORSI     = "/it/unina/foodlab/ui/Corsi.fxml";
-
-    private static final String MSG_INSERISCI_CRED = "Inserisci username e password.";
-    private static final String MSG_ERR_LOGIN      = "Username o password errati.";
-    private static final String MSG_ERR_AUTENT     = "Errore durante il login. Riprova.";
-    private static final String MSG_CHEF_MANCANTE  = "Chef non trovato dopo l'autenticazione.";
-    private static final String MSG_STAGE_NULL     = "Stage non disponibile.";
-    private static final String MSG_OPEN_REG_ERR   = "Impossibile aprire la registrazione.";
-    private static final String TITLE_APP          = "UninaFoodLab - Corsi di ";
-
-  
-    private static final String EYE_OPEN  = "M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12zm11 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
-    private static final String EYE_SLASH = "M2 5l19 14-1.5 2L.5 7 2 5zm3.3 2.4C7.7 6.2 9.7 5 12 5c7 0 11 7 11 7-.7 1.1-1.7 2.3-3 3.3L18.6 13c.3-.6.4-1.2.4-1.9a5 5 0 0 0-5-5c-.7 0-1.3.1-1.9.4L5.3 7.4z";
-
  
 
     @FXML private VBox card;
@@ -169,7 +151,7 @@ public class LoginController {
             passwordVisibleField.setManaged(true);
             passwordField.setVisible(false);
             passwordField.setManaged(false);
-            if (eyeIcon != null) eyeIcon.setContent(EYE_OPEN);
+            if (eyeIcon != null) eyeIcon.setContent("M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12zm11 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8z");
             if (toggleVisibilityButton != null && toggleVisibilityButton.getTooltip() != null) {
                 toggleVisibilityButton.getTooltip().setText("Nascondi password");
             }
@@ -178,7 +160,7 @@ public class LoginController {
             passwordField.setManaged(true);
             passwordVisibleField.setVisible(false);
             passwordVisibleField.setManaged(false);
-            if (eyeIcon != null) eyeIcon.setContent(EYE_SLASH);
+            if (eyeIcon != null) eyeIcon.setContent("M2 5l19 14-1.5 2L.5 7 2 5zm3.3 2.4C7.7 6.2 9.7 5 12 5c7 0 11 7 11 7-.7 1.1-1.7 2.3-3 3.3L18.6 13c.3-.6.4-1.2.4-1.9a5 5 0 0 0-5-5c-.7 0-1.3.1-1.9.4L5.3 7.4z");
             if (toggleVisibilityButton != null && toggleVisibilityButton.getTooltip() != null) {
                 toggleVisibilityButton.getTooltip().setText("Mostra password");
             }
@@ -193,7 +175,7 @@ public class LoginController {
         String password = (pwdField == null) ? "" : safeText(pwdField);
 
         if (username.length() == 0 || password.length() == 0) {
-            showError(MSG_INSERISCI_CRED);
+            showError("Inserisci username e password.");
             shake(card);
             return;
         }
@@ -204,11 +186,11 @@ public class LoginController {
         try {
             boolean ok = chefDao.authenticate(username, password);
             if (!ok) {
-                err = MSG_ERR_LOGIN;
+                err = "Username o password errati.";
             } else {
                 Chef chef = chefDao.findByUsername(username);
                 if (chef == null || safeText(chef.getCF_Chef()).length() == 0) {
-                    err = MSG_CHEF_MANCANTE;
+                    err = "Chef non trovato dopo l'autenticazione.";
                 } else {
                     String cf = chef.getCF_Chef().trim();
                     chef.setCF_Chef(cf);
@@ -223,7 +205,7 @@ public class LoginController {
         } catch (Exception ex) {
             ex.printStackTrace();
 
-            err = MSG_ERR_AUTENT;
+            err = "Errore durante il login. Riprova.";
         } finally {
             setBusy(false);
         }
@@ -236,11 +218,11 @@ public class LoginController {
 
     private void onRegister() {
         try {
-            FXMLLoader ldr = new FXMLLoader(getResource(FXML_REGISTRAZ));
+            FXMLLoader ldr = new FXMLLoader(getResource("/it/unina/foodlab/ui/RegisterChefDialog.fxml"));
             Parent registerRoot = ldr.load();
 
             final Stage st = resolveStage();
-            if (st == null) { showError(MSG_STAGE_NULL); return; }
+            if (st == null) { showError("Stage non disponibile."); return; }
 
             Scene current = st.getScene();
             if (current == null) st.setScene(new Scene(registerRoot, 720, 520));
@@ -290,15 +272,15 @@ public class LoginController {
 
         } catch (IOException ex) {
         	 ex.printStackTrace();
-            showError(MSG_OPEN_REG_ERR);
+            showError("Impossibile aprire la registrazione.");
         }
     }
 
    
 
     private void showCorsiScene(Chef chef, CorsoDao corsoDao, SessioneDao sessioneDao) throws IOException {
-        URL fxml = getResource(FXML_CORSI);
-        if (fxml == null) throw new IOException("FXML mancante: " + FXML_CORSI);
+        URL fxml = getResource("/it/unina/foodlab/ui/Corsi.fxml");
+        if (fxml == null) throw new IOException("FXML mancante: " + "/it/unina/foodlab/ui/Corsi.fxml");
 
         FXMLLoader ldr = new FXMLLoader(fxml);
         Parent root = ldr.load();
@@ -310,7 +292,7 @@ public class LoginController {
         if (st == null) throw new IOException("Stage non disponibile");
 
         Scene scene = new Scene(root, 1000, 640);
-        st.setTitle(TITLE_APP + buildDisplayName(chef));
+        st.setTitle("UninaFoodLab - Corsi di " + buildDisplayName(chef));
         st.setScene(scene);
         st.show();
 
@@ -318,7 +300,7 @@ public class LoginController {
     }
 
     private void loadLoginScene(Stage st) throws IOException {
-        FXMLLoader ldr = new FXMLLoader(getResource(FXML_LOGIN));
+        FXMLLoader ldr = new FXMLLoader(getResource("/it/unina/foodlab/ui/LoginFrame.fxml"));
         Parent root = ldr.load();
 
         LoginController ctrl = ldr.getController();

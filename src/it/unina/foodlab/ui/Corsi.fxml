@@ -5,14 +5,16 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
             fx:controller="it.unina.foodlab.controller.CorsiPanelController"
             fx:id="mainPane"
             prefWidth="1200" prefHeight="700"
+            stylesheets="@/it/unina/foodlab/util/dark-theme.css"
             style="-fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;
                    -fx-background-color: linear-gradient(to bottom,#0e1114,#0b1014);">
 
-    
+    <!-- LEFT SIDEBAR -->
     <left>
         <VBox spacing="12" BorderPane.alignment="CENTER"
               style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
@@ -21,14 +23,10 @@
                      -fx-padding:16;">
             <children>
 
-                
-                <HBox spacing="8" alignment="CENTER_LEFT">
-                   
-                </HBox>
+                <HBox spacing="8" alignment="CENTER_LEFT"/>
 
                 <Separator/>
 
-                
                 <Button fx:id="btnReport" maxWidth="Infinity" prefHeight="44"
                         style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10;
                                -fx-font-weight:bold; -fx-padding:10 12; -fx-content-display:left;
@@ -45,7 +43,7 @@
         </VBox>
     </left>
 
-    
+    <!-- TOP BAR -->
     <top>
         <HBox spacing="12" alignment="CENTER_LEFT" BorderPane.alignment="CENTER"
               style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
@@ -59,17 +57,18 @@
 
                 <Region HBox.hgrow="ALWAYS"/>
 
-                
+                <!-- Menu Filtri con classe per tema scuro -->
                 <MenuButton fx:id="btnFilters" text="Filtri"
                             contentDisplay="LEFT" graphicTextGap="8"
-                            style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10; -fx-padding:8 10;">
+                            styleClass="dark-menubutton">
                     <graphic>
                         <ImageView fitHeight="16" preserveRatio="true">
                             <image><Image url="@/icons/filled-filter-16.png"/></image>
                         </ImageView>
                     </graphic>
                     <tooltip><Tooltip text="Filtri avanzati"/></tooltip>
-                    
+
+                    <!-- Voci solo di placeholder: il controller sostituisce con il ContextMenu custom -->
                     <items>
                         <MenuItem fx:id="miFiltroArg"  text="Argomento"/>
                         <MenuItem fx:id="miFiltroFreq" text="Frequenza"/>
@@ -90,55 +89,46 @@
         </HBox>
     </top>
 
-    
+    <!-- CENTER CONTENT -->
     <center>
         <VBox spacing="12" style="-fx-padding: 12 20 14 14;">
             <children>
 
-                
+                <!-- Card contenitore tabella -->
                 <HBox spacing="0"
                       style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
                              -fx-border-color: rgba(255,255,255,0.06);
                              -fx-background-radius:12; -fx-border-radius:12; -fx-padding:10;">
                     <children>
-                       <TableView fx:id="table" HBox.hgrow="ALWAYS"
-           style="-fx-background-color:#20282b;
-                  -fx-control-inner-background:#20282b;
-                  -fx-text-background-color:#e9f5ec;
-                  -fx-table-cell-border-color: rgba(255,255,255,0.06);
-                  -fx-table-header-border-color: rgba(255,255,255,0.06);
-                  -fx-selection-bar: transparent;
-                  -fx-selection-bar-non-focused: transparent;
-                  -fx-padding:4;">
-    <columnResizePolicy>
-        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-    </columnResizePolicy>
 
-    <columns>
-        <TableColumn fx:id="colId"     text="ID"         prefWidth="80"  style="-fx-alignment: CENTER;"/>
-        <TableColumn fx:id="colArg"    text="Argomento"  prefWidth="260" style="-fx-alignment: CENTER_LEFT;"/>
-        <TableColumn fx:id="colFreq"   text="Frequenza"  prefWidth="140" style="-fx-alignment: CENTER_LEFT;"/>
+                        <!-- TableView con classe 'dark-table' per hover/border accent -->
+                        <TableView fx:id="table" HBox.hgrow="ALWAYS" styleClass="dark-table">
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                            </columnResizePolicy>
 
-        
-        <TableColumn fx:id="colStato"  text="Stato"      prefWidth="120" style="-fx-alignment: CENTER;"/>
+                            <columns>
+                                <TableColumn fx:id="colId"     text="ID"         prefWidth="80"  style="-fx-alignment: CENTER;"/>
+                                <TableColumn fx:id="colArg"    text="Argomento"  prefWidth="260" style="-fx-alignment: CENTER_LEFT;"/>
+                                <TableColumn fx:id="colFreq"   text="Frequenza"  prefWidth="140" style="-fx-alignment: CENTER_LEFT;"/>
+                                <TableColumn fx:id="colStato"  text="Stato"      prefWidth="120" style="-fx-alignment: CENTER;"/>
+                                <TableColumn fx:id="colInizio" text="Inizio"     prefWidth="130" style="-fx-alignment: CENTER;"/>
+                                <TableColumn fx:id="colFine"   text="Fine"       prefWidth="130" style="-fx-alignment: CENTER;"/>
+                                <TableColumn fx:id="colChef"   text="Chef"       prefWidth="220" style="-fx-alignment: CENTER_LEFT;"/>
+                            </columns>
 
-        <TableColumn fx:id="colInizio" text="Inizio"     prefWidth="130" style="-fx-alignment: CENTER;"/>
-        <TableColumn fx:id="colFine"   text="Fine"       prefWidth="130" style="-fx-alignment: CENTER;"/>
-        <TableColumn fx:id="colChef"   text="Chef"       prefWidth="220" style="-fx-alignment: CENTER_LEFT;"/>
-    </columns>
-
-    <placeholder>
-        <Label text="Non hai ancora corsi.
+                            <placeholder>
+                                <Label text="Non hai ancora corsi.
 Crea il primo corso per iniziare a pianificare le sessioni."
-               style="-fx-text-fill: rgba(233,245,236,0.85);
-                      -fx-font-weight:700; -fx-padding: 12; -fx-alignment: center;"/>
-    </placeholder>
-</TableView>
+                                       style="-fx-text-fill: rgba(233,245,236,0.85);
+                                              -fx-font-weight:700; -fx-padding: 12; -fx-alignment: center;"/>
+                            </placeholder>
+                        </TableView>
 
                     </children>
                 </HBox>
 
-                
+                <!-- Bottom actions -->
                 <HBox spacing="12" alignment="CENTER_RIGHT"
                       style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
                              -fx-background-radius:12; -fx-padding:12 14;">

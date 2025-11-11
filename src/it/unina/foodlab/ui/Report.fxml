@@ -10,6 +10,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.unina.foodlab.controller.ReportController"
             prefWidth="1000.0" prefHeight="600.0"
+            stylesheets="@/it/unina/foodlab/util/dark-theme.css"
             style="-fx-background-color: linear-gradient(to bottom,#0e1114,#0b1014);
                    -fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;">
     <padding>

@@ -36,7 +36,6 @@ public class CorsoEditorDialogController {
 
     @FXML
     private void initialize() {
-        // === 🌙 DARK THEME ===
         if (dialogPane != null) {
             dialogPane.getStyleClass().add("corso-editor-dialog");
             dialogPane.getStylesheets().add(
@@ -46,7 +45,6 @@ public class CorsoEditorDialogController {
             );
         }
 
-        // === Combo Argomento ===
         if (cbArg != null && (cbArg.getItems() == null || cbArg.getItems().isEmpty())) {
             cbArg.setItems(FXCollections.observableArrayList(
                 "Cucina Asiatica","Pasticceria","Panificazione","Vegetariano",
@@ -57,7 +55,7 @@ public class CorsoEditorDialogController {
 
         if (cbFreq != null) {
             cbFreq.setItems(FXCollections.observableArrayList(
-                    "settimanale","ogni 2 giorni","bisettimanale","mensile"
+                "settimanale","ogni 2 giorni","bisettimanale","mensile"
             ));
         }
 
@@ -67,10 +65,9 @@ public class CorsoEditorDialogController {
             spNumSess.focusedProperty().addListener((obs, was, is) -> { if (!is) spNumSess.increment(0); });
         }
 
-        
         if (dpInizio != null) dpInizio.setValue(LocalDate.now().plusDays(7));
         if (cbFreq != null) cbFreq.setValue("settimanale");
-        updateDataFine(); 
+        updateDataFine();
 
         if (cbFreq != null) cbFreq.valueProperty().addListener((o,a,b) -> updateDataFine());
         if (dpInizio != null) dpInizio.valueProperty().addListener((o,a,b) -> updateDataFine());
@@ -83,23 +80,20 @@ public class CorsoEditorDialogController {
             btnAddArg.setOnAction(e -> addNewArgomento());
         }
 
-        installComboDarkCells(cbArg, "#e9f5ec", "#2b3438");
-        forceChoiceBoxLabelColor(cbFreq, "#e9f5ec");
+        if (cbArg != null) cbArg.getStyleClass().add("dark-combobox");
+        if (cbFreq != null) cbFreq.getStyleClass().add("dark-choicebox");
+        if (dpInizio != null) dpInizio.getStyleClass().add("dark-datepicker");
+
         if (cbArg != null) cbArg.setOpacity(1.0);
         if (cbFreq != null) cbFreq.setOpacity(1.0);
 
         hideDatePickerArrow(dpInizio);
         showDatePickerOnClick(dpInizio);
-        styleSpinnerArrowsDark(spNumSess, "#2b3438", "#e9f5ec");
-        installFocusBorder(cbArg);
-        installFocusBorder(cbFreq);
 
-        // === Pulsanti "Crea" e "Annulla" ===
         Platform.runLater(() -> {
             Button okBtn = (Button) dialogPane.lookupButton(createButtonType);
             if (okBtn != null) {
                 okBtn.setText("Crea");
-                okBtn.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800; -fx-background-radius:10; -fx-padding:8 14;");
                 okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, evt -> {
                     if (!isFormValid()) { evt.consume(); showValidationMessage(); }
                 });
@@ -107,12 +101,10 @@ public class CorsoEditorDialogController {
             Button cancelBtn = (Button) dialogPane.lookupButton(cancelButtonType);
             if (cancelBtn != null) {
                 cancelBtn.setText("Annulla");
-                cancelBtn.setStyle("-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-font-weight:700; -fx-background-radius:10; -fx-padding:8 14;");
             }
         });
     }
 
-    // === MODEL HANDLING ===
     public void setCorso(Corso corso) {
         this.original = corso;
         this.edit = (corso != null);
@@ -138,14 +130,11 @@ public class CorsoEditorDialogController {
 
     public ButtonType getCreateButtonType() { return createButtonType; }
 
-    // === FUNZIONALITÀ ===
     private void addNewArgomento() {
         TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Nuovo Argomento");
         dialog.setHeaderText("Inserisci il nuovo argomento");
         dialog.setContentText("Argomento:");
-
-        // 🌙 Applica il dark theme CSS
         DialogPane pane = dialog.getDialogPane();
         pane.getStyleClass().add("text-input-dark-dialog");
         pane.getStylesheets().add(
@@ -153,29 +142,24 @@ public class CorsoEditorDialogController {
                 getClass().getResource("/it/unina/foodlab/util/dark-theme.css")
             ).toExternalForm()
         );
-
         Optional<String> res = dialog.showAndWait();
         if (res.isEmpty()) return;
         String trimmed = res.get().trim();
-
         if (trimmed.isEmpty() || !trimmed.matches("[a-zA-ZÀ-ÖØ-öø-ÿ ]+")) {
             showWarningDark("Avvertenza", "L'argomento deve contenere solo lettere e spazi.");
             return;
         }
-
         javafx.collections.ObservableList<String> target =
                 (argomentiShared != null ? argomentiShared : cbArg.getItems());
         if (target.contains(trimmed)) {
             showWarningDark("Informazione", "L'argomento \"" + trimmed + "\" esiste già.");
             return;
         }
-
         target.add(trimmed);
         FXCollections.sort(target);
         cbArg.setItems(target);
         cbArg.setValue(trimmed);
     }
-
 
     private void updateDataFine() {
         if (lblFine == null) return;
@@ -205,7 +189,7 @@ public class CorsoEditorDialogController {
             case "ogni 2 giorni" -> inizio.plusDays(2L * steps);
             case "bisettimanale" -> inizio.plusWeeks(2L * steps);
             case "mensile"       -> inizio.plusMonths(steps);
-            default              -> inizio.plusWeeks(steps);  
+            default              -> inizio.plusWeeks(steps);
         };
     }
 
@@ -232,50 +216,7 @@ public class CorsoEditorDialogController {
     private void showValidationMessage() {
         showWarningDark("Avvertenza", "Compila correttamente tutti i campi.");
     }
-    private static void installComboDarkCells(ComboBox<String> combo, String textColorHex, String popupBgHex) {
-        if (combo == null) return;
 
-        combo.setButtonCell(new ListCell<>() {
-            @Override protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? "" : item);
-                setTextFill(javafx.scene.paint.Color.web(textColorHex));
-                setStyle("-fx-background-color: transparent; -fx-font-weight: 700;");
-            }
-        });
-
-        combo.setCellFactory(list -> new ListCell<>() {
-            @Override protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? null : item);
-                setTextFill(javafx.scene.paint.Color.web(textColorHex));
-                setStyle("-fx-background-color: " + popupBgHex + ";");
-            }
-        });
-
-        combo.setOpacity(1.0);
-    }
-
-    
-    private static void forceChoiceBoxLabelColor(ChoiceBox<String> cb, String textColorHex) {
-        if (cb == null) return;
-        cb.setStyle("-fx-opacity: 1.0;");
-
-        cb.skinProperty().addListener((obs, oldSkin, newSkin) -> tweakChoiceBoxLabel(cb, textColorHex));
-        cb.getSelectionModel().selectedIndexProperty().addListener((o, ov, nv) -> tweakChoiceBoxLabel(cb, textColorHex));
-
-        Platform.runLater(() -> tweakChoiceBoxLabel(cb, textColorHex));
-    }
-
-    private static void tweakChoiceBoxLabel(ChoiceBox<String> cb, String textColorHex) {
-        Node lblNode = cb.lookup(".label");
-        if (lblNode instanceof Labeled l) {
-            l.setTextFill(javafx.scene.paint.Color.web(textColorHex));
-            l.setStyle("-fx-text-fill:" + textColorHex + "; -fx-font-weight: 700;");
-        }
-    }
-
-  
     private static void hideDatePickerArrow(DatePicker dp) {
         if (dp == null) return;
         Platform.runLater(() -> {
@@ -290,7 +231,6 @@ public class CorsoEditorDialogController {
         });
     }
 
-   
     private static void showDatePickerOnClick(DatePicker dp) {
         if (dp == null) return;
         dp.setOnMouseClicked(ev -> { if (!dp.isShowing()) dp.show(); });
@@ -304,90 +244,22 @@ public class CorsoEditorDialogController {
         });
     }
 
-    
-    private static void styleSpinnerArrowsDark(Spinner<?> sp, String btnBgHex, String arrowColorHex) {
-        if (sp == null) return;
-        Platform.runLater(() -> {
-            Node incBtn = sp.lookup(".increment-arrow-button");
-            Node decBtn = sp.lookup(".decrement-arrow-button");
-            if (incBtn instanceof Region r1) r1.setStyle("-fx-background-color:" + btnBgHex + "; -fx-background-radius:8;");
-            if (decBtn instanceof Region r2) r2.setStyle("-fx-background-color:" + btnBgHex + "; -fx-background-radius:8;");
-
-            Node incArrow = sp.lookup(".increment-arrow");
-            Node decArrow = sp.lookup(".decrement-arrow");
-            if (incArrow instanceof Region a1) a1.setStyle("-fx-background-color:" + arrowColorHex + ";");
-            if (decArrow instanceof Region a2) a2.setStyle("-fx-background-color:" + arrowColorHex + ";");
-        });
-    }
-
-    
-    private static void installFocusBorder(Control c) {
-        if (c == null) return;
-        final String base = "-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10; -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius:10;";
-        c.setStyle(base);
-        c.focusedProperty().addListener((o, was, is) -> {
-            c.setStyle(is
-                    ? base + " -fx-border-color:#1fb57a; -fx-border-width:1;"
-                    : base);
-        });
-    }
-    
-   
     private void showWarningDark(String titolo, String messaggio) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle(titolo);
-        alert.setHeaderText(null);        
-        alert.setGraphic(null);           
-
-       
-        Label content = new Label(messaggio);
+        alert.setHeaderText(null);
+        alert.setGraphic(null);
+        Label content = new Label(messaggio == null ? "" : messaggio);
         content.setWrapText(true);
-        content.setStyle("-fx-text-fill:#e9f5ec; -fx-font-size:13px; -fx-font-weight:700;");
         alert.getDialogPane().setContent(content);
-
-       
         DialogPane pane = alert.getDialogPane();
-        pane.setStyle(
-            "-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);" +
-            "-fx-background-radius:12;" +
-            "-fx-border-color: rgba(255,255,255,0.08);" +
-            "-fx-border-radius:12;" +
-            "-fx-border-width:1;" +
-            "-fx-padding:14;" +
-            "-fx-focus-color: transparent;" +
-            "-fx-faint-focus-color: transparent;" +
-            "-fx-accent: transparent;"
+        pane.getStyleClass().add("dark-dialog");
+        pane.getStylesheets().add(
+            Objects.requireNonNull(
+                getClass().getResource("/it/unina/foodlab/util/dark-theme.css")
+            ).toExternalForm()
         );
-
-       
-        Node header = pane.lookup(".header-panel");
-        if (header != null) header.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
-
-        Node graphicContainer = pane.lookup(".graphic-container");
-        if (graphicContainer != null) graphicContainer.setStyle("-fx-background-color: transparent;");
-
-      
-        for (ButtonType bt : alert.getButtonTypes()) {
-            Button b = (Button) pane.lookupButton(bt);
-            if (b != null) {
-                b.setStyle(
-                    "-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
-                    "-fx-background-radius:10; -fx-padding:8 16;"
-                );
-                b.setOnMouseEntered(e -> b.setStyle(
-                    "-fx-background-color:#16a56e; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
-                    "-fx-background-radius:10; -fx-padding:8 16;"
-                ));
-                b.setOnMouseExited(e -> b.setStyle(
-                    "-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;" +
-                    "-fx-background-radius:10; -fx-padding:8 16;"
-                ));
-            }
-        }
-
-       
         pane.setMinWidth(460);
-
         alert.showAndWait();
     }
 

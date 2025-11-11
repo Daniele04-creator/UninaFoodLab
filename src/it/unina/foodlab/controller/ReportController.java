@@ -9,7 +9,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -20,7 +19,6 @@ import java.io.StringWriter;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.Objects;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -34,7 +32,7 @@ import java.awt.Color;
 public class ReportController {
 
     private final String cfChef;
-    private Parent previousRoot; 
+    private Parent previousRoot;
     public void setPreviousRoot(Parent n) { this.previousRoot = n; }
 
     private final ReportDao reportDao = new ReportDao();
@@ -47,7 +45,7 @@ public class ReportController {
     @FXML private Label lblTitolo;
     @FXML private VBox cardValori;
     @FXML private GridPane gridValori;
-    @FXML private ScrollPane spCharts;  
+    @FXML private ScrollPane spCharts;
     @FXML private VBox rightCharts;
 
     public ReportController(String cfChef) {
@@ -56,28 +54,14 @@ public class ReportController {
 
     @FXML
     private void initialize() {
-        // ✅ Applica il CSS dark-theme.css e la classe di stile report-controller
-        if (root != null) {
-            root.getStyleClass().add("report-controller");
-            root.getStylesheets().add(
-                    Objects.requireNonNull(
-                            getClass().getResource("/it/unina/foodlab/util/dark-theme.css")
-                    ).toExternalForm()
-            );
-        }
-
+        if (root != null) root.getStyleClass().add("report-controller");
         initComboMeseAnno();
-
         if (btnCrea != null) btnCrea.setOnAction(this::onGenera);
         if (btnIndietro != null) btnIndietro.setOnAction(e -> onIndietro());
-
         ensureGridColumns();
         fixChartsArea();
-
         YearMonth ym = getSelectedYearMonth();
-        if (lblTitolo != null)
-            lblTitolo.setText("Report Mensile - " + ym.getMonth() + " " + ym.getYear());
-
+        if (lblTitolo != null) lblTitolo.setText("Report Mensile - " + ym.getMonth() + " " + ym.getYear());
         Platform.runLater(() -> onGenera(null));
     }
 
@@ -89,7 +73,6 @@ public class ReportController {
             ));
             cbMese.getSelectionModel().select(LocalDate.now().getMonthValue() - 1);
         }
-
         if (cbAnno != null) {
             int anno = LocalDate.now().getYear();
             ObservableList<Integer> anni = FXCollections.observableArrayList();
@@ -104,23 +87,15 @@ public class ReportController {
             ColumnConstraints c1 = new ColumnConstraints();
             c1.setHalignment(HPos.LEFT);
             c1.setPercentWidth(45);
-
             ColumnConstraints c2 = new ColumnConstraints();
             c2.setHalignment(HPos.LEFT);
             c2.setPercentWidth(55);
-
             gridValori.getColumnConstraints().addAll(c1, c2);
         }
     }
 
     private void fixChartsArea() {
-        if (spCharts != null) {
-            spCharts.setFitToWidth(true);
-            Platform.runLater(() -> {
-                Node vp = spCharts.lookup(".viewport");
-                if (vp != null) vp.setStyle("-fx-background-color: transparent;");
-            });
-        }
+        if (spCharts != null) spCharts.setFitToWidth(true);
         if (rightCharts != null) rightCharts.setFillWidth(true);
     }
 
@@ -136,10 +111,8 @@ public class ReportController {
         if (btnCrea != null) btnCrea.setDisable(true);
         try {
             YearMonth ym = getSelectedYearMonth();
-
             ReportMensile r = reportDao.getReportMensile(cfChef, ym);
-            if (lblTitolo != null)
-                lblTitolo.setText("Report Mensile - " + ym.getMonth() + " " + ym.getYear());
+            if (lblTitolo != null) lblTitolo.setText("Report Mensile - " + ym.getMonth() + " " + ym.getYear());
 
             ensureGridColumns();
             gridValori.getChildren().clear();
@@ -153,7 +126,6 @@ public class ReportController {
 
             if (rightCharts != null) rightCharts.getChildren().clear();
 
-            // Chart 1 - Corsi & Sessioni
             DefaultCategoryDataset ds1 = new DefaultCategoryDataset();
             ds1.addValue(r.totaleCorsi(), "Conteggi", "Corsi");
             ds1.addValue(r.totaleOnline(), "Conteggi", "Online");
@@ -168,7 +140,6 @@ public class ReportController {
             if (rightCharts != null) rightCharts.getChildren().add(wrapChart(v1));
             animateDataset(ds1);
 
-            // Chart 2 - Ricette pratiche
             DefaultCategoryDataset ds2 = new DefaultCategoryDataset();
             ds2.addValue(zeroIfNull(r.minRicettePratiche()), "Ricette", "Min");
             ds2.addValue(zeroIfNull(r.mediaRicettePratiche()), "Ricette", "Media");
@@ -227,19 +198,16 @@ public class ReportController {
     private void styleChart(JFreeChart chart, Color accent) {
         chart.setBackgroundPaint(new Color(0x20,0x28,0x2b));
         chart.getTitle().setPaint(new Color(0xE9,0xF5,0xEC));
-
         if (chart.getPlot() instanceof CategoryPlot plot) {
             plot.setBackgroundPaint(new Color(0x24,0x2c,0x2f));
             plot.setDomainGridlinePaint(new Color(255,255,255,30));
             plot.setRangeGridlinePaint(new Color(255,255,255,30));
-
             if (plot.getRenderer() instanceof BarRenderer r) {
                 r.setSeriesPaint(0, accent);
                 r.setDrawBarOutline(false);
                 r.setShadowVisible(false);
                 r.setBarPainter(new org.jfree.chart.renderer.category.StandardBarPainter());
             }
-
             plot.getDomainAxis().setTickLabelPaint(new Color(0xCF,0xE5,0xD9));
             plot.getRangeAxis().setTickLabelPaint(new Color(0xCF,0xE5,0xD9));
             plot.getDomainAxis().setLabelPaint(new Color(0xE9,0xF5,0xEC));
@@ -255,7 +223,6 @@ public class ReportController {
     }
 
     private void animateDataset(DefaultCategoryDataset ds) {
-        // Puoi aggiungere animazioni qui se vuoi (JavaFX Timeline)
     }
 
     private void showError(Throwable ex) {
@@ -263,7 +230,6 @@ public class ReportController {
         a.setTitle("Errore");
         a.setHeaderText("Operazione non riuscita");
         a.setContentText(ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage());
-
         StringWriter sw = new StringWriter();
         ex.printStackTrace(new PrintWriter(sw));
         TextArea ta = new TextArea(sw.toString());
@@ -271,12 +237,10 @@ public class ReportController {
         ta.setWrapText(false);
         ta.setMaxWidth(Double.MAX_VALUE);
         ta.setMaxHeight(Double.MAX_VALUE);
-
         GridPane gp = new GridPane();
         gp.setMaxWidth(Double.MAX_VALUE);
         gp.add(new Label("Dettagli:"), 0, 0);
         gp.add(ta, 0, 1);
-
         a.getDialogPane().setExpandableContent(gp);
         a.getDialogPane().setExpanded(false);
         a.showAndWait();

@@ -8,6 +8,7 @@ import it.unina.foodlab.model.Corso;
 import it.unina.foodlab.model.Ricetta;
 import it.unina.foodlab.model.Sessione;
 import it.unina.foodlab.model.SessionePresenza;
+import javafx.animation.RotateTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -31,53 +32,33 @@ import javafx.scene.layout.Region;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.util.StringConverter;
-import javafx.animation.RotateTransition;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-
 public class CorsiPanelController {
 
 	private static final String ALL_OPTION = "Tutte";
 	private static final int FILTERS_BADGE_MAX_CHARS = 32;
-	
-	private final javafx.collections.ObservableList<String> argomentiCondivisi = javafx.collections.FXCollections
-			.observableArrayList();
 
-	
-	@FXML
-	private MenuButton btnFilters;
-	@FXML
-	private Button btnRefresh, btnReport;
+	private final ObservableList<String> argomentiCondivisi = FXCollections.observableArrayList();
 
-	
-	@FXML
-	private TableView<Corso> table;
-	@FXML
-	private TableColumn<Corso, Long> colId;
-	@FXML
-	private TableColumn<Corso, String> colArg;
-	@FXML
-	private TableColumn<Corso, String> colFreq;
-	@FXML
-	private TableColumn<Corso, LocalDate> colInizio;
-	@FXML
-	private TableColumn<Corso, LocalDate> colFine;
-	@FXML
-	private TableColumn<Corso, String> colChef;
+	@FXML private MenuButton btnFilters;
+	@FXML private Button btnRefresh, btnReport;
+	@FXML private TableView<Corso> table;
+	@FXML private TableColumn<Corso, Long> colId;
+	@FXML private TableColumn<Corso, String> colArg;
+	@FXML private TableColumn<Corso, String> colFreq;
+	@FXML private TableColumn<Corso, LocalDate> colInizio;
+	@FXML private TableColumn<Corso, LocalDate> colFine;
+	@FXML private TableColumn<Corso, String> colChef;
+	@FXML private Button btnNew, btnEdit, btnDelete, btnAssocRicette;
+	@FXML private TableColumn<Corso, String> colStato;
 
-	
-	@FXML
-	private Button btnNew, btnEdit, btnDelete, btnAssocRicette;
-	@FXML
-	private TableColumn<Corso, String> colStato; 
-
-	
 	private final ObservableList<Corso> backing = FXCollections.observableArrayList();
 	private final FilteredList<Corso> filtered = new FilteredList<>(backing, c -> true);
 	private final SortedList<Corso> sorted = new SortedList<>(filtered);
@@ -86,7 +67,6 @@ public class CorsiPanelController {
 	private SessioneDao sessioneDao;
 	private RicettaDao ricettaDao;
 
-	
 	private String filtroArg = null;
 	private String filtroFreq = null;
 	private String filtroChef = null;
@@ -99,34 +79,29 @@ public class CorsiPanelController {
 	private Label labArgomentoVal, labFrequenzaVal, labChefVal, labIdVal, labStatoVal;
 	private Button btnClearArg, btnClearFreq, btnClearChef, btnClearId, btnClearStato;
 
-	
 	private boolean comfortable = true;
 	private static final double ROW_HEIGHT_COMFORT = 56;
 	private static final double ROW_HEIGHT_COMPACT = 36;
 
 	@FXML
 	private void initialize() {
+		table.getStyleClass().add("dark-table");
+		btnFilters.getStyleClass().add("dark-menubutton");
+
 		initTableColumns();
 		table.setItems(sorted);
 		sorted.comparatorProperty().bind(table.comparatorProperty());
 
-		
 		table.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		table.getSelectionModel().setCellSelectionEnabled(false);
 
-		
-		applyComfortMetrics(); 
-		applyTableStyling(); 
-		installRowFactory(); 
+		applyComfortMetrics();
+		installRowFactory();
 
-		
-		table.skinProperty().addListener((obs, o, n) -> Platform.runLater(this::applyTableStyling));
-		table.getColumns()
-				.addListener((javafx.collections.ListChangeListener<? super TableColumn<Corso, ?>>) c -> Platform
-						.runLater(this::applyTableStyling));
-		table.widthProperty().addListener((o, a, b) -> Platform.runLater(this::applyTableStyling));
+		table.skinProperty().addListener((obs, o, n) -> Platform.runLater(this::refreshTitleWithCount));
+		table.getColumns().addListener((javafx.collections.ListChangeListener<? super TableColumn<Corso, ?>>) c -> Platform.runLater(this::refreshTitleWithCount));
+		table.widthProperty().addListener((o, a, b) -> Platform.runLater(this::refreshTitleWithCount));
 
-		
 		table.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, sel) -> {
 			boolean has = sel != null;
 			boolean own = isOwnedByLoggedChef(sel);
@@ -135,36 +110,27 @@ public class CorsiPanelController {
 			btnAssocRicette.setDisable(!has || !own);
 		});
 
-	
-		hookFilterMenuButtonStyling();
-		styleFilterMenuButton();
 		buildAndAttachFiltersContextMenu();
 		updatePrettyFilterRows();
 		updateFiltersUI();
 
-		
 		btnRefresh.setOnAction(e -> {
-			playRefreshAnimation(btnRefresh); 
-			reload(); 
+			playRefreshAnimation(btnRefresh);
+			reload();
 		});
-
 		btnReport.setOnAction(e -> openReportMode());
 		btnNew.setOnAction(e -> onNew());
 		btnEdit.setOnAction(e -> onEdit());
 		btnDelete.setOnAction(e -> onDelete());
 		btnAssocRicette.setOnAction(e -> onAssociateRecipes());
 
-	
 		table.getSortOrder().add(colInizio);
 		colInizio.setSortType(TableColumn.SortType.DESCENDING);
 
-		
 		installPrettyPlaceholder();
 
-		
 		Platform.runLater(() -> {
-			if (table == null || table.getScene() == null)
-				return;
+			if (table == null || table.getScene() == null) return;
 			Stage stage = (Stage) table.getScene().getWindow();
 			if (stage != null) {
 				stage.setMinWidth(1000);
@@ -176,20 +142,15 @@ public class CorsiPanelController {
 		});
 	}
 
-	
-
 	private final DateTimeFormatter DF = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	private void initTableColumns() {
-		
 		colId.setCellValueFactory(new PropertyValueFactory<>("idCorso"));
 		colId.setStyle("-fx-alignment: CENTER;");
 
-		
 		colArg.setCellValueFactory(new PropertyValueFactory<>("argomento"));
 		colArg.setCellFactory(tc -> new TableCell<Corso, String>() {
 			private final Label lbl = makeCellLabel(true);
-
 			@Override
 			protected void updateItem(String v, boolean empty) {
 				super.updateItem(v, empty);
@@ -202,11 +163,9 @@ public class CorsiPanelController {
 			}
 		});
 
-		
 		colFreq.setCellValueFactory(new PropertyValueFactory<>("frequenza"));
 		colFreq.setCellFactory(tc -> new TableCell<Corso, String>() {
 			private final Label lbl = makeCellLabel(false);
-
 			@Override
 			protected void updateItem(String v, boolean empty) {
 				super.updateItem(v, empty);
@@ -219,11 +178,12 @@ public class CorsiPanelController {
 			}
 		});
 
-	
 		colStato.setCellValueFactory(cd -> Bindings.createStringBinding(() -> statoOf(cd.getValue())));
 		colStato.setCellFactory(tc -> new TableCell<Corso, String>() {
 			private final Label chip = new Label();
-
+			{
+				chip.getStyleClass().addAll("stato-chip");
+			}
 			@Override
 			protected void updateItem(String s, boolean empty) {
 				super.updateItem(s, empty);
@@ -232,26 +192,23 @@ public class CorsiPanelController {
 					return;
 				}
 				chip.setText(s);
-				String bg = switch (s) {
-				case "In corso" -> "#1fb57a";
-				case "Futuro" -> "#3b82f6";
-				case "Concluso" -> "#6b7280";
-				default -> "#374151";
-				};
-				chip.setStyle("-fx-font-weight:700; -fx-font-size:12px; -fx-text-fill:white;" + "-fx-background-color:"
-						+ bg + "; -fx-background-radius:999; -fx-padding:2 8;");
+				chip.getStyleClass().removeAll("stato-futuro", "stato-in-corso", "stato-concluso", "stato-unknown");
+				switch (s) {
+				case "In corso" -> chip.getStyleClass().add("stato-in-corso");
+				case "Futuro" -> chip.getStyleClass().add("stato-futuro");
+				case "Concluso" -> chip.getStyleClass().add("stato-concluso");
+				default -> chip.getStyleClass().add("stato-unknown");
+				}
 				setGraphic(chip);
 			}
 		});
 
-		
 		colInizio.setCellValueFactory(new PropertyValueFactory<>("dataInizio"));
 		colInizio.setCellFactory(tc -> new TableCell<Corso, LocalDate>() {
 			private final Label lbl = makeCellLabel(false);
 			{
 				setAlignment(Pos.CENTER);
 			}
-
 			@Override
 			protected void updateItem(LocalDate d, boolean empty) {
 				super.updateItem(d, empty);
@@ -264,14 +221,12 @@ public class CorsiPanelController {
 			}
 		});
 
-	
 		colFine.setCellValueFactory(new PropertyValueFactory<>("dataFine"));
 		colFine.setCellFactory(tc -> new TableCell<Corso, LocalDate>() {
 			private final Label lbl = makeCellLabel(false);
 			{
 				setAlignment(Pos.CENTER);
 			}
-
 			@Override
 			protected void updateItem(LocalDate d, boolean empty) {
 				super.updateItem(d, empty);
@@ -284,11 +239,9 @@ public class CorsiPanelController {
 			}
 		});
 
-		
 		colChef.setCellValueFactory(cd -> Bindings.createStringBinding(() -> {
 			Corso c = cd.getValue();
-			if (c == null || c.getChef() == null)
-				return "";
+			if (c == null || c.getChef() == null) return "";
 			String nome = nz(c.getChef().getNome());
 			String cogn = nz(c.getChef().getCognome());
 			String full = (nome + " " + cogn).trim();
@@ -296,7 +249,6 @@ public class CorsiPanelController {
 		}));
 		colChef.setCellFactory(tc -> new TableCell<Corso, String>() {
 			private final Label lbl = makeCellLabel(false);
-
 			@Override
 			protected void updateItem(String v, boolean empty) {
 				super.updateItem(v, empty);
@@ -309,7 +261,6 @@ public class CorsiPanelController {
 			}
 		});
 
-	
 		Platform.runLater(() -> {
 			table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 			colId.setMaxWidth(80);
@@ -322,107 +273,42 @@ public class CorsiPanelController {
 			colChef.setPrefWidth(220);
 		});
 
-		
-		table.getSortOrder().setAll(colInizio);
 		colInizio.setSortType(TableColumn.SortType.DESCENDING);
 	}
 
-	
 	private Label makeCellLabel(boolean bold) {
 		Label l = new Label();
 		l.setPadding(new Insets(2, 10, 2, 10));
-		l.setStyle("-fx-text-fill:#e9f5ec;"
-				+ (bold ? "-fx-font-size:15px; -fx-font-weight:700;" : "-fx-font-size:14px; -fx-font-weight:500;"));
+		l.getStyleClass().add(bold ? "cell-label-bold" : "cell-label");
 		l.setMaxWidth(Double.MAX_VALUE);
 		return l;
 	}
 
-	
 	private void applyComfortMetrics() {
 		double h = comfortable ? ROW_HEIGHT_COMFORT : ROW_HEIGHT_COMPACT;
 		table.setFixedCellSize(h);
-		
-	}
-
-	private void applyTableStyling() {
-		final String BG = "#20282b"; 
-		final String BG_HDR = "#242c2f"; 
-		final String TXT = "#e9f5ec";
-		final String GRID = "rgba(255,255,255,0.06)";
-
-		table.setStyle("-fx-background-color:#20282b;" + "-fx-control-inner-background:#20282b;"
-				+ "-fx-text-background-color:#e9f5ec;" + "-fx-table-cell-border-color: rgba(255,255,255,0.06);"
-				+ "-fx-table-header-border-color: rgba(255,255,255,0.06);" + "-fx-selection-bar: transparent;"
-				+ "-fx-selection-bar-non-focused: transparent;" +
-				
-				"-fx-focus-color: transparent;" + "-fx-faint-focus-color: transparent;" + "-fx-accent: transparent;"
-				+ "-fx-background-insets: 0;" + "-fx-padding: 6;");
-
-		Platform.runLater(() -> {
-			Node headerRow = table.lookup("TableHeaderRow");
-			if (headerRow != null)
-				headerRow.setStyle("-fx-background-color:" + BG_HDR + ";");
-
-			Node headerBg = table.lookup(".column-header-background");
-			if (headerBg != null)
-				headerBg.setStyle("-fx-background-color:" + BG_HDR + ";");
-
-			for (Node n : table.lookupAll(".column-header")) {
-				if (n instanceof Region r) {
-					r.setStyle("-fx-background-color:" + BG_HDR + "; -fx-background-insets: 0; -fx-border-color: "
-							+ GRID + "; -fx-border-width: 0 0 1 0;");
-				}
-				Node lab = n.lookup(".label");
-				if (lab instanceof Label lbl) {
-					lbl.setTextFill(javafx.scene.paint.Color.web(TXT));
-					lbl.setStyle("-fx-font-weight:700; -fx-font-size:13px;");
-				}
-			}
-
-			Node filler = table.lookup(".filler");
-			if (filler != null)
-				filler.setStyle("-fx-background-color:" + BG_HDR + ";");
-
-			Node menuBtn = table.lookup(".show-hide-columns-button");
-			if (menuBtn != null) {
-				menuBtn.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
-				menuBtn.setOpacity(0.0);
-				menuBtn.setMouseTransparent(true);
-			}
-		});
 	}
 
 	private String statoOf(Corso c) {
-		if (c == null)
-			return "";
+		if (c == null) return "";
 		LocalDate oggi = LocalDate.now();
 		LocalDate in = c.getDataInizio(), fin = c.getDataFine();
 		if (in != null && fin != null) {
-			if (oggi.isBefore(in))
-				return "Futuro";
-			if ((oggi.isEqual(in) || oggi.isAfter(in)) && (oggi.isBefore(fin) || oggi.isEqual(fin)))
-				return "In corso";
-			if (oggi.isAfter(fin))
-				return "Concluso";
+			if (oggi.isBefore(in)) return "Futuro";
+			if ((oggi.isEqual(in) || oggi.isAfter(in)) && (oggi.isBefore(fin) || oggi.isEqual(fin))) return "In corso";
+			if (oggi.isAfter(fin)) return "Concluso";
 		}
 		return "";
 	}
 
-	
 	private void installPrettyPlaceholder() {
 		Label ph = new Label("Non hai ancora corsi.\nCrea il primo corso per iniziare a pianificare le sessioni.");
 		ph.setAlignment(Pos.CENTER);
-		ph.setStyle("-fx-text-fill:#b7c5cf; -fx-font-size:14.5px; -fx-font-weight:600; -fx-opacity:0.95;");
-		ph.setPadding(new Insets(16));
 		table.setPlaceholder(ph);
 	}
 
-	
 	private void refreshTitleWithCount() {
-		if (table == null)
-			return;
-
-		
+		if (table == null) return;
 		if (table.getScene() == null) {
 			Platform.runLater(this::refreshTitleWithCount);
 			return;
@@ -436,13 +322,9 @@ public class CorsiPanelController {
 		this.corsoDao = corsoDao;
 		this.sessioneDao = sessioneDao;
 		this.ricettaDao = ricettaDao;
-
-		
 		if (table == null || table.getScene() == null) {
 			table.sceneProperty().addListener((obs, oldScene, newScene) -> {
-				if (newScene != null) {
-					Platform.runLater(this::reload);
-				}
+				if (newScene != null) Platform.runLater(this::reload);
 			});
 		} else {
 			reload();
@@ -452,20 +334,15 @@ public class CorsiPanelController {
 	public void setDaos(CorsoDao corsoDao, SessioneDao sessioneDao) {
 		this.corsoDao = corsoDao;
 		this.sessioneDao = sessioneDao;
-
-		
 		if (table == null || table.getScene() == null) {
 			table.sceneProperty().addListener((obs, oldScene, newScene) -> {
-				if (newScene != null) {
-					Platform.runLater(this::reload);
-				}
+				if (newScene != null) Platform.runLater(this::reload);
 			});
 		} else {
 			reload();
 		}
 	}
 
-	
 	private void reload() {
 		if (corsoDao == null) {
 			showError("DAO non inizializzato. Effettua il login.");
@@ -473,8 +350,7 @@ public class CorsiPanelController {
 		}
 		try {
 			List<Corso> list = corsoDao.findAll();
-			if (list == null)
-				list = java.util.Collections.emptyList();
+			if (list == null) list = Collections.emptyList();
 			backing.setAll(list);
 			refilter();
 			updateFiltersUI();
@@ -484,10 +360,8 @@ public class CorsiPanelController {
 		}
 	}
 
-	
 	private void playRefreshAnimation(Button btn) {
-		if (btn == null)
-			return;
+		if (btn == null) return;
 		RotateTransition rt = new RotateTransition(Duration.millis(600), btn);
 		rt.setFromAngle(0);
 		rt.setToAngle(360);
@@ -496,91 +370,86 @@ public class CorsiPanelController {
 		rt.play();
 	}
 
-	
 	private void installRowFactory() {
 		table.setRowFactory(tv -> {
 			TableRow<Corso> row = new TableRow<>() {
 				@Override
 				protected void updateItem(Corso item, boolean empty) {
 					super.updateItem(item, empty);
-					applyRowStyle(this, false, isSelected());
 				}
 			};
-
-			
-			row.setOnMouseEntered(e -> applyRowStyle(row, true, row.isSelected()));
-			row.setOnMouseExited(e -> applyRowStyle(row, false, row.isSelected()));
-			row.hoverProperty().addListener((o, w, h) -> applyRowStyle(row, h, row.isSelected()));
-			row.selectedProperty().addListener((o, w, s) -> applyRowStyle(row, row.isHover(), s));
-
-			
+			row.setOnMouseEntered(e -> row.setCursor(Cursor.HAND));
+			row.setOnMouseExited(e -> row.setCursor(Cursor.DEFAULT));
 			row.setOnMouseClicked(e -> {
-				if (row.isEmpty())
-					return;
-				if (e.getClickCount() == 2 && e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+				if (row.isEmpty()) return;
+				if (e.getClickCount() == 2 && e.getButton() == MouseButton.PRIMARY) {
 					openSessioniPreview(row.getItem());
-				} else if (e.getClickCount() == 1 && e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
-					table.getSelectionModel().select(row.getIndex()); 
+				} else if (e.getClickCount() == 1 && e.getButton() == MouseButton.PRIMARY) {
+					table.getSelectionModel().select(row.getIndex());
 				}
 			});
 			return row;
 		});
 	}
 
-	
 	private void refilter() {
 		filtered.setPredicate(c -> {
-			if (c == null)
-				return false;
+			if (c == null) return false;
 
-			if (!matchesEqIgnoreCase(c.getArgomento(), filtroArg))
-				return false;
-			if (!matchesContainsIgnoreCase(c.getFrequenza(), filtroFreq))
-				return false;
+			if (!matchesEqIgnoreCase(c.getArgomento(), filtroArg)) return false;
+			if (!matchesContainsIgnoreCase(c.getFrequenza(), filtroFreq)) return false;
 
 			if (!isBlank(filtroChef)) {
 				String chefLabel = chefLabelOf(c.getChef());
-				if (!matchesEqIgnoreCase(chefLabel, filtroChef))
-					return false;
+				if (!matchesEqIgnoreCase(chefLabel, filtroChef)) return false;
 			}
 
 			if (!isBlank(filtroId)) {
 				String idS = String.valueOf(c.getIdCorso());
-				if (!idS.equals(filtroId))
-					return false;
+				if (!idS.equals(filtroId)) return false;
 			}
+
 			if (!isBlank(filtroStato)) {
 				String st = statoOf(c);
-				if (!matchesEqIgnoreCase(st, filtroStato))
-					return false;
+				if (!matchesEqIgnoreCase(st, filtroStato)) return false;
 			}
 
 			LocalDate din = c.getDataInizio();
 			LocalDate dfi = c.getDataFine();
+
 			if (dateFrom != null) {
-				if (dfi != null && dfi.isBefore(dateFrom))
-					return false;
-				if (dfi == null && din != null && din.isBefore(dateFrom))
-					return false;
+				if (din == null || din.isBefore(dateFrom)) return false;
 			}
 			if (dateTo != null) {
-				if (din != null && din.isAfter(dateTo))
-					return false;
+				if (dfi == null || dfi.isAfter(dateTo)) return false;
 			}
+
 			return true;
 		});
 	}
 
+
 	private void clearAllFilters() {
-		filtroArg = filtroFreq = filtroChef = filtroId = filtroStato = null; 
+		filtroArg = filtroFreq = filtroChef = filtroId = filtroStato = null;
 		dateFrom = dateTo = null;
+
+		if (filtersMenu != null) {
+			for (MenuItem item : filtersMenu.getItems()) {
+				if (item instanceof CustomMenuItem cmi && cmi.getContent() instanceof HBox box) {
+					for (Node n : box.getChildren()) {
+						if (n instanceof DatePicker dp) dp.setValue(null);
+					}
+				}
+			}
+		}
+
 		refilter();
 		updateFiltersUI();
 	}
 
+
 	private void updateFiltersUI() {
 		updateFiltersBadge();
-		styleFilterMenuButton();
 		updatePrettyFilterRows();
 	}
 
@@ -590,10 +459,8 @@ public class CorsiPanelController {
 		appendIf(sb, !isBlank(filtroFreq), "Freq=" + filtroFreq);
 		appendIf(sb, !isBlank(filtroChef), "Chef=" + filtroChef);
 		appendIf(sb, !isBlank(filtroId), "ID=" + filtroId);
-		appendIf(sb, !isBlank(filtroStato), "Stato=" + filtroStato); 
-		if (dateFrom != null || dateTo != null)
-			appendIf(sb, true, formatDateRange(dateFrom, dateTo));
-
+		appendIf(sb, !isBlank(filtroStato), "Stato=" + filtroStato);
+		if (dateFrom != null || dateTo != null) appendIf(sb, true, formatDateRange(dateFrom, dateTo));
 		if (sb.length() == 0) {
 			btnFilters.setText("Filtri");
 			btnFilters.setTooltip(null);
@@ -613,8 +480,7 @@ public class CorsiPanelController {
 	}
 
 	private String ellipsize(String s, int maxLen) {
-		if (s == null || s.length() <= maxLen)
-			return s;
+		if (s == null || s.length() <= maxLen) return s;
 		int take = Math.max(0, maxLen - 1);
 		return s.substring(0, take) + "…";
 	}
@@ -623,8 +489,7 @@ public class CorsiPanelController {
 		Set<String> s = new HashSet<>();
 		for (Corso c : backing) {
 			String a = (c != null) ? c.getArgomento() : null;
-			if (a != null && !a.trim().isEmpty())
-				s.add(a.trim());
+			if (a != null && !a.trim().isEmpty()) s.add(a.trim());
 		}
 		return sortedWithAllOption(s);
 	}
@@ -639,25 +504,21 @@ public class CorsiPanelController {
 		Set<String> s = new HashSet<>();
 		for (Corso c : backing) {
 			String f = (c != null) ? c.getFrequenza() : null;
-			if (f != null && !f.trim().isEmpty())
-				s.add(f.trim());
+			if (f != null && !f.trim().isEmpty()) s.add(f.trim());
 		}
 		return sortedWithAllOption(s);
 	}
 
 	private List<String> distinctChefLabels() {
 		Set<String> s = new HashSet<>();
-		for (Corso c : backing)
-			s.add(chefLabelOf(c != null ? c.getChef() : null));
+		for (Corso c : backing) s.add(chefLabelOf(c != null ? c.getChef() : null));
 		s.remove("");
 		return sortedWithAllOption(s);
 	}
 
 	private List<String> distinctIdLabels() {
 		List<String> ids = new ArrayList<>();
-		for (Corso c : backing)
-			if (c != null)
-				ids.add(String.valueOf(c.getIdCorso()));
+		for (Corso c : backing) if (c != null) ids.add(String.valueOf(c.getIdCorso()));
 		ids.sort((a, b) -> Long.compare(Long.parseLong(a), Long.parseLong(b)));
 		ids.add(0, ALL_OPTION);
 		return ids;
@@ -671,8 +532,7 @@ public class CorsiPanelController {
 	}
 
 	private String chefLabelOf(Chef ch) {
-		if (ch == null)
-			return "";
+		if (ch == null) return "";
 		String full = (nz(ch.getNome()) + " " + nz(ch.getCognome())).trim();
 		return full.isEmpty() ? nz(ch.getCF_Chef()) : full;
 	}
@@ -682,21 +542,15 @@ public class CorsiPanelController {
 			showInfoDark("Nessuna opzione disponibile.");
 			return null;
 		}
-
-		
 		Dialog<String> dlg = new Dialog<>();
 		dlg.setTitle(title);
 		dlg.setHeaderText(header);
-
-		
 		ButtonType OK = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
 		ButtonType CANCEL = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
 		dlg.getDialogPane().getButtonTypes().setAll(OK, CANCEL);
-
-	
 		ComboBox<String> cb = new ComboBox<>(FXCollections.observableArrayList(options));
 		cb.setEditable(false);
-		
+		cb.getStyleClass().add("dark-combobox");
 		String def = options.get(0);
 		if (preselect != null) {
 			for (String opt : options) {
@@ -707,141 +561,20 @@ public class CorsiPanelController {
 			}
 		}
 		cb.getSelectionModel().select(def);
-
-		
 		HBox box = new HBox(10, cb);
 		box.setPadding(new Insets(6, 0, 0, 0));
 		dlg.getDialogPane().setContent(box);
-
-		
-		styleDarkDialog(dlg.getDialogPane());
-		styleDarkCombo(cb);
-		styleDarkButtons(dlg.getDialogPane(), OK, CANCEL);
-
-		
+		dlg.getDialogPane().getStyleClass().add("dark-dialog");
 		dlg.setResultConverter(bt -> (bt == OK) ? cb.getValue() : null);
 		Optional<String> res = dlg.showAndWait();
 		return res.orElse(null);
 	}
 
-	
-	private void styleDarkDialog(DialogPane pane) {
-		pane.setStyle("-fx-background-color:#20282b;" + "-fx-background-radius:12;"
-				+ "-fx-border-color: rgba(255,255,255,0.08);" + "-fx-border-radius:12;" + "-fx-border-width:1;"
-				+ "-fx-padding:14;" + "-fx-focus-color: transparent;" + "-fx-faint-focus-color: transparent;"
-				+ "-fx-accent: transparent;");
-		
-		Node header = pane.lookup(".header-panel");
-		if (header != null) {
-			header.setStyle("-fx-background-color: transparent; -fx-padding: 0 0 8 0;");
-			Node lbl = header.lookup(".label");
-			if (lbl instanceof Label l) {
-				l.setStyle("-fx-text-fill:#e9f5ec; -fx-font-weight:800; -fx-font-size:14.5px;");
-			}
-		}
-		
-		Node content = pane.lookup(".content");
-		if (content instanceof Region r) {
-			r.setStyle("-fx-background-color: transparent; -fx-text-fill:#e9f5ec;");
-		}
-	}
-
-	
-	private void styleDarkCombo(ComboBox<String> cb) {
-		
-		cb.setStyle("-fx-background-color:#2e3845;" + "-fx-control-inner-background:#2e3845;"
-				+ "-fx-background-radius:8;" + "-fx-border-color:#3a4657;" + "-fx-border-radius:8;"
-				+ "-fx-padding: 4 10 4 10;" + "-fx-focus-color: transparent;" + "-fx-faint-focus-color: transparent;"
-				+ "-fx-accent: transparent;" + "-fx-opacity:1;");
-		cb.setDisable(false);
-
-		
-		cb.setButtonCell(new ListCell<>() {
-			@Override
-			protected void updateItem(String item, boolean empty) {
-				super.updateItem(item, empty);
-				if (empty || item == null) {
-					setText(null);
-					setStyle("-fx-background-color: transparent;");
-				} else {
-					setText(item);
-					setStyle("-fx-text-fill:#e5e7eb; -fx-font-weight:700; -fx-background-color: transparent;");
-				}
-			}
-		});
-
-		
-		cb.setCellFactory(lv -> new ListCell<>() {
-			@Override
-			protected void updateItem(String item, boolean empty) {
-				super.updateItem(item, empty);
-				if (empty || item == null) {
-					setText(null);
-					setStyle("-fx-background-color: transparent;");
-				} else {
-					setText(item);
-					setStyle("-fx-text-fill:#e9f5ec; -fx-font-weight:700; -fx-background-color: transparent;");
-				}
-			}
-		});
-
-		
-		cb.showingProperty().addListener((obs, was, is) -> {
-			if (is) {
-				
-				Scene sc = cb.getScene();
-				if (sc != null) {
-					for (Node n : sc.getRoot().lookupAll(".list-view")) {
-						n.setStyle("-fx-background-color:#20282b;" + "-fx-control-inner-background:#20282b;"
-								+ "-fx-text-fill:#e9f5ec;" + "-fx-background-insets:0;"
-								+ "-fx-focus-color: transparent;" + "-fx-faint-focus-color: transparent;"
-								+ "-fx-accent: transparent;");
-					}
-					for (Node n : sc.getRoot().lookupAll(".list-cell")) {
-						
-						n.setStyle("-fx-text-fill:#e9f5ec; -fx-background-color: transparent;");
-					}
-				}
-			}
-		});
-
-		
-		if (cb.getEditor() != null) {
-			cb.getEditor().setStyle("-fx-background-color: transparent; -fx-text-fill:#e5e7eb;"
-					+ "-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-accent: transparent;");
-		}
-	}
-
-	private void styleDarkButtons(DialogPane pane, ButtonType okType, ButtonType cancelType) {
-		Button ok = (Button) pane.lookupButton(okType);
-		if (ok != null) {
-			ok.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;"
-					+ "-fx-background-radius:10; -fx-padding:6 14;");
-			ok.setOnMouseEntered(
-					e -> ok.setStyle("-fx-background-color:#16a56e; -fx-text-fill:#0a1410; -fx-font-weight:800;"
-							+ "-fx-background-radius:10; -fx-padding:6 14;"));
-			ok.setOnMouseExited(
-					e -> ok.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;"
-							+ "-fx-background-radius:10; -fx-padding:6 14;"));
-		}
-		Button cancel = (Button) pane.lookupButton(cancelType);
-		if (cancel != null) {
-			cancel.setStyle("-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec;"
-					+ "-fx-background-radius:10; -fx-padding:6 14;");
-			cancel.setOnMouseEntered(e -> cancel.setStyle("-fx-background-color:#374047; -fx-text-fill:#e9f5ec;"
-					+ "-fx-background-radius:10; -fx-padding:6 14;"));
-			cancel.setOnMouseExited(e -> cancel.setStyle("-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec;"
-					+ "-fx-background-radius:10; -fx-padding:6 14;"));
-		}
-	}
-
 	private String normalizeAllToNull(String value) {
-		if (value == null)
-			return null;
+		if (value == null) return null;
 		return ALL_OPTION.equalsIgnoreCase(value.trim()) ? null : value.trim();
 	}
 
-	
 	private void openReportMode() {
 		if (corsoDao == null) {
 			showError("DAO non inizializzato. Effettua il login.");
@@ -852,23 +585,19 @@ public class CorsiPanelController {
 			showError("Chef non identificato. Effettua il login.");
 			return;
 		}
-
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/Report.fxml"));
 			loader.setControllerFactory(type -> {
-				if (type == ReportController.class)
-					return new ReportController(cf);
+				if (type == ReportController.class) return new ReportController(cf);
 				try {
 					return type.getDeclaredConstructor().newInstance();
 				} catch (Exception e) {
 					throw new RuntimeException("Impossibile creare controller: " + type, e);
 				}
 			});
-
 			Parent reportRoot = loader.load();
 			ReportController reportCtrl = loader.getController();
 			reportCtrl.setPreviousRoot(table.getScene().getRoot());
-
 			Stage stage = (Stage) table.getScene().getWindow();
 			Scene scene = stage.getScene();
 			if (scene == null) {
@@ -878,43 +607,33 @@ public class CorsiPanelController {
 				scene.setRoot(reportRoot);
 			}
 			stage.setTitle("Report mensile - Chef " + cf);
-
 		} catch (Exception ex) {
 			showError("Errore apertura report: " + ex.getMessage());
 			ex.printStackTrace();
 		}
 	}
 
-	
 	private void onEdit() {
 		final Corso sel = table.getSelectionModel().getSelectedItem();
-		if (sel == null)
-			return;
-
+		if (sel == null) return;
 		if (!isOwnedByLoggedChef(sel)) {
-			new Alert(Alert.AlertType.WARNING, "Puoi modificare solo i corsi che appartengono al tuo profilo.")
-					.showAndWait();
+			new Alert(Alert.AlertType.WARNING, "Puoi modificare solo i corsi che appartengono al tuo profilo.").showAndWait();
 			return;
 		}
-
 		final javafx.concurrent.Task<List<Sessione>> loadTask = new javafx.concurrent.Task<>() {
 			@Override
 			protected List<Sessione> call() throws Exception {
 				return sessioneDao.findByCorso(sel.getIdCorso());
 			}
 		};
-
 		loadTask.setOnSucceeded(ev -> {
 			List<Sessione> esistenti = loadTask.getValue();
 			try {
 				FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/SessioniWizard.fxml"));
 				DialogPane pane = fx.load();
+				pane.getStyleClass().add("dark-dialog");
 				SessioniWizardController ctrl = fx.getController();
 				ctrl.initWithCorsoAndExisting(sel, esistenti != null ? esistenti : Collections.emptyList());
-
-				if (pane.getButtonTypes().isEmpty())
-					pane.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
-
 				Node content = pane.getContent();
 				if (content instanceof Region) {
 					ScrollPane sc = new ScrollPane(content);
@@ -925,12 +644,10 @@ public class CorsiPanelController {
 					sc.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 					pane.setContent(sc);
 				}
-
 				Dialog<List<Sessione>> dlg = new Dialog<>();
 				dlg.setTitle("Modifica sessioni - " + safe(sel.getArgomento()));
 				dlg.setDialogPane(pane);
 				pane.setPrefSize(1200, 800);
-
 				dlg.setOnShown(e2 -> {
 					Window w = dlg.getDialogPane().getScene().getWindow();
 					if (w instanceof Stage stg) {
@@ -942,11 +659,7 @@ public class CorsiPanelController {
 						stg.centerOnScreen();
 					}
 				});
-
-				dlg.setResultConverter(
-						bt -> (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE) ? ctrl.buildResult()
-								: null);
-
+				dlg.setResultConverter(bt -> (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE) ? ctrl.buildResult() : null);
 				Optional<List<Sessione>> res = dlg.showAndWait();
 				if (res.isPresent() && res.get() != null) {
 					final List<Sessione> result = res.get();
@@ -961,25 +674,20 @@ public class CorsiPanelController {
 					replaceTask.setOnFailed(ev2 -> {
 						Throwable ex2 = replaceTask.getException();
 						showError("Errore salvataggio sessioni: " + (ex2 != null ? ex2.getMessage() : "sconosciuto"));
-						if (ex2 != null)
-							ex2.printStackTrace();
+						if (ex2 != null) ex2.printStackTrace();
 					});
 					new Thread(replaceTask, "replace-sessioni").start();
 				}
-
 			} catch (Exception e) {
 				showError("Errore apertura wizard sessioni: " + e.getMessage());
 				e.printStackTrace();
 			}
 		});
-
 		loadTask.setOnFailed(ev -> {
 			Throwable ex = loadTask.getException();
 			showError("Errore modifica sessioni (caricamento): " + (ex != null ? ex.getMessage() : "sconosciuto"));
-			if (ex != null)
-				ex.printStackTrace();
+			if (ex != null) ex.printStackTrace();
 		});
-
 		new Thread(loadTask, "load-sessioni").start();
 	}
 
@@ -988,44 +696,34 @@ public class CorsiPanelController {
 			FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/CorsiEditorDialog.fxml"));
 			refreshArgomentiCondivisi();
 			DialogPane pane = fx.load();
-
+			pane.getStyleClass().add("dark-dialog");
 			CorsoEditorDialogController ctrl = fx.getController();
 			ctrl.bindArgomenti(argomentiCondivisi);
 			ctrl.setCorso(null);
-
 			Dialog<Corso> dialog = new Dialog<>();
 			dialog.setTitle("Nuovo Corso");
 			dialog.setDialogPane(pane);
 			dialog.setResizable(true);
 			dialog.setResultConverter(bt -> (bt != null && bt == ctrl.getCreateButtonType()) ? ctrl.getResult() : null);
-
 			Optional<Corso> res = dialog.showAndWait();
-			if (!res.isPresent())
-				return;
-
+			if (!res.isPresent()) return;
 			Corso nuovo = res.get();
 			if (corsoDao != null) {
 				String cfChef = corsoDao.getOwnerCfChef();
 				if (cfChef != null && !cfChef.trim().isEmpty()) {
-					var chef = new it.unina.foodlab.model.Chef();
+					Chef chef = new Chef();
 					chef.setCF_Chef(cfChef);
 					nuovo.setChef(chef);
 				}
 			}
-
-			
 			Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo, Math.max(0, nuovo.getNumSessioni()));
-			if (!sessOpt.isPresent())
-				return;
+			if (!sessOpt.isPresent()) return;
 			List<Sessione> sessions = sessOpt.get();
-			if (sessions == null || sessions.isEmpty())
-				return;
-
+			if (sessions == null || sessions.isEmpty()) return;
 			long id = corsoDao.insertWithSessions(nuovo, sessions);
 			nuovo.setIdCorso(id);
 			backing.add(nuovo);
 			table.getSelectionModel().select(nuovo);
-			
 			String arg = nuovo.getArgomento();
 			if (arg != null && !arg.isBlank() && !argomentiCondivisi.contains(arg)) {
 				arg = arg.trim();
@@ -1033,7 +731,6 @@ public class CorsiPanelController {
 				FXCollections.sort(argomentiCondivisi);
 			}
 			updateFiltersUI();
-
 		} catch (Exception ex) {
 			showError("Errore apertura/salvataggio corso: " + ex.getMessage());
 			ex.printStackTrace();
@@ -1042,9 +739,7 @@ public class CorsiPanelController {
 
 	private void onDelete() {
 		final Corso sel = table.getSelectionModel().getSelectedItem();
-		if (sel == null)
-			return;
-
+		if (sel == null) return;
 		boolean conferma = showConfirmDark("Conferma eliminazione", "Eliminare il corso: " + sel.getArgomento() + " ?");
 		if (conferma) {
 			try {
@@ -1055,349 +750,199 @@ public class CorsiPanelController {
 				showInfoDark("Impossibile eliminare il corso: " + ex.getMessage());
 			}
 		}
-
 	}
 
+	private void buildAndAttachFiltersContextMenu() {
+		filtersMenu = new ContextMenu();
+		filtersMenu.getStyleClass().add("filters-menu");
 
+		CustomMenuItem rowFrom = createDateRow("Inizio", true);
+		CustomMenuItem rowTo = createDateRow("Fine", false);
 
-	    private void buildAndAttachFiltersContextMenu() {
-    filtersMenu = new ContextMenu();
-    filtersMenu.setStyle(
-    	   
-    	    "-fx-background-color:#20282b;" +
-    	    "-fx-background-insets:0;" +
-    	    "-fx-background-radius:14;" +
-    	    "-fx-border-color: rgba(255,255,255,0.06);" +
-    	    "-fx-border-radius:14;" +
-    	    "-fx-border-width:1;" +
-    	    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 18, 0.2, 0, 6);" +
-    	  
-    	    "-fx-base:#20282b;" +
-    	    "-fx-control-inner-background:#20282b;" +
-    	    "-fx-selection-bar: transparent;" +
-    	    "-fx-accent: transparent;" +
-    	    "-fx-focus-color: transparent;" +
-    	    "-fx-faint-focus-color: transparent;"
-    	);
+		CustomMenuItem rowArg = createFilterRow("Argomento", "(tutte)", iconPathList(), e -> {
+			String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
+			filtroArg = normalizeAllToNull(scelto);
+			refilter(); updateFiltersUI(); updatePrettyFilterRows();
+		}, () -> {
+			filtroArg = null;
+			refilter(); updateFiltersUI(); updatePrettyFilterRows();
+		}, b -> btnClearArg = b, l -> labArgomentoVal = l);
 
-    
-    CustomMenuItem rowFrom = createDateRow("Inizio da", true);
-    CustomMenuItem rowTo   = createDateRow("Fine fino a", false);
-    
-    rowFrom.setStyle("-fx-background-color: transparent;");
-    rowTo.setStyle("-fx-background-color: transparent;");
+		CustomMenuItem rowFreq = createFilterRow("Frequenza", "(tutte)", iconPathCalendar(), e -> {
+			String scelto = askChoice("Filtro Frequenza", "Seleziona frequenza", distinctFrequenze(), filtroFreq);
+			filtroFreq = normalizeAllToNull(scelto);
+			refilter(); updateFiltersUI(); updatePrettyFilterRows();
+		}, () -> {
+			filtroFreq = null;
+			refilter(); updateFiltersUI(); updatePrettyFilterRows();
+		}, b -> btnClearFreq = b, l -> labFrequenzaVal = l);
 
-    
-    CustomMenuItem rowArg = createFilterRow("Argomento", "(tutte)", iconPathList(), e -> {
-        String scelto = askChoice("Filtro Argomento", "Seleziona argomento", distinctArgomenti(), filtroArg);
-        filtroArg = normalizeAllToNull(scelto);
-        refilter(); updateFiltersUI(); updatePrettyFilterRows();
-    }, () -> {
-        filtroArg = null;
-        refilter(); updateFiltersUI(); updatePrettyFilterRows();
-    }, b -> btnClearArg = b, l -> labArgomentoVal = l);
+		CustomMenuItem rowStato = createFilterRow("Stato", "(tutti)", iconPathStatus(), e -> {
+			String scelto = askChoice("Filtro Stato", "Seleziona stato", distinctStati(), filtroStato);
+			filtroStato = normalizeAllToNull(scelto);
+			refilter(); updateFiltersUI(); updatePrettyFilterRows();
+		}, () -> {
+			filtroStato = null;
+			refilter(); updateFiltersUI(); updatePrettyFilterRows();
+		}, b -> btnClearStato = b, l -> labStatoVal = l);
 
-    rowArg.setStyle("-fx-background-color: transparent;");
-   
-    CustomMenuItem rowFreq = createFilterRow("Frequenza", "(tutte)", iconPathCalendar(), e -> {
-        String scelto = askChoice("Filtro Frequenza", "Seleziona frequenza", distinctFrequenze(), filtroFreq);
-        filtroFreq = normalizeAllToNull(scelto);
-        refilter(); updateFiltersUI(); updatePrettyFilterRows();
-    }, () -> {
-        filtroFreq = null;
-        refilter(); updateFiltersUI(); updatePrettyFilterRows();
-    }, b -> btnClearFreq = b, l -> labFrequenzaVal = l);
+		CustomMenuItem rowChef = createFilterRow("Chef", "(tutte)", iconPathChefHat(), e -> {
+			String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
+			filtroChef = normalizeAllToNull(scelto);
+			refilter(); updateFiltersUI(); updatePrettyFilterRows();
+		}, () -> {
+			filtroChef = null;
+			refilter(); updateFiltersUI(); updatePrettyFilterRows();
+		}, b -> btnClearChef = b, l -> labChefVal = l);
 
-    rowFreq.setStyle("-fx-background-color: transparent;");
+		CustomMenuItem rowId = createFilterRow("ID", "(tutte)", iconPathId(), e -> {
+			String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
+			filtroId = normalizeAllToNull(scelto);
+			refilter(); updateFiltersUI(); updatePrettyFilterRows();
+		}, () -> {
+			filtroId = null;
+			refilter(); updateFiltersUI(); updatePrettyFilterRows();
+		}, b -> btnClearId = b, l -> labIdVal = l);
 
-    
-    CustomMenuItem rowStato = createFilterRow("Stato", "(tutti)", iconPathStatus(), e -> {
-        String scelto = askChoice("Filtro Stato", "Seleziona stato",
-                distinctStati(), filtroStato);
-        filtroStato = normalizeAllToNull(scelto);
-        refilter(); updateFiltersUI(); updatePrettyFilterRows();
-    }, () -> {
-        filtroStato = null;
-        refilter(); updateFiltersUI(); updatePrettyFilterRows();
-    }, b -> btnClearStato = b, l -> labStatoVal = l);
+		CustomMenuItem sep1 = separatorItem();
+		CustomMenuItem sep2 = separatorItem();
+		CustomMenuItem clearBtn = createClearAllButtonItem();
 
-    rowStato.setStyle("-fx-background-color: transparent;");
+		filtersMenu.getItems().setAll(rowFrom, rowTo, sep1, rowArg, rowFreq, rowStato, rowChef, rowId, sep2, clearBtn);
 
-   
-    CustomMenuItem rowChef = createFilterRow("Chef", "(tutte)", iconPathChefHat(), e -> {
-        String scelto = askChoice("Filtro Chef", "Seleziona Chef", distinctChefLabels(), filtroChef);
-        filtroChef = normalizeAllToNull(scelto);
-        refilter(); updateFiltersUI(); updatePrettyFilterRows();
-    }, () -> {
-        filtroChef = null;
-        refilter(); updateFiltersUI(); updatePrettyFilterRows();
-    }, b -> btnClearChef = b, l -> labChefVal = l);
-
-    rowChef.setStyle("-fx-background-color: transparent;");
-
-    
-    CustomMenuItem rowId = createFilterRow("ID", "(tutte)", iconPathId(), e -> {
-        String scelto = askChoice("Filtro ID", "Seleziona ID corso", distinctIdLabels(), filtroId);
-        filtroId = normalizeAllToNull(scelto);
-        refilter(); updateFiltersUI(); updatePrettyFilterRows();
-    }, () -> {
-        filtroId = null;
-        refilter(); updateFiltersUI(); updatePrettyFilterRows();
-    }, b -> btnClearId = b, l -> labIdVal = l);
-
-    rowId.setStyle("-fx-background-color: transparent;");
-
-    CustomMenuItem sep1 = separatorItem();
-    CustomMenuItem sep2 = separatorItem();
-    
-    sep1.setStyle("-fx-background-color: transparent;");
-
-
-   
-    CustomMenuItem clearBtn = createClearAllButtonItem();
-    
-    clearBtn.setStyle("-fx-background-color: transparent;");
-
-
-    filtersMenu.getItems().setAll(rowFrom, rowTo, sep1, rowArg, rowFreq, rowStato, rowChef, rowId, sep2, clearBtn);
-
-    if (btnFilters != null) {
-        btnFilters.getItems().clear(); 
-
-        
-        btnFilters.setOnMousePressed(e -> {
-            if (filtersMenu.isShowing()) {
-                filtersMenu.hide();
-            } else {
-                filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
-            }
-            e.consume(); 
-        });
-
-        
-        btnFilters.setOnKeyPressed(ke -> {
-            switch (ke.getCode()) {
-                case SPACE, ENTER -> {
-                    if (filtersMenu.isShowing()) {
-                        filtersMenu.hide();
-                    } else {
-                        filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
-                    }
-                    ke.consume();
-                }
-                default -> {}
-            }
-        });
-    }
-}
+		if (btnFilters != null) {
+			btnFilters.getItems().clear();
+			btnFilters.setOnMousePressed(e -> {
+				if (filtersMenu.isShowing()) filtersMenu.hide();
+				else filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
+				e.consume();
+			});
+			btnFilters.setOnKeyPressed(ke -> {
+				switch (ke.getCode()) {
+				case SPACE, ENTER -> {
+					if (filtersMenu.isShowing()) filtersMenu.hide();
+					else filtersMenu.show(btnFilters, javafx.geometry.Side.BOTTOM, 0, 6);
+					ke.consume();
+				}
+				default -> {}
+				}
+			});
+		}
+	}
 
 	private CustomMenuItem createClearAllButtonItem() {
-		final String ACCENT = "#1fb57a";
-
-	
 		javafx.scene.shape.SVGPath svg = new javafx.scene.shape.SVGPath();
 		svg.setContent("M3 14l6-6 1 1-6 6H3zm7-7l2-2 5 5-2 2-5-5zm7 6l-2 2 2 2h2v-2l-2-2z");
-		svg.setStyle("-fx-fill:white; -fx-min-width:16; -fx-min-height:16; -fx-max-width:16; -fx-max-height:16;");
-
+		svg.getStyleClass().add("icon");
 		Label text = new Label("Pulisci tutti i filtri");
-		text.setStyle("-fx-text-fill:white; -fx-font-weight:800;");
-
 		HBox btn = new HBox(8, svg, text);
 		btn.setAlignment(Pos.CENTER_LEFT);
 		btn.setPadding(new Insets(8, 12, 8, 12));
-		btn.setStyle("-fx-background-color:#ef4444; -fx-background-radius:10;"); 
-		btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color:#dc2626; -fx-background-radius:10;"));
-		btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color:#ef4444; -fx-background-radius:10;"));
+		btn.getStyleClass().add("danger-button");
 		btn.setOnMouseClicked(e -> {
 			clearAllFilters();
 			updatePrettyFilterRows();
 			filtersMenu.hide();
 		});
-
-		CustomMenuItem item = new CustomMenuItem(btn, false);
-		return item;
+		return new CustomMenuItem(btn, false);
 	}
 
 	private CustomMenuItem createFilterRow(String title, String value, String svgPath,
 			javafx.event.EventHandler<ActionEvent> onChooseClick, Runnable onClearClick,
 			java.util.function.Consumer<Button> clearButtonSink, java.util.function.Consumer<Label> valueLabelSink) {
-
-		final String ACCENT = "#1fb57a";
-
 		javafx.scene.shape.SVGPath svg = new javafx.scene.shape.SVGPath();
 		svg.setContent(svgPath);
-		svg.setStyle("-fx-fill:#93a5be; -fx-min-width:16; -fx-min-height:16; -fx-max-width:16; -fx-max-height:16;");
-
+		svg.getStyleClass().add("icon-muted");
 		Label labTitle = new Label(title + ":");
-		labTitle.setStyle("-fx-text-fill:#9fb6aa; -fx-font-size:12.5px;");
-
+		labTitle.getStyleClass().add("filter-row-title");
 		Label labVal = new Label(value);
-		labVal.setStyle("-fx-text-fill:#e9f5ec; -fx-font-size:13.5px; -fx-font-weight:bold;");
-
+		labVal.getStyleClass().add("filter-row-value");
 		Region spacer = new Region();
 		HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
-
 		Button btnX = new Button("×");
 		btnX.setFocusTraversable(false);
 		btnX.setOnAction(e -> {
-			if (onClearClick != null)
-				onClearClick.run();
+			if (onClearClick != null) onClearClick.run();
 		});
-		btnX.setStyle(
-				"-fx-background-color: transparent; -fx-text-fill:#e9f5ec; -fx-font-size:14px; -fx-padding:0 6 0 6;");
+		btnX.getStyleClass().add("clear-btn");
 		btnX.setTooltip(new Tooltip("Rimuovi filtro " + title.toLowerCase()));
-
 		HBox box = new HBox(10, svg, labTitle, labVal, spacer, btnX);
 		box.setAlignment(Pos.CENTER_LEFT);
 		box.setPadding(new Insets(8, 12, 8, 12));
-		box.setStyle("-fx-background-color: transparent; -fx-background-radius:10;");
+		box.getStyleClass().add("filter-row");
 		box.setMinWidth(300);
 		box.setPrefWidth(320);
-
 		CustomMenuItem row = new CustomMenuItem(box, false);
-
 		box.setOnMouseClicked(e -> {
-			if (e.getTarget() instanceof Button)
-				return;
-			if (onChooseClick != null)
-				onChooseClick.handle(new ActionEvent());
+			if (e.getTarget() instanceof Button) return;
+			if (onChooseClick != null) onChooseClick.handle(new ActionEvent());
 		});
-
-		box.setOnMouseEntered(e -> {
-			box.setStyle("-fx-background-color: linear-gradient(to right, " + ACCENT + " 0px, " + ACCENT
-					+ " 3px, transparent 3px);" + "-fx-background-radius:10;");
-			labTitle.setStyle("-fx-text-fill:#cfe5d9; -fx-font-size:12.5px;");
-		});
-
-		box.setOnMouseExited(e -> {
-			box.setStyle("-fx-background-color: transparent; -fx-background-radius:10;");
-			labTitle.setStyle("-fx-text-fill:#9fb6aa; -fx-font-size:12.5px;");
-		});
-
-		if (clearButtonSink != null)
-			clearButtonSink.accept(btnX);
-		if (valueLabelSink != null)
-			valueLabelSink.accept(labVal);
-
+		if (clearButtonSink != null) clearButtonSink.accept(btnX);
+		if (valueLabelSink != null) valueLabelSink.accept(labVal);
 		return row;
 	}
 
 	private CustomMenuItem createDateRow(String title, boolean isFrom) {
-		final String ACCENT = "#1fb57a";
-
 		javafx.scene.shape.SVGPath svg = new javafx.scene.shape.SVGPath();
 		svg.setContent(iconPathCalendar());
-		svg.setStyle("-fx-fill:#93a5be; -fx-min-width:16; -fx-min-height:16; -fx-max-width:16; -fx-max-height:16;");
-
+		svg.getStyleClass().add("icon-muted");
 		Label labTitle = new Label(title + ":");
-		labTitle.setStyle("-fx-text-fill:#9fb6aa; -fx-font-size:12.5px;");
-
+		labTitle.getStyleClass().add("filter-row-title");
 		DatePicker dp = new DatePicker(isFrom ? dateFrom : dateTo);
 		dp.setShowWeekNumbers(false);
-		styleDatePickerInline(dp);
+		dp.getStyleClass().add("dark-datepicker");
 		dp.setPromptText("gg/mm/aaaa");
-
 		DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 		dp.setConverter(new StringConverter<>() {
 			@Override
 			public String toString(LocalDate d) {
 				return d == null ? "" : fmt.format(d);
 			}
-
 			@Override
 			public LocalDate fromString(String s) {
 				return (s == null || s.trim().isEmpty()) ? null : LocalDate.parse(s, fmt);
 			}
 		});
-
 		Button clear = new Button("×");
 		clear.setOnAction(e -> dp.setValue(null));
-		clear.setStyle(
-				"-fx-background-color: transparent; -fx-text-fill:#e9f5ec; -fx-font-size:14px; -fx-padding:0 6 0 6;");
+		clear.getStyleClass().add("clear-btn");
 		clear.setFocusTraversable(false);
 		boolean hasValue = dp.getValue() != null;
 		clear.setVisible(hasValue);
 		clear.setManaged(hasValue);
-
 		dp.valueProperty().addListener((obs, oldV, newV) -> {
-			if (isFrom)
-				dateFrom = newV;
-			else
-				dateTo = newV;
+			if (isFrom) dateFrom = newV;
+			else dateTo = newV;
 			boolean on = newV != null;
 			clear.setVisible(on);
 			clear.setManaged(on);
 			refilter();
 			updateFiltersUI();
 		});
-
 		HBox box = new HBox(10, svg, labTitle, dp, clear);
 		box.setAlignment(Pos.CENTER_LEFT);
 		box.setPadding(new Insets(8, 12, 8, 12));
-		box.setStyle("-fx-background-color: transparent; -fx-background-radius:10;");
+		box.getStyleClass().add("filter-row");
 		box.setMinWidth(320);
 		box.setPrefWidth(320);
-
-		CustomMenuItem item = new CustomMenuItem(box, false);
-		box.setOnMouseEntered(e -> {
-			box.setStyle("-fx-background-color: linear-gradient(to right, " + ACCENT + " 0px, " + ACCENT
-					+ " 3px, transparent 3px);" + "-fx-background-radius:10;");
-			labTitle.setStyle("-fx-text-fill:#cfe5d9; -fx-font-size:12.5px;");
-		});
-
-		box.setOnMouseExited(e -> {
-			box.setStyle("-fx-background-color: transparent; -fx-background-radius:10;");
-			labTitle.setStyle("-fx-text-fill:#9fb6aa; -fx-font-size:12.5px;");
-		});
-
-		return item;
-	}
-
-	private void styleDatePickerInline(DatePicker dp) {
-		if (dp == null)
-			return;
-		final String TEXT_LIGHT = "#e5e7eb"; 
-		final String BG = "#2e3845"; 
-		final String BORDER = "#3a4657";
-
-		dp.setEditable(false);
-		dp.setStyle("-fx-background-color: " + BG + ";" + "-fx-control-inner-background: " + BG + ";"
-				+ "-fx-text-fill: " + TEXT_LIGHT + ";" + "-fx-prompt-text-fill: rgba(255,255,255,0.6);"
-				+ "-fx-background-radius:8;" + "-fx-border-color: " + BORDER + ";" + "-fx-border-radius:8;"
-				+ "-fx-padding: 2 8 2 8;" + "-fx-focus-color: transparent;" + "-fx-faint-focus-color: transparent;"
-				+ "-fx-accent: transparent;");
-
-		if (dp.getEditor() != null) {
-			dp.getEditor()
-					.setStyle("-fx-background-color: transparent;" + "-fx-text-fill: " + TEXT_LIGHT + ";"
-							+ "-fx-prompt-text-fill: rgba(255,255,255,0.6);" + "-fx-focus-color: transparent;"
-							+ "-fx-faint-focus-color: transparent;" + "-fx-accent: transparent;");
-		}
+		return new CustomMenuItem(box, false);
 	}
 
 	private CustomMenuItem separatorItem() {
 		CustomMenuItem sep = new CustomMenuItem();
 		Region line = new Region();
-		line.setMinHeight(1);
-		line.setPrefHeight(1);
-		line.setMaxHeight(1);
-		line.setStyle("-fx-background-color:#3a4657;");
+		line.getStyleClass().add("separator-line");
 		sep.setContent(line);
 		sep.setHideOnClick(false);
 		return sep;
 	}
 
 	private void updatePrettyFilterRows() {
-		if (labArgomentoVal != null)
-			labArgomentoVal.setText(isBlank(filtroArg) ? "(tutte)" : filtroArg);
-		if (labFrequenzaVal != null)
-			labFrequenzaVal.setText(isBlank(filtroFreq) ? "(tutte)" : filtroFreq);
-		if (labChefVal != null)
-			labChefVal.setText(isBlank(filtroChef) ? "(tutte)" : filtroChef);
-		if (labIdVal != null)
-			labIdVal.setText(isBlank(filtroId) ? "(tutte)" : filtroId);
-		if (labStatoVal != null)
-			labStatoVal.setText(isBlank(filtroStato) ? "(tutti)" : filtroStato);
+		if (labArgomentoVal != null) labArgomentoVal.setText(isBlank(filtroArg) ? "(tutte)" : filtroArg);
+		if (labFrequenzaVal != null) labFrequenzaVal.setText(isBlank(filtroFreq) ? "(tutte)" : filtroFreq);
+		if (labChefVal != null) labChefVal.setText(isBlank(filtroChef) ? "(tutte)" : filtroChef);
+		if (labIdVal != null) labIdVal.setText(isBlank(filtroId) ? "(tutte)" : filtroId);
+		if (labStatoVal != null) labStatoVal.setText(isBlank(filtroStato) ? "(tutti)" : filtroStato);
 
 		if (btnClearStato != null) {
 			boolean on = !isBlank(filtroStato);
@@ -1424,38 +969,6 @@ public class CorsiPanelController {
 			btnClearId.setVisible(on);
 			btnClearId.setManaged(on);
 		}
-
-	}
-
-	
-
-	private static void applyRowStyle(TableRow<Corso> row, boolean hovered, boolean selected) {
-		final String ACCENT = "#1fb57a"; 
-		final String SELECT_BG = "rgba(31,181,122,0.14)"; 
-		final String HOVER_BG = "rgba(255,255,255,0.07)"; 
-		final String ZEBRA_BG = "rgba(255,255,255,0.03)";
-		final String CLEAR = "transparent";
-
-		if (row == null || row.isEmpty() || row.getItem() == null) {
-			row.setStyle("");
-			row.setCursor(Cursor.DEFAULT);
-			return;
-		}
-
-		String base = (row.getIndex() % 2 == 0) ? ZEBRA_BG : CLEAR;
-
-		if (selected) {
-			row.setStyle("-fx-background-color: " + "linear-gradient(to right, " + ACCENT + " 0px, " + ACCENT
-					+ " 4px, transparent 4px), " + SELECT_BG + ";" + "-fx-background-radius:8;");
-			row.setCursor(Cursor.HAND);
-		} else if (hovered) {
-			row.setStyle("-fx-background-color: " + "linear-gradient(to right, " + ACCENT + " 0px, " + ACCENT
-					+ " 4px, transparent 4px), " + HOVER_BG + ";" + "-fx-background-radius:8;");
-			row.setCursor(Cursor.HAND);
-		} else {
-			row.setStyle("-fx-background-color:" + base + "; -fx-background-radius:8;");
-			row.setCursor(Cursor.DEFAULT);
-		}
 	}
 
 	private static String safe(String s) {
@@ -1471,14 +984,12 @@ public class CorsiPanelController {
 	}
 
 	private static boolean matchesEqIgnoreCase(String value, String filter) {
-		if (isBlank(filter))
-			return true;
+		if (isBlank(filter)) return true;
 		return value != null && value.equalsIgnoreCase(filter);
 	}
 
 	private static boolean matchesContainsIgnoreCase(String value, String filter) {
-		if (isBlank(filter))
-			return true;
+		if (isBlank(filter)) return true;
 		return value != null && value.toLowerCase().contains(filter.toLowerCase());
 	}
 
@@ -1486,112 +997,60 @@ public class CorsiPanelController {
 		Alert a = new Alert(Alert.AlertType.ERROR);
 		a.setHeaderText("Errore");
 		a.setContentText(msg);
+		a.getDialogPane().getStyleClass().add("dark-dialog");
 		a.showAndWait();
 	}
 
 	private boolean isOwnedByLoggedChef(Corso c) {
-		if (c == null || c.getChef() == null || isBlank(c.getChef().getCF_Chef()))
-			return false;
+		if (c == null || c.getChef() == null || isBlank(c.getChef().getCF_Chef())) return false;
 		String owner = (corsoDao != null) ? corsoDao.getOwnerCfChef() : null;
 		return !isBlank(owner) && c.getChef().getCF_Chef().equalsIgnoreCase(owner);
 	}
 
-	
-	private void styleFilterMenuButton() {
-		final String BG = "#2b3438";
-		final String TXT = "#e9f5ec";
-		if (btnFilters == null)
-			return;
-
-		btnFilters.setStyle("-fx-background-color:" + BG + ";" + "-fx-text-fill:" + TXT + ";"
-				+ "-fx-background-radius: 10;" + "-fx-padding: 8 10;");
-
-		Platform.runLater(() -> {
-			Node label = btnFilters.lookup(".label");
-			if (label instanceof Label lbl) {
-				lbl.setTextFill(javafx.scene.paint.Color.web(TXT));
-				lbl.setStyle("-fx-font-weight: 700;");
-			}
-			Node arrow = btnFilters.lookup(".arrow");
-			if (arrow != null) {
-				arrow.setStyle("-fx-background-color: " + TXT + "; -fx-padding: 0.0;");
-				arrow.setOpacity(0.75);
-			}
-		});
-	}
-
-	private void hookFilterMenuButtonStyling() {
-		if (btnFilters == null)
-			return;
-		btnFilters.skinProperty().addListener((o, oldSkin, newSkin) -> Platform.runLater(this::styleFilterMenuButton));
-		btnFilters.textProperty().addListener((o, oldText, newText) -> Platform.runLater(this::styleFilterMenuButton));
-	}
-
-
-
 	private void openSessioniPreview(Corso corso) {
-		if (corso == null)
-			return;
+		if (corso == null) return;
 		try {
 			FXMLLoader l = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/SessioniPreview.fxml"));
 			DialogPane pane = l.load();
+			pane.getStyleClass().add("dark-dialog");
 			SessioniPreviewController ctrl = l.getController();
-
 			long id = corso.getIdCorso();
-			List<Sessione> sessions = (sessioneDao != null) ? sessioneDao.findByCorso(id)
-					: java.util.Collections.<Sessione>emptyList();
-
+			List<Sessione> sessions = (sessioneDao != null) ? sessioneDao.findByCorso(id) : Collections.emptyList();
 			ctrl.init(corso, sessions, sessioneDao);
-
 			Dialog<Void> dlg = new Dialog<>();
 			dlg.setTitle("Sessioni — " + corso.getArgomento());
 			dlg.setDialogPane(pane);
 			dlg.initOwner(table.getScene().getWindow());
 			dlg.initModality(Modality.WINDOW_MODAL);
 			dlg.showAndWait();
-
 		} catch (Exception ex) {
 			showError("Errore apertura anteprima sessioni: " + ex.getMessage());
 			ex.printStackTrace();
 		}
 	}
 
-
 	private void onAssociateRecipes() {
 		Corso sel = table.getSelectionModel().getSelectedItem();
-		if (sel == null)
-			return;
-
+		if (sel == null) return;
 		if (!isOwnedByLoggedChef(sel)) {
 			showInfoDark("Puoi modificare solo i corsi del tuo profilo.");
 			return;
 		}
-
 		try {
 			List<Sessione> tutte = sessioneDao.findByCorso(sel.getIdCorso());
 			List<SessionePresenza> presenze = new ArrayList<>();
-			for (Sessione s : tutte)
-				if (s instanceof SessionePresenza sp)
-					presenze.add(sp);
-
+			for (Sessione s : tutte) if (s instanceof SessionePresenza sp) presenze.add(sp);
 			if (presenze.isEmpty()) {
 				showInfoDark("Il corso non ha sessioni in presenza.");
 				return;
 			}
-
 			SessionePresenza target = (presenze.size() == 1) ? presenze.get(0) : choosePresenza(presenze).orElse(null);
-			if (target == null)
-				return;
-
-			if (ricettaDao == null)
-				ricettaDao = new RicettaDao();
+			if (target == null) return;
+			if (ricettaDao == null) ricettaDao = new RicettaDao();
 			List<Ricetta> tutteLeRicette = ricettaDao.findAll();
 			List<Ricetta> associate = sessioneDao.findRicetteBySessionePresenza(target.getId());
-
 			URL url = AssociaRicetteController.class.getResource("/it/unina/foodlab/ui/AssociaRicette.fxml");
-			if (url == null)
-				throw new IllegalStateException("FXML non trovato: /AssociaRicette.fxml");
-
+			if (url == null) throw new IllegalStateException("FXML non trovato: /AssociaRicette.fxml");
 			FXMLLoader fx = new FXMLLoader(url);
 			fx.setControllerFactory(t -> {
 				if (t == AssociaRicetteController.class) {
@@ -1605,75 +1064,26 @@ public class CorsiPanelController {
 					throw new RuntimeException("Errore creazione controller: " + t, e);
 				}
 			});
-
 			fx.load();
 			AssociaRicetteController dlg = fx.getController();
 			Optional<List<Long>> result = dlg.showAndWait();
 			dlg.salvaSeConfermato(result);
-
 		} catch (Exception e) {
 			showError("Errore associazione ricette: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
 
-	private Optional<List<Sessione>> openSessioniWizard(Corso corso) {
-		try {
-			FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/SessioniWizard.fxml"));
-			DialogPane pane = fx.load();
-			SessioniWizardController ctrl = fx.getController();
-			ctrl.initWithCorso(corso);
-			Node content = pane.getContent();
-			if (content instanceof Region) {
-				ScrollPane sc = new ScrollPane(content);
-				sc.setFitToWidth(true);
-				sc.setFitToHeight(true);
-				sc.setPannable(true);
-				sc.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-				sc.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-				pane.setContent(sc);
-			}
-			Dialog<List<Sessione>> dlg = new Dialog<>();
-			dlg.setTitle("Configura sessioni del corso");
-			dlg.setDialogPane(pane);
-			pane.setPrefSize(1200, 800);
-			dlg.setOnShown(e2 -> {
-				Window w = dlg.getDialogPane().getScene().getWindow();
-				if (w instanceof Stage stg) {
-					stg.setResizable(true);
-					stg.setWidth(1600);
-					stg.setHeight(800);
-					stg.setMinWidth(1500);
-					stg.setMinHeight(650);
-					stg.centerOnScreen();
-				}
-			});
-			dlg.setResultConverter(
-					bt -> (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE) ? ctrl.buildResult()
-							: null);
-			return dlg.showAndWait();
-		} catch (Exception ex) {
-			showError("Errore apertura wizard sessioni: " + ex.getMessage());
-			ex.printStackTrace();
-			return Optional.empty();
-		}
-	}
 
-	
+
 	private Optional<List<Sessione>> openSessioniWizard(Corso corso, int initialRows) {
 		try {
 			FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/SessioniWizard.fxml"));
 			DialogPane pane = fx.load();
-
+			pane.getStyleClass().add("dark-dialog");
 			SessioniWizardController ctrl = fx.getController();
-
-			
-			if (initialRows > 0) {
-				ctrl.initWithCorsoAndBlank(corso, initialRows);
-			} else {
-				ctrl.initWithCorso(corso);
-			}
-
+			if (initialRows > 0) ctrl.initWithCorsoAndBlank(corso, initialRows);
+			else ctrl.initWithCorso(corso);
 			Node content = pane.getContent();
 			if (content instanceof Region) {
 				ScrollPane sc = new ScrollPane(content);
@@ -1684,7 +1094,6 @@ public class CorsiPanelController {
 				sc.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 				pane.setContent(sc);
 			}
-
 			Dialog<List<Sessione>> dlg = new Dialog<>();
 			dlg.setTitle("Configura sessioni del corso");
 			dlg.setDialogPane(pane);
@@ -1700,11 +1109,7 @@ public class CorsiPanelController {
 					stg.centerOnScreen();
 				}
 			});
-
-			dlg.setResultConverter(
-					bt -> (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE) ? ctrl.buildResult()
-							: null);
-
+			dlg.setResultConverter(bt -> (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE) ? ctrl.buildResult() : null);
 			return dlg.showAndWait();
 		} catch (Exception ex) {
 			showError("Errore apertura wizard sessioni: " + ex.getMessage());
@@ -1714,61 +1119,46 @@ public class CorsiPanelController {
 	}
 
 	private Optional<SessionePresenza> choosePresenza(List<SessionePresenza> presenze) {
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
-        Map<String, SessionePresenza> map = new LinkedHashMap<>();
-        for (SessionePresenza sp : presenze) {
-            String data = (sp.getData() != null) ? df.format(sp.getData()) : "";
-            String orari = (sp.getOraInizio() != null ? tf.format(sp.getOraInizio()) : "") + "-" + (sp.getOraFine() != null ? tf.format(sp.getOraFine()) : "");
-            String indirizzo = joinNonEmpty(" ", nz(sp.getVia()), nz(sp.getNum()), nz(sp.getCap())).trim();
-            String base = (data + " " + orari + " " + indirizzo).trim();
-            String key = base;
-            int suffix = 2;
-            while (map.containsKey(key)) key = base + " (" + (suffix++) + ")";
-            map.put(key, sp);
-        }
-
-        Dialog<String> dlg = new Dialog<>();
-        dlg.setTitle("Seleziona la sessione in presenza");
-        dlg.setHeaderText("Scegli la sessione a cui associare le ricette");
-
-        ButtonType OK = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-        ButtonType CANCEL = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dlg.getDialogPane().getButtonTypes().setAll(OK, CANCEL);
-
-        ComboBox<String> cb = new ComboBox<>(FXCollections.observableArrayList(map.keySet()));
-        cb.setEditable(false);
-        cb.getSelectionModel().select(firstKeyOr(map, "")); 
-
-        HBox box = new HBox(10, cb);
-        box.setPadding(new Insets(6, 0, 0, 0));
-        dlg.getDialogPane().setContent(box);
-
-     
-        styleDarkDialog(dlg.getDialogPane());
-        styleDarkCombo(cb);
-        styleDarkButtons(dlg.getDialogPane(), OK, CANCEL);
-
-        dlg.setResultConverter(bt -> (bt == OK) ? cb.getValue() : null);
-        Optional<String> pick = dlg.showAndWait();
-
-        
-        return pick.map(map::get);
-    }
-
-	
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+		DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
+		Map<String, SessionePresenza> map = new LinkedHashMap<>();
+		for (SessionePresenza sp : presenze) {
+			String data = (sp.getData() != null) ? df.format(sp.getData()) : "";
+			String orari = (sp.getOraInizio() != null ? tf.format(sp.getOraInizio()) : "") + "-" + (sp.getOraFine() != null ? tf.format(sp.getOraFine()) : "");
+			String indirizzo = joinNonEmpty(" ", nz(sp.getVia()), nz(sp.getNum()), nz(sp.getCap())).trim();
+			String base = (data + " " + orari + " " + indirizzo).trim();
+			String key = base;
+			int suffix = 2;
+			while (map.containsKey(key)) key = base + " (" + (suffix++) + ")";
+			map.put(key, sp);
+		}
+		Dialog<String> dlg = new Dialog<>();
+		dlg.setTitle("Seleziona la sessione in presenza");
+		dlg.setHeaderText("Scegli la sessione a cui associare le ricette");
+		ButtonType OK = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+		ButtonType CANCEL = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
+		dlg.getDialogPane().getButtonTypes().setAll(OK, CANCEL);
+		ComboBox<String> cb = new ComboBox<>(FXCollections.observableArrayList(map.keySet()));
+		cb.setEditable(false);
+		cb.getStyleClass().add("dark-combobox");
+		cb.getSelectionModel().select(firstKeyOr(map, ""));
+		HBox box = new HBox(10, cb);
+		box.setPadding(new Insets(6, 0, 0, 0));
+		dlg.getDialogPane().setContent(box);
+		dlg.getDialogPane().getStyleClass().add("dark-dialog");
+		dlg.setResultConverter(bt -> (bt == OK) ? cb.getValue() : null);
+		Optional<String> pick = dlg.showAndWait();
+		return pick.map(map::get);
+	}
 
 	private static void appendIf(StringBuilder sb, boolean cond, String piece) {
-		if (!cond)
-			return;
-		if (sb.length() > 0)
-			sb.append(", ");
+		if (!cond) return;
+		if (sb.length() > 0) sb.append(", ");
 		sb.append(piece);
 	}
 
 	private static String firstKeyOr(Map<String, SessionePresenza> map, String fallback) {
-		for (String k : map.keySet())
-			return k;
+		for (String k : map.keySet()) return k;
 		return fallback;
 	}
 
@@ -1778,8 +1168,7 @@ public class CorsiPanelController {
 		if (parts != null) {
 			for (String p : parts) {
 				if (p != null && !p.trim().isEmpty()) {
-					if (!first)
-						sb.append(sep);
+					if (!first) sb.append(sep);
 					sb.append(p.trim());
 					first = false;
 				}
@@ -1794,117 +1183,38 @@ public class CorsiPanelController {
 
 	private void refreshArgomentiCondivisi() {
 		try {
-			
-			java.util.List<String> distinct = corsoDao.findDistinctArgomenti();
-			argomentiCondivisi.setAll(distinct != null ? distinct : java.util.Collections.emptyList());
+			List<String> distinct = corsoDao.findDistinctArgomenti();
+			argomentiCondivisi.setAll(distinct != null ? distinct : Collections.emptyList());
 		} catch (Exception ex) {
-			
 		}
 	}
 
-	
 	private void showInfoDark(String message) {
 		Alert alert = new Alert(Alert.AlertType.INFORMATION);
-
-	
 		alert.setHeaderText(null);
 		alert.setGraphic(null);
-
-		
 		Label content = new Label(message == null ? "" : message);
 		content.setWrapText(true);
-		content.setStyle("-fx-text-fill:#e9f5ec; -fx-font-size:14px; -fx-font-weight:600;");
 		alert.getDialogPane().setContent(content);
-
-		
-		DialogPane dp = alert.getDialogPane();
-		dp.setStyle("-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);"
-				+ "-fx-border-color: rgba(255,255,255,0.08);" + "-fx-border-width: 1;" + "-fx-border-radius: 12;"
-				+ "-fx-background-radius: 12;" + "-fx-padding: 14;" + "-fx-focus-color: transparent;"
-				+ "-fx-faint-focus-color: transparent;" + "-fx-accent: transparent;");
-		
-		Node header = dp.lookup(".header-panel");
-		if (header instanceof Region r) {
-			r.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
-		}
-		
-		Node graphic = dp.lookup(".graphic-container");
-		if (graphic instanceof Region g) {
-			g.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
-		}
-
-		
-		Button okBtn = (Button) dp.lookupButton(ButtonType.OK);
-		if (okBtn != null) {
-			okBtn.setText("OK");
-			okBtn.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;"
-					+ "-fx-background-radius:10; -fx-padding:8 16;");
-			okBtn.setOnMouseEntered(
-					e -> okBtn.setStyle("-fx-background-color:#16a56e; -fx-text-fill:#0a1410; -fx-font-weight:800;"
-							+ "-fx-background-radius:10; -fx-padding:8 16;"));
-			okBtn.setOnMouseExited(
-					e -> okBtn.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;"
-							+ "-fx-background-radius:10; -fx-padding:8 16;"));
-		}
-
-		dp.setMinWidth(460);
+		alert.getDialogPane().getStyleClass().add("dark-dialog");
+		alert.getDialogPane().setMinWidth(460);
 		alert.showAndWait();
 	}
 
-	
-	
 	private boolean showConfirmDark(String titolo, String messaggio) {
 		Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
 		alert.setTitle(titolo == null ? "Conferma" : titolo);
 		alert.setHeaderText(null);
 		alert.setGraphic(null);
-
 		Label lbl = new Label(messaggio == null ? "" : messaggio);
 		lbl.setWrapText(true);
-		lbl.setStyle("-fx-text-fill:#e9f5ec; -fx-font-size:14px; -fx-font-weight:600;");
 		alert.getDialogPane().setContent(lbl);
-
 		DialogPane dp = alert.getDialogPane();
-		dp.setStyle("-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);"
-				+ "-fx-border-color: rgba(255,255,255,0.08);" + "-fx-border-width: 1;" + "-fx-border-radius: 12;"
-				+ "-fx-background-radius: 12;" + "-fx-padding: 14;" + "-fx-focus-color: transparent;"
-				+ "-fx-faint-focus-color: transparent;");
-
-		
-		Node header = dp.lookup(".header-panel");
-		if (header instanceof Region r) {
-			r.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
-		}
-		Node graphic = dp.lookup(".graphic-container");
-		if (graphic instanceof Region g) {
-			g.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
-		}
-
-		
+		dp.getStyleClass().add("dark-dialog");
 		ButtonType confermaType = new ButtonType("Conferma", ButtonBar.ButtonData.OK_DONE);
 		ButtonType annullaType = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);
 		dp.getButtonTypes().setAll(confermaType, annullaType);
-
-		Button btnConferma = (Button) dp.lookupButton(confermaType);
-		btnConferma.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;"
-				+ "-fx-background-radius:10; -fx-padding:8 16;");
-		btnConferma.setOnMouseEntered(e -> btnConferma.setStyle("-fx-background-color:#16a56e; -fx-text-fill:#0a1410;"
-				+ "-fx-font-weight:800; -fx-background-radius:10; -fx-padding:8 16;"));
-		btnConferma.setOnMouseExited(e -> btnConferma.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410;"
-				+ "-fx-font-weight:800; -fx-background-radius:10; -fx-padding:8 16;"));
-
-		Button btnAnnulla = (Button) dp.lookupButton(annullaType);
-		btnAnnulla.setStyle("-fx-background-color:#ef4444; -fx-text-fill:white; -fx-font-weight:700;"
-				+ "-fx-background-radius:10; -fx-padding:8 16;");
-		btnAnnulla.setOnMouseEntered(
-				e -> btnAnnulla.setStyle("-fx-background-color:#dc2626; -fx-text-fill:white; -fx-font-weight:700;"
-						+ "-fx-background-radius:10; -fx-padding:8 16;"));
-		btnAnnulla.setOnMouseExited(
-				e -> btnAnnulla.setStyle("-fx-background-color:#ef4444; -fx-text-fill:white; -fx-font-weight:700;"
-						+ "-fx-background-radius:10; -fx-padding:8 16;"));
-
 		dp.setMinWidth(460);
-
 		Optional<ButtonType> result = alert.showAndWait();
 		return result.isPresent() && result.get() == confermaType;
 	}
@@ -1928,5 +1238,4 @@ public class CorsiPanelController {
 	private String iconPathStatus() {
 		return "M4 4h10l2 2h4v11H4zM6 6v9h12V8h-3l-2-2H6z";
 	}
-
 }

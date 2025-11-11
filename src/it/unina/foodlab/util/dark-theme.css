@@ -1,0 +1,144 @@
+/* =============== Palette (lookup vars) =============== */
+/* Disponibili ovunque (root), sul DialogPane (.associa-ricette-dialog) e sulla TableView (.dark-table) */
+.root,
+.associa-ricette-dialog,
+.dark-table {
+  -fx-bg-surface: #20282b;
+  -fx-bg-card:    #242c2f;
+  -fx-txt-main:   #e9f5ec;
+  -fx-txt-muted:  #cfe5d9;
+  -fx-grid-soft:  #FFFFFF0F;  /* ~rgba(255,255,255,0.06) */
+  -fx-accent:     #1fb57a;
+  -fx-hover-bg:   #1FB57A2E;  /* ~rgba(31,181,122,0.18) */
+}
+
+/* =============== DialogPane (aggiungi classe "associa-ricette-dialog" al DialogPane) =============== */
+.associa-ricette-dialog {
+  -fx-background-color: linear-gradient(to bottom, -fx-bg-card, -fx-bg-surface);
+  -fx-border-color: -fx-grid-soft;
+  -fx-border-width: 1;
+  -fx-border-radius: 12;
+  -fx-background-radius: 12;
+}
+
+.associa-ricette-dialog .label {
+  -fx-text-fill: -fx-txt-main;
+}
+
+/* Bottoni standard del Dialog */
+.associa-ricette-dialog .button:default { /* OK */
+  -fx-background-color: -fx-accent;
+  -fx-text-fill: #0a1410;
+  -fx-font-weight: 800;
+  -fx-background-radius: 10;
+  -fx-padding: 8 14;
+}
+.associa-ricette-dialog .button:default:hover {
+  -fx-background-color: #16a56e;
+}
+.associa-ricette-dialog .button { /* Annulla & co. */
+  -fx-background-color: #2b3438;
+  -fx-text-fill: -fx-txt-main;
+  -fx-font-weight: 700;
+  -fx-background-radius: 10;
+  -fx-padding: 8 14;
+}
+.associa-ricette-dialog .button:hover {
+  -fx-background-color: #374151;
+}
+
+/* =============== TextField =============== */
+.dark-textfield {
+  -fx-background-color: #2e3845;
+  -fx-control-inner-background: #2e3845;
+  -fx-text-fill: -fx-txt-main;
+  -fx-prompt-text-fill: #FFFFFFA6; /* ~0.65 */
+  -fx-background-radius: 10;
+  -fx-border-color: #3a4657;
+  -fx-border-radius: 10;
+  -fx-padding: 6 10;
+}
+
+/* =============== ChoiceBox =============== */
+.dark-choicebox {
+  -fx-background-color: #2e3845;
+  -fx-background-radius: 8;
+  -fx-border-color: #3a4657;
+  -fx-border-radius: 8;
+  -fx-padding: 4 10;
+}
+/* menu popup */
+.context-menu {
+  -fx-background-color: -fx-bg-surface;
+}
+.menu-item .label {
+  -fx-text-fill: -fx-txt-main;
+  -fx-font-weight: 700;
+}
+
+/* =============== TableView =============== */
+.dark-table {
+  -fx-background-color: -fx-bg-surface;
+  -fx-control-inner-background: -fx-bg-surface;
+  -fx-text-background-color: -fx-txt-main;
+  -fx-table-cell-border-color: -fx-grid-soft;
+  -fx-table-header-border-color: -fx-grid-soft;
+  -fx-selection-bar: transparent;
+  -fx-selection-bar-non-focused: transparent;
+  -fx-focus-color: transparent;
+  -fx-faint-focus-color: transparent;
+  -fx-background-insets: 0;
+  -fx-padding: 0;
+}
+
+/* Header */
+.dark-table .column-header,
+.dark-table .column-header-background,
+.dark-table .filler {
+  -fx-background-color: -fx-bg-card;
+  -fx-border-color: -fx-grid-soft;
+  -fx-border-width: 0 0 1 0;
+}
+.dark-table .column-header .label {
+  -fx-text-fill: -fx-txt-main;
+  -fx-font-weight: 700;
+}
+
+/* Righe (zebratura + hover/selected con bordo sinistro) */
+.table-row-cell {
+  -fx-background-color: transparent;
+}
+.table-row-cell:odd {
+  -fx-background-color: #FFFFFF0A; /* ~0.04 */
+}
+.table-row-cell:hover,
+.table-row-cell:selected {
+  -fx-background-color: -fx-hover-bg;
+  -fx-border-color: transparent transparent transparent -fx-accent;
+  -fx-border-width: 0 0 0 4;
+  -fx-cursor: hand;
+}
+
+/* =============== "Chip" difficoltà =============== */
+.diff-chip {
+  -fx-text-fill: white;
+  -fx-font-weight: 700;
+  -fx-font-size: 12px;
+  -fx-background-radius: 999;
+  -fx-padding: 2 8;
+}
+.diff-facile    { -fx-background-color: #10b981; }
+.diff-medio     { -fx-background-color: #f59e0b; }
+.diff-difficile { -fx-background-color: #ef4444; }
+.diff-unknown   { -fx-background-color: #6b7280; }
+
+/* =============== Placeholder della tabella =============== */
+.table-view .placeholder .label {
+  -fx-text-fill: #b7c5cf;
+  -fx-font-weight: 700;
+}
+
+/* =============== Testo attenuato (descrizione) =============== */
+.muted-text {
+  -fx-text-fill: -fx-txt-muted;
+}

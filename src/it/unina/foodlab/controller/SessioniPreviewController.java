@@ -18,6 +18,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
+
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,11 +39,6 @@ public class SessioniPreviewController {
     public void init(Corso corso, List<Sessione> sessioni, SessioneDao sessioneDao) {
         this.corso = corso;
         this.sessioneDao = sessioneDao;
-        
-        if (dialogPane != null) {
-            dialogPane.getStyleClass().add("sessioni-preview");
-            dialogPane.getStylesheets().add(getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm());
-        }
 
         // Header
         if (lblHeader != null) {
@@ -50,7 +46,11 @@ public class SessioniPreviewController {
             lblHeader.setText("Sessioni — " + titolo);
         }
 
-   
+        // Aggiunge CSS globale
+        if (dialogPane != null) {
+            dialogPane.getStyleClass().add("sessioni-preview");
+            dialogPane.getStylesheets().add(getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm());
+        }
 
         // Configura ListView
         if (lv != null) {
@@ -160,8 +160,6 @@ public class SessioniPreviewController {
 
         DialogPane pane = new DialogPane();
         pane.getStyleClass().addAll("sessioni-preview", "dialog-pane");
-        // È buona norma lasciare il caricamento del CSS per gli altri stili
-        pane.getStylesheets().add(getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm());
         pane.getButtonTypes().setAll(ButtonType.CLOSE);
 
         TableView<Ricetta> tv = buildRicetteTable(lista);
@@ -170,16 +168,7 @@ public class SessioniPreviewController {
         dlg.setDialogPane(pane);
 
         Button closeBtn = (Button) pane.lookupButton(ButtonType.CLOSE);
-        if (closeBtn != null) {
-            // Applichiamo lo stile direttamente inline
-            closeBtn.setStyle(
-                "-fx-background-color: #2b3438; " +
-                "-fx-text-fill: #e9f5ec; " +
-                "-fx-font-weight: 700; " +
-                "-fx-background-radius: 10; " +
-                "-fx-padding: 8 16;"
-            );
-        }
+        if (closeBtn != null) closeBtn.getStyleClass().add("button-close");
 
         dlg.setResizable(true);
         dlg.setOnShown(ev -> {

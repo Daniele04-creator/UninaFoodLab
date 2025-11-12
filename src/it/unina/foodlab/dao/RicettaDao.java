@@ -11,62 +11,51 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 public class RicettaDao {
 
-    private static final String SQL_FIND_ALL = ""
-        + "SELECT id_ricetta, nome, descrizione, difficolta, tempo_preparazione "
-        + "  FROM ricetta "
-        + " ORDER BY LOWER(nome)";
+    private static final String SQL_FIND_ALL =
+            "SELECT id_ricetta, nome, descrizione, difficolta, tempo_preparazione " +
+            "FROM ricetta ORDER BY LOWER(nome)";
 
-    private static final String SQL_FIND_BY_ID = ""
-        + "SELECT id_ricetta, nome, descrizione, difficolta, tempo_preparazione "
-        + "  FROM ricetta "
-        + " WHERE id_ricetta = ?";
+    private static final String SQL_FIND_BY_ID =
+            "SELECT id_ricetta, nome, descrizione, difficolta, tempo_preparazione " +
+            "FROM ricetta WHERE id_ricetta = ?";
 
-    private static final String SQL_INSERT = ""
-        + "INSERT INTO ricetta (nome, descrizione, difficolta, tempo_preparazione) "
-        + "VALUES (?, ?, ?, ?)";
+    private static final String SQL_INSERT =
+            "INSERT INTO ricetta (nome, descrizione, difficolta, tempo_preparazione) " +
+            "VALUES (?, ?, ?, ?)";
 
-    private static final String SQL_UPDATE = ""
-        + "UPDATE ricetta "
-        + "   SET nome=?, descrizione=?, difficolta=?, tempo_preparazione=? "
-        + " WHERE id_ricetta=?";
+    private static final String SQL_UPDATE =
+            "UPDATE ricetta SET nome=?, descrizione=?, difficolta=?, tempo_preparazione=? " +
+            "WHERE id_ricetta=?";
 
-    private static final String SQL_DELETE = "DELETE FROM ricetta WHERE id_ricetta = ?";
+    private static final String SQL_DELETE =
+            "DELETE FROM ricetta WHERE id_ricetta = ?";
 
-    private static final String SQL_LIST_SESS_BY_RICETTA = ""
-        + "SELECT sp.\"idSessionePresenza\" AS id, "
-        + "       sp.fk_id_corso, "
-        + "       sp.data, sp.ora_inizio, sp.ora_fine, "
-        + "       sp.via, sp.num, sp.cap, sp.aula, sp.posti_max "
-        + "  FROM sessione_presenza sp "
-        + "  JOIN sessione_presenza_ricetta spr "
-        + "    ON spr.fk_id_sess_pr = sp.\"idSessionePresenza\" "
-        + " WHERE spr.fk_id_ricetta = ? "
-        + " ORDER BY sp.data, sp.ora_inizio";
+    private static final String SQL_LIST_SESS_BY_RICETTA =
+            "SELECT sp.\"idSessionePresenza\" AS id, sp.fk_id_corso, sp.data, sp.ora_inizio, sp.ora_fine, " +
+            "sp.via, sp.num, sp.cap, sp.aula, sp.posti_max " +
+            "FROM sessione_presenza sp " +
+            "JOIN sessione_presenza_ricetta spr ON spr.fk_id_sess_pr = sp.\"idSessionePresenza\" " +
+            "WHERE spr.fk_id_ricetta = ? " +
+            "ORDER BY sp.data, sp.ora_inizio";
 
-    private static final String SQL_ADD_LINK = ""
-        + "INSERT INTO sessione_presenza_ricetta (fk_id_sess_pr, fk_id_ricetta) "
-        + "VALUES (?, ?) "
-        + "ON CONFLICT (fk_id_sess_pr, fk_id_ricetta) DO NOTHING";
+    private static final String SQL_ADD_LINK =
+            "INSERT INTO sessione_presenza_ricetta (fk_id_sess_pr, fk_id_ricetta) VALUES (?, ?) " +
+            "ON CONFLICT (fk_id_sess_pr, fk_id_ricetta) DO NOTHING";
 
-    private static final String SQL_REMOVE_LINK = ""
-        + "DELETE FROM sessione_presenza_ricetta "
-        + " WHERE fk_id_sess_pr = ? AND fk_id_ricetta = ?";
+    private static final String SQL_REMOVE_LINK =
+            "DELETE FROM sessione_presenza_ricetta WHERE fk_id_sess_pr = ? AND fk_id_ricetta = ?";
 
-    private static final String SQL_LIST_RICETTE_BY_SESSIONE = ""
-        + "SELECT r.id_ricetta "
-        + "  FROM sessione_presenza_ricetta spr "
-        + "  JOIN ricetta r ON r.id_ricetta = spr.fk_id_ricetta "
-        + " WHERE spr.fk_id_sess_pr = ?";
+    private static final String SQL_LIST_RICETTE_BY_SESSIONE =
+            "SELECT r.id_ricetta FROM sessione_presenza_ricetta spr " +
+            "JOIN ricetta r ON r.id_ricetta = spr.fk_id_ricetta " +
+            "WHERE spr.fk_id_sess_pr = ?";
 
-    public RicettaDao() { }
-
-
+    public RicettaDao() {}
 
     public List<Ricetta> findAll() throws Exception {
-        List<Ricetta> out = new ArrayList<Ricetta>();
+        List<Ricetta> out = new ArrayList<>();
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -92,8 +81,7 @@ public class RicettaDao {
             ps = conn.prepareStatement(SQL_FIND_BY_ID);
             ps.setLong(1, id);
             rs = ps.executeQuery();
-            if (rs.next()) return mapRow(rs);
-            return null;
+            return rs.next() ? mapRow(rs) : null;
         } finally {
             closeQuiet(rs);
             closeQuiet(ps);
@@ -157,9 +145,8 @@ public class RicettaDao {
         }
     }
 
-
     public List<SessionePresenza> listSessioniByRicetta(long idRicetta) throws Exception {
-        List<SessionePresenza> out = new ArrayList<SessionePresenza>();
+        List<SessionePresenza> out = new ArrayList<>();
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -176,16 +163,16 @@ public class RicettaDao {
                 sp.setOraFine(rs.getTime("ora_fine").toLocalTime());
                 sp.setVia(rs.getString("via"));
                 sp.setNum(rs.getString("num"));
-                int cap = rs.getInt("cap"); if (rs.wasNull()) cap = 0;
+                int cap = rs.getInt("cap");
+                if (rs.wasNull()) cap = 0;
                 sp.setCap(cap);
                 sp.setAula(rs.getString("aula"));
-                int pm = rs.getInt("posti_max"); if (rs.wasNull()) pm = 0;
+                int pm = rs.getInt("posti_max");
+                if (rs.wasNull()) pm = 0;
                 sp.setPostiMax(pm);
-
                 Corso c = new Corso();
                 c.setIdCorso(rs.getLong("fk_id_corso"));
                 sp.setCorso(c);
-
                 out.add(sp);
             }
             return out;
@@ -204,7 +191,7 @@ public class RicettaDao {
             ps = conn.prepareStatement(SQL_ADD_LINK);
             ps.setInt(1, idSessionePresenza);
             ps.setLong(2, idRicetta);
-            ps.executeUpdate(); 
+            ps.executeUpdate();
         } finally {
             closeQuiet(ps);
             closeQuiet(conn);
@@ -236,13 +223,11 @@ public class RicettaDao {
             oldAuto = conn.getAutoCommit();
             conn.setAutoCommit(false);
 
-            Set<Long> attuali = new HashSet<Long>();
+            Set<Long> attuali = new HashSet<>();
             ps = conn.prepareStatement(SQL_LIST_RICETTE_BY_SESSIONE);
             ps.setInt(1, idSessionePresenza);
             rs = ps.executeQuery();
-            while (rs.next()) {
-                attuali.add(Long.valueOf(rs.getLong(1)));
-            }
+            while (rs.next()) attuali.add(rs.getLong(1));
             rs.close(); rs = null;
             ps.close(); ps = null;
 
@@ -250,7 +235,7 @@ public class RicettaDao {
             for (Long idAdd : nuoviIds) {
                 if (!attuali.contains(idAdd)) {
                     ps.setInt(1, idSessionePresenza);
-                    ps.setLong(2, idAdd.longValue());
+                    ps.setLong(2, idAdd);
                     ps.addBatch();
                 }
             }
@@ -261,12 +246,11 @@ public class RicettaDao {
             for (Long idRem : attuali) {
                 if (!nuoviIds.contains(idRem)) {
                     ps.setInt(1, idSessionePresenza);
-                    ps.setLong(2, idRem.longValue());
+                    ps.setLong(2, idRem);
                     ps.addBatch();
                 }
             }
             ps.executeBatch();
-
             conn.commit();
         } catch (Exception ex) {
             if (conn != null) {
@@ -282,8 +266,6 @@ public class RicettaDao {
             closeQuiet(conn);
         }
     }
-
-
 
     private Ricetta mapRow(ResultSet rs) throws SQLException {
         Ricetta r = new Ricetta();
@@ -304,6 +286,6 @@ public class RicettaDao {
     }
 
     private static void closeQuiet(AutoCloseable c) {
-        if (c != null) { try { c.close(); } catch (Exception ignore) {} }
+        if (c != null) try { c.close(); } catch (Exception ignore) {}
     }
 }

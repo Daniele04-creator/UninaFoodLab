@@ -7,14 +7,18 @@ import it.unina.foodlab.model.SessioneOnline;
 import it.unina.foodlab.model.SessionePresenza;
 import it.unina.foodlab.util.Db;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CorsoDao {
 
-  
     private final String schema;
     private final String ownerCfChef;
     private final boolean restrictFindAllToOwner;
@@ -24,50 +28,53 @@ public class CorsoDao {
     }
 
     public CorsoDao(String ownerCfChef, String schema, boolean restrictFindAllToOwner) {
-        if (ownerCfChef == null || ownerCfChef.trim().isEmpty())
+        if (ownerCfChef == null || ownerCfChef.trim().isEmpty()) {
             throw new IllegalArgumentException("CF_Chef mancante per CorsoDao");
-        if (schema == null || schema.trim().isEmpty())
+        }
+        if (schema == null || schema.trim().isEmpty()) {
             schema = "public";
+        }
         this.ownerCfChef = ownerCfChef.trim();
         this.schema = schema.trim();
         this.restrictFindAllToOwner = restrictFindAllToOwner;
     }
 
-
-    private String tbl(String name) { return schema + "." + name; }
+    private String tbl(String name) {
+        return schema + "." + name;
+    }
 
     private String sqlFindAll() {
         return ""
-            + "SELECT  c.id_corso, c.data_inizio, c.data_fine, c.argomento, c.frequenza, c.\"numSessioni\" AS num_sessioni, "
-            + "        ch.CF_Chef, ch.nome, ch.cognome, ch.username, ch.password "
-            + "FROM " + tbl("corso") + " c "
-            + "LEFT JOIN " + tbl("chef") + " ch ON ch.CF_Chef = c.fk_cf_chef "
-            + (restrictFindAllToOwner ? "WHERE c.fk_cf_chef = ? " : "")
-            + "ORDER BY c.data_inizio DESC";
+                + "SELECT  c.id_corso, c.data_inizio, c.data_fine, c.argomento, c.frequenza, c.\"numSessioni\" AS num_sessioni, "
+                + "        ch.CF_Chef, ch.nome, ch.cognome, ch.username, ch.password "
+                + "FROM " + tbl("corso") + " c "
+                + "LEFT JOIN " + tbl("chef") + " ch ON ch.CF_Chef = c.fk_cf_chef "
+                + (restrictFindAllToOwner ? "WHERE c.fk_cf_chef = ? " : "")
+                + "ORDER BY c.data_inizio DESC";
     }
 
     private String sqlFindByIdOwner() {
         return ""
-            + "SELECT  c.id_corso, c.data_inizio, c.data_fine, c.argomento, c.frequenza, c.\"numSessioni\" AS num_sessioni, "
-            + "        ch.CF_Chef, ch.nome, ch.cognome, ch.username, ch.password "
-            + "FROM " + tbl("corso") + " c "
-            + "JOIN " + tbl("chef") + " ch ON c.fk_cf_chef = ch.CF_Chef "
-            + "WHERE c.id_corso = ? AND c.fk_cf_chef = ?";
+                + "SELECT  c.id_corso, c.data_inizio, c.data_fine, c.argomento, c.frequenza, c.\"numSessioni\" AS num_sessioni, "
+                + "        ch.CF_Chef, ch.nome, ch.cognome, ch.username, ch.password "
+                + "FROM " + tbl("corso") + " c "
+                + "JOIN " + tbl("chef") + " ch ON c.fk_cf_chef = ch.CF_Chef "
+                + "WHERE c.id_corso = ? AND c.fk_cf_chef = ?";
     }
 
     private String sqlInsertCorso() {
         return ""
-            + "INSERT INTO " + tbl("corso")
-            + " (data_inizio, data_fine, argomento, frequenza, \"numSessioni\", fk_cf_chef) "
-            + "VALUES (?, ?, ?, ?, ?, ?) "
-            + "RETURNING id_corso";
+                + "INSERT INTO " + tbl("corso")
+                + " (data_inizio, data_fine, argomento, frequenza, \"numSessioni\", fk_cf_chef) "
+                + "VALUES (?, ?, ?, ?, ?, ?) "
+                + "RETURNING id_corso";
     }
 
     private String sqlUpdateCorso() {
         return ""
-            + "UPDATE " + tbl("corso") + " "
-            + "   SET data_inizio = ?, data_fine = ?, argomento = ?, frequenza = ?, \"numSessioni\" = ? "
-            + " WHERE id_corso = ? AND fk_cf_chef = ?";
+                + "UPDATE " + tbl("corso") + " "
+                + "   SET data_inizio = ?, data_fine = ?, argomento = ?, frequenza = ?, \"numSessioni\" = ? "
+                + " WHERE id_corso = ? AND fk_cf_chef = ?";
     }
 
     private String sqlDeleteCorso() {
@@ -76,49 +83,49 @@ public class CorsoDao {
 
     private String sqlInsertSesOnline() {
         return ""
-            + "INSERT INTO " + tbl("sessione_online")
-            + " (fk_id_corso, data, ora_inizio, ora_fine, piattaforma) "
-            + "VALUES (?, ?, ?, ?, ?)";
+                + "INSERT INTO " + tbl("sessione_online")
+                + " (fk_id_corso, data, ora_inizio, ora_fine, piattaforma) "
+                + "VALUES (?, ?, ?, ?, ?)";
     }
 
     private String sqlInsertSesPresenza() {
         return ""
-            + "INSERT INTO " + tbl("sessione_presenza")
-            + " (fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "INSERT INTO " + tbl("sessione_presenza")
+                + " (fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     }
 
     private String sqlDistinctArg() {
         return ""
-            + "SELECT a FROM ( "
-            + "  SELECT DISTINCT TRIM(argomento) AS a "
-            + "  FROM " + tbl("corso") + " "
-            + "  WHERE argomento IS NOT NULL AND TRIM(argomento) <> '' "
-            + ") t "
-            + "ORDER BY LOWER(a), a";
+                + "SELECT a FROM ( "
+                + "  SELECT DISTINCT TRIM(argomento) AS a "
+                + "  FROM " + tbl("corso") + " "
+                + "  WHERE argomento IS NOT NULL AND TRIM(argomento) <> '' "
+                + ") t "
+                + "ORDER BY LOWER(a), a";
     }
 
     private String sqlDistinctFreq() {
         return ""
-            + "SELECT f FROM ( "
-            + "  SELECT DISTINCT TRIM(frequenza) AS f "
-            + "  FROM " + tbl("corso") + " "
-            + "  WHERE frequenza IS NOT NULL AND TRIM(frequenza) <> '' "
-            + ") t "
-            + "ORDER BY LOWER(f), f";
+                + "SELECT f FROM ( "
+                + "  SELECT DISTINCT TRIM(frequenza) AS f "
+                + "  FROM " + tbl("corso") + " "
+                + "  WHERE frequenza IS NOT NULL AND TRIM(frequenza) <> '' "
+                + ") t "
+                + "ORDER BY LOWER(f), f";
     }
 
     public List<Corso> findAll() throws Exception {
-        List<Corso> out = new ArrayList<Corso>();
+        List<Corso> out = new ArrayList<>();
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlFindAll())) {
-
             if (restrictFindAllToOwner) {
                 ps.setString(1, ownerCfChef);
             }
-
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) out.add(mapRow(rs));
+                while (rs.next()) {
+                    out.add(mapRow(rs));
+                }
             }
         }
         return out;
@@ -139,62 +146,74 @@ public class CorsoDao {
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlInsertCorso())) {
             bindWithoutOwner(ps, corso);
-            ps.setString(6, ownerCfChef); 
+            ps.setString(6, ownerCfChef);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getLong(1);
+                if (rs.next()) {
+                    return rs.getLong(1);
+                }
                 throw new SQLException("Insert corso: ID non restituito");
             }
         }
     }
 
-
     public void update(Corso corso) throws Exception {
-        if (corso.getIdCorso() <= 0) throw new IllegalArgumentException("idCorso mancante");
+        if (corso.getIdCorso() <= 0) {
+            throw new IllegalArgumentException("idCorso mancante");
+        }
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlUpdateCorso())) {
             bindWithoutOwner(ps, corso);
             ps.setLong(6, corso.getIdCorso());
             ps.setString(7, ownerCfChef);
             int n = ps.executeUpdate();
-            if (n != 1) throw new SQLException("Update negato o nessuna riga (id=" + corso.getIdCorso() + ")");
+            if (n != 1) {
+                throw new SQLException("Update negato o nessuna riga (id=" + corso.getIdCorso() + ")");
+            }
         }
     }
 
- 
     public void delete(long id) throws Exception {
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlDeleteCorso())) {
             ps.setLong(1, id);
             ps.setString(2, ownerCfChef);
             int n = ps.executeUpdate();
-            if (n != 1) throw new SQLException("Delete negato o nessuna riga (id=" + id + ")");
+            if (n != 1) {
+                throw new SQLException("Delete negato o nessuna riga (id=" + id + ")");
+            }
         }
     }
 
-
     public long insertWithSessions(Corso c, List<Sessione> sessions) throws Exception {
-        if (c == null) throw new IllegalArgumentException("Corso nullo");
-        if (sessions == null || sessions.isEmpty()) throw new IllegalArgumentException("Nessuna sessione");
-
+        if (c == null) {
+            throw new IllegalArgumentException("Corso nullo");
+        }
+        if (sessions == null || sessions.isEmpty()) {
+            throw new IllegalArgumentException("Nessuna sessione");
+        }
         try (Connection conn = Db.get()) {
             boolean oldAuto = conn.getAutoCommit();
             int oldIso = conn.getTransactionIsolation();
             try {
                 conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
                 conn.setAutoCommit(false);
-
                 long idCorso = insertCorso(conn, c);
-                for (int i = 0; i < sessions.size(); i++) {
-                    insertSession(conn, idCorso, sessions.get(i));
+                for (Sessione s : sessions) {
+                    insertSession(conn, idCorso, s);
                 }
                 conn.commit();
                 return idCorso;
-
             } catch (Exception ex) {
-                try { conn.rollback(); } catch (Exception ignore) {}
+                try {
+                    conn.rollback();
+                } catch (Exception ignore) {
+                }
                 throw ex;
             } finally {
-                try { conn.setTransactionIsolation(oldIso); } catch (Exception ignore) {}
+                try {
+                    conn.setTransactionIsolation(oldIso);
+                } catch (Exception ignore) {
+                }
                 conn.setAutoCommit(oldAuto);
             }
         }
@@ -250,47 +269,44 @@ public class CorsoDao {
         }
     }
 
-   
-  
-
     public List<String> findDistinctArgomenti() throws Exception {
-        List<String> out = new ArrayList<String>();
+        List<String> out = new ArrayList<>();
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlDistinctArg());
              ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) out.add(rs.getString(1));
+            while (rs.next()) {
+                out.add(rs.getString(1));
+            }
         }
         return out;
     }
 
     public List<String> findDistinctFrequenze() throws Exception {
-        List<String> out = new ArrayList<String>();
+        List<String> out = new ArrayList<>();
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlDistinctFreq());
              ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) out.add(rs.getString(1));
+            while (rs.next()) {
+                out.add(rs.getString(1));
+            }
         }
         return out;
     }
 
-   
-
     private Corso mapRow(ResultSet rs) throws SQLException {
         Corso c = new Corso();
         c.setIdCorso(rs.getLong("id_corso"));
-
         Date di = rs.getDate("data_inizio");
         Date df = rs.getDate("data_fine");
         c.setDataInizio(di != null ? di.toLocalDate() : null);
         c.setDataFine(df != null ? df.toLocalDate() : null);
-
         c.setArgomento(rs.getString("argomento"));
         c.setFrequenza(rs.getString("frequenza"));
-
         int ns = rs.getInt("num_sessioni");
-        if (rs.wasNull()) ns = 1;
+        if (rs.wasNull()) {
+            ns = 1;
+        }
         c.setNumSessioni(ns);
-
         Chef chef = new Chef();
         chef.setCF_Chef(rs.getString("CF_Chef"));
         chef.setNome(rs.getString("nome"));
@@ -298,27 +314,28 @@ public class CorsoDao {
         chef.setUsername(rs.getString("username"));
         chef.setPassword(rs.getString("password"));
         c.setChef(chef);
-
         return c;
     }
 
-   
     private void bindWithoutOwner(PreparedStatement ps, Corso c) throws SQLException {
         LocalDate di = c.getDataInizio();
         LocalDate df = c.getDataFine();
-
-        if (di == null || df == null)
+        if (di == null || df == null) {
             throw new SQLException("data_inizio e data_fine sono obbligatorie");
-        if (di.isAfter(df))
+        }
+        if (di.isAfter(df)) {
             throw new SQLException("data_inizio non può essere successiva a data_fine");
-        if (c.getArgomento() == null || c.getArgomento().trim().isEmpty())
+        }
+        if (c.getArgomento() == null || c.getArgomento().trim().isEmpty()) {
             throw new SQLException("argomento obbligatorio");
-        if (c.getFrequenza() == null || c.getFrequenza().trim().isEmpty())
+        }
+        if (c.getFrequenza() == null || c.getFrequenza().trim().isEmpty()) {
             throw new SQLException("frequenza obbligatoria");
-
+        }
         int ns = c.getNumSessioni();
-        if (ns < 1) throw new SQLException("\"numSessioni\" deve essere >= 1");
-
+        if (ns < 1) {
+            throw new SQLException("\"numSessioni\" deve essere >= 1");
+        }
         ps.setDate(1, Date.valueOf(di));
         ps.setDate(2, Date.valueOf(df));
         ps.setString(3, c.getArgomento());
@@ -326,11 +343,18 @@ public class CorsoDao {
         ps.setInt(5, ns);
     }
 
-    public String getOwnerCfChef() { return ownerCfChef; }
-    public String getSchema() { return schema; }
-    public boolean isRestrictFindAllToOwner() { return restrictFindAllToOwner; }
+    public String getOwnerCfChef() {
+        return ownerCfChef;
+    }
 
-   
+    public String getSchema() {
+        return schema;
+    }
+
+    public boolean isRestrictFindAllToOwner() {
+        return restrictFindAllToOwner;
+    }
+
     public String sanityCheck() {
         Connection conn = null;
         try {
@@ -341,7 +365,12 @@ public class CorsoDao {
         } catch (Exception ex) {
             return "[CorsoDao] sanityCheck ERROR: " + ex.getMessage();
         } finally {
-            if (conn != null) try { conn.close(); } catch (Exception ignore) {}
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception ignore) {
+                }
+            }
         }
     }
 }

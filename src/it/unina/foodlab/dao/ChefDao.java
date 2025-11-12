@@ -5,9 +5,10 @@ import it.unina.foodlab.util.Db;
 
 import java.sql.*;
 
+
 public class ChefDao {
 
-	private static final String TBL_CHEF       = "chef";
+	private static final String TBL_CHEF       = "chef"; 
 	private static final String COL_CF         = "cf_chef";
 	private static final String COL_USERNAME   = "username";
 	private static final String COL_NOME       = "nome";

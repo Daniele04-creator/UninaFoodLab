@@ -7,6 +7,7 @@
             fx:controller="it.unina.foodlab.controller.SessioniWizardController"
             fx:id="dialogPane"
             prefWidth="1100" prefHeight="700"
+            stylesheets="@/it/unina/foodlab/util/dark-theme.css"
             style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
                    -fx-border-color: rgba(255,255,255,0.06);
                    -fx-background-radius:12; -fx-border-radius:12;

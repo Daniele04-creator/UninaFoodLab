@@ -12,12 +12,13 @@ import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,43 +33,27 @@ public class SessioniPreviewController {
 
     private final ObservableList<Sessione> backing = FXCollections.observableArrayList();
     private final FilteredList<Sessione> filtered = new FilteredList<>(backing, s -> true);
-    private Corso corso;
     private SessioneDao sessioneDao;
 
     public void init(Corso corso, List<Sessione> sessioni, SessioneDao sessioneDao) {
-        this.corso = corso;
         this.sessioneDao = sessioneDao;
-        
-        if (dialogPane != null) {
-            dialogPane.getStyleClass().add("sessioni-preview");
-            dialogPane.getStylesheets().add(getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm());
-        }
 
-        // Header
         if (lblHeader != null) {
             String titolo = (corso != null && corso.getArgomento() != null) ? corso.getArgomento() : "Corso";
             lblHeader.setText("Sessioni — " + titolo);
         }
 
-   
-
-        // Configura ListView
         if (lv != null) {
             lv.setItems(filtered);
-            lv.getStyleClass().add("list-view");
             lv.setCellFactory(list -> new CardCell());
-
             lv.setOnMouseClicked(e -> {
                 if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
                     Sessione sel = lv.getSelectionModel().getSelectedItem();
-                    if (sel instanceof SessionePresenza sp) {
-                        openRicetteDialog(sp);
-                    }
+                    if (sel instanceof SessionePresenza sp) openRicetteDialog(sp);
                 }
             });
         }
 
-        // Filtri toggle
         if (tgAll != null) {
             tgAll.setSelected(true);
             tgAll.setOnAction(e -> {
@@ -95,14 +80,11 @@ public class SessioniPreviewController {
             });
         }
 
-        // Search
         if (txtSearch != null) {
             txtSearch.textProperty().addListener((o, a, b) -> refilter());
             txtSearch.setPromptText("Cerca");
-            txtSearch.getStyleClass().add("text-field");
         }
 
-        // Carica dati
         backing.clear();
         if (sessioni != null) backing.addAll(sessioni);
         refilter();
@@ -117,10 +99,8 @@ public class SessioniPreviewController {
 
         filtered.setPredicate(s -> {
             if (s == null) return false;
-
             if (onlyOnline && !(s instanceof SessioneOnline)) return false;
             if (onlyPresenza && !(s instanceof SessionePresenza)) return false;
-
             if (q.isEmpty()) return true;
 
             String dataStr = (s.getData() != null) ? s.getData().toString() : "";
@@ -159,41 +139,22 @@ public class SessioniPreviewController {
         dlg.setTitle("Ricette — sessione del " + (sp.getData() != null ? df.format(sp.getData()) : ""));
 
         DialogPane pane = new DialogPane();
-        pane.getStyleClass().addAll("sessioni-preview", "dialog-pane");
-        // È buona norma lasciare il caricamento del CSS per gli altri stili
-        pane.getStylesheets().add(getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm());
         pane.getButtonTypes().setAll(ButtonType.CLOSE);
 
         TableView<Ricetta> tv = buildRicetteTable(lista);
         pane.setContent(tv);
-
         dlg.setDialogPane(pane);
-
-        Button closeBtn = (Button) pane.lookupButton(ButtonType.CLOSE);
-        if (closeBtn != null) {
-            // Applichiamo lo stile direttamente inline
-            closeBtn.setStyle(
-                "-fx-background-color: #2b3438; " +
-                "-fx-text-fill: #e9f5ec; " +
-                "-fx-font-weight: 700; " +
-                "-fx-background-radius: 10; " +
-                "-fx-padding: 8 16;"
-            );
-        }
 
         dlg.setResizable(true);
         dlg.setOnShown(ev -> {
             Node c = pane.getContent();
-            if (c instanceof Region region) {
-                region.setPrefSize(900, 520);
-            }
+            if (c instanceof Region region) region.setPrefSize(900, 520);
         });
         dlg.showAndWait();
     }
 
     private TableView<Ricetta> buildRicetteTable(List<Ricetta> data) {
         TableView<Ricetta> tv = new TableView<>();
-        tv.getStyleClass().add("table-view");
         tv.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         tv.setTableMenuButtonVisible(false);
         tv.setFixedCellSize(40);
@@ -210,7 +171,6 @@ public class SessioniPreviewController {
                 super.updateItem(s, empty);
                 if (empty || s == null) { setGraphic(null); return; }
                 chip.setText(s);
-                chip.getStyleClass().setAll("chip", s.trim().toLowerCase());
                 setGraphic(chip);
             }
         });
@@ -230,7 +190,6 @@ public class SessioniPreviewController {
         colDesc.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
         colDesc.setCellFactory(tc -> new TableCell<>() {
             private final Label lbl = new Label();
-            { lbl.getStyleClass().add("table-description"); }
             @Override protected void updateItem(String s, boolean empty) {
                 super.updateItem(s, empty);
                 if (empty || s == null) { setGraphic(null); return; }
@@ -239,13 +198,9 @@ public class SessioniPreviewController {
             }
         });
 
-        tv.getColumns().setAll(colNome, colDiff, colTempo, colDesc);
+        tv.getColumns().setAll(List.of(colNome, colDiff, colTempo, colDesc));
         if (data != null) tv.getItems().addAll(data);
-
-        Label ph = new Label("Nessuna ricetta associata.");
-        ph.getStyleClass().add("table-placeholder");
-        tv.setPlaceholder(ph);
-
+        tv.setPlaceholder(new Label("Nessuna ricetta associata."));
         return tv;
     }
 
@@ -256,17 +211,10 @@ public class SessioniPreviewController {
         private final Label labRiga3 = new Label();
 
         CardCell() {
-            super();
-            card.getStyleClass().add("card-cell");
-            labTipo.getStyleClass().add("label-tipo");
-            labRiga2.getStyleClass().add("label-riga2");
-            labRiga3.getStyleClass().add("label-riga3");
-
             card.getChildren().addAll(labTipo, labRiga2, labRiga3);
             card.setSpacing(3);
             card.setPadding(new Insets(10));
             card.setAlignment(Pos.CENTER_LEFT);
-
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
             setGraphic(card);
         }
@@ -276,7 +224,6 @@ public class SessioniPreviewController {
             super.updateItem(s, empty);
             if (empty || s == null) {
                 setGraphic(null);
-                setCursor(Cursor.DEFAULT);
                 return;
             }
             render(s);
@@ -286,25 +233,24 @@ public class SessioniPreviewController {
         private void render(Sessione s) {
             DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             DateTimeFormatter tf = DateTimeFormatter.ofPattern("HH:mm");
-
             String data = (s.getData() != null) ? df.format(s.getData()) : "";
             String orari = (s.getOraInizio() != null ? tf.format(s.getOraInizio()) : "") +
                     "–" + (s.getOraFine() != null ? tf.format(s.getOraFine()) : "");
 
             if (s instanceof SessioneOnline so) {
                 labTipo.setText("ONLINE");
-                labTipo.getStyleClass().removeAll("tipo-presenza");
-                labTipo.getStyleClass().add("tipo-online");
                 labRiga2.setText(data + "   " + orari);
                 labRiga3.setText(nz(so.getPiattaforma()));
             } else if (s instanceof SessionePresenza sp) {
                 labTipo.setText("PRESENZA");
-                labTipo.getStyleClass().removeAll("tipo-online");
-                labTipo.getStyleClass().add("tipo-presenza");
                 labRiga2.setText(data + "   " + orari);
                 String ind = join(" ", nz(sp.getVia()), nz(sp.getNum()),
                         (sp.getCap() > 0 ? String.valueOf(sp.getCap()) : ""), nz(sp.getAula()));
                 labRiga3.setText(ind.trim());
+            } else {
+                labTipo.setText("");
+                labRiga2.setText(data + "   " + orari);
+                labRiga3.setText("");
             }
         }
     }

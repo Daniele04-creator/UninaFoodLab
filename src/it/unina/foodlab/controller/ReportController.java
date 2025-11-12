@@ -31,218 +31,218 @@ import java.awt.Color;
 
 public class ReportController {
 
-    private final String cfChef;
-    private Parent previousRoot;
-    public void setPreviousRoot(Parent n) { this.previousRoot = n; }
+	private final String cfChef;
+	private Parent previousRoot;
+	public void setPreviousRoot(Parent n) { this.previousRoot = n; }
 
-    private final ReportDao reportDao = new ReportDao();
+	private final ReportDao reportDao = new ReportDao();
 
-    @FXML private BorderPane root;
-    @FXML private Button btnIndietro;
-    @FXML private ComboBox<String> cbMese;
-    @FXML private ComboBox<Integer> cbAnno;
-    @FXML private Button btnCrea;
-    @FXML private Label lblTitolo;
-    @FXML private VBox cardValori;
-    @FXML private GridPane gridValori;
-    @FXML private ScrollPane spCharts;
-    @FXML private VBox rightCharts;
+	@FXML private BorderPane root;
+	@FXML private Button btnIndietro;
+	@FXML private ComboBox<String> cbMese;
+	@FXML private ComboBox<Integer> cbAnno;
+	@FXML private Button btnCrea;
+	@FXML private Label lblTitolo;
+	@FXML private VBox cardValori;
+	@FXML private GridPane gridValori;
+	@FXML private ScrollPane spCharts;
+	@FXML private VBox rightCharts;
 
-    public ReportController(String cfChef) {
-        this.cfChef = cfChef;
-    }
+	public ReportController(String cfChef) {
+		this.cfChef = cfChef;
+	}
 
-    @FXML
-    private void initialize() {
-        if (root != null) root.getStyleClass().add("report-controller");
-        initComboMeseAnno();
-        if (btnCrea != null) btnCrea.setOnAction(this::onGenera);
-        if (btnIndietro != null) btnIndietro.setOnAction(e -> onIndietro());
-        ensureGridColumns();
-        fixChartsArea();
-        YearMonth ym = getSelectedYearMonth();
-        if (lblTitolo != null) lblTitolo.setText("Report Mensile - " + ym.getMonth() + " " + ym.getYear());
-        Platform.runLater(() -> onGenera(null));
-    }
+	@FXML
+	private void initialize() {
+		if (root != null) root.getStyleClass().add("report-controller");
+		initComboMeseAnno();
+		if (btnCrea != null) btnCrea.setOnAction(this::onGenera);
+		if (btnIndietro != null) btnIndietro.setOnAction(e -> onIndietro());
+		ensureGridColumns();
+		fixChartsArea();
+		YearMonth ym = getSelectedYearMonth();
+		if (lblTitolo != null) lblTitolo.setText("Report Mensile - " + ym.getMonth() + " " + ym.getYear());
+		Platform.runLater(() -> onGenera(null));
+	}
 
-    private void initComboMeseAnno() {
-        if (cbMese != null) {
-            cbMese.setItems(FXCollections.observableArrayList(
-                    "Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno",
-                    "Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"
-            ));
-            cbMese.getSelectionModel().select(LocalDate.now().getMonthValue() - 1);
-        }
-        if (cbAnno != null) {
-            int anno = LocalDate.now().getYear();
-            ObservableList<Integer> anni = FXCollections.observableArrayList();
-            for (int y = anno; y >= anno - 5; y--) anni.add(y);
-            cbAnno.setItems(anni);
-            cbAnno.getSelectionModel().selectFirst();
-        }
-    }
+	private void initComboMeseAnno() {
+		if (cbMese != null) {
+			cbMese.setItems(FXCollections.observableArrayList(
+					"Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno",
+					"Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"
+					));
+			cbMese.getSelectionModel().select(LocalDate.now().getMonthValue() - 1);
+		}
+		if (cbAnno != null) {
+			int anno = LocalDate.now().getYear();
+			ObservableList<Integer> anni = FXCollections.observableArrayList();
+			for (int y = anno; y >= anno - 5; y--) anni.add(y);
+			cbAnno.setItems(anni);
+			cbAnno.getSelectionModel().selectFirst();
+		}
+	}
 
-    private void ensureGridColumns() {
-        if (gridValori != null && gridValori.getColumnConstraints().isEmpty()) {
-            ColumnConstraints c1 = new ColumnConstraints();
-            c1.setHalignment(HPos.LEFT);
-            c1.setPercentWidth(45);
-            ColumnConstraints c2 = new ColumnConstraints();
-            c2.setHalignment(HPos.LEFT);
-            c2.setPercentWidth(55);
-            gridValori.getColumnConstraints().addAll(c1, c2);
-        }
-    }
+	private void ensureGridColumns() {
+		if (gridValori != null && gridValori.getColumnConstraints().isEmpty()) {
+			ColumnConstraints c1 = new ColumnConstraints();
+			c1.setHalignment(HPos.LEFT);
+			c1.setPercentWidth(45);
+			ColumnConstraints c2 = new ColumnConstraints();
+			c2.setHalignment(HPos.LEFT);
+			c2.setPercentWidth(55);
+			gridValori.getColumnConstraints().addAll(c1, c2);
+		}
+	}
 
-    private void fixChartsArea() {
-        if (spCharts != null) spCharts.setFitToWidth(true);
-        if (rightCharts != null) rightCharts.setFillWidth(true);
-    }
+	private void fixChartsArea() {
+		if (spCharts != null) spCharts.setFitToWidth(true);
+		if (rightCharts != null) rightCharts.setFillWidth(true);
+	}
 
-    private YearMonth getSelectedYearMonth() {
-        Integer a = (cbAnno != null) ? cbAnno.getValue() : null;
-        int mIdx = (cbMese != null) ? cbMese.getSelectionModel().getSelectedIndex() : -1;
-        if (a != null && mIdx >= 0) return YearMonth.of(a, mIdx + 1);
-        return YearMonth.from(LocalDate.now());
-    }
+	private YearMonth getSelectedYearMonth() {
+		Integer a = (cbAnno != null) ? cbAnno.getValue() : null;
+		int mIdx = (cbMese != null) ? cbMese.getSelectionModel().getSelectedIndex() : -1;
+		if (a != null && mIdx >= 0) return YearMonth.of(a, mIdx + 1);
+		return YearMonth.from(LocalDate.now());
+	}
 
-    @FXML
-    private void onGenera(ActionEvent e) {
-        if (btnCrea != null) btnCrea.setDisable(true);
-        try {
-            YearMonth ym = getSelectedYearMonth();
-            ReportMensile r = reportDao.getReportMensile(cfChef, ym);
-            if (lblTitolo != null) lblTitolo.setText("Report Mensile - " + ym.getMonth() + " " + ym.getYear());
+	@FXML
+	private void onGenera(ActionEvent e) {
+		if (btnCrea != null) btnCrea.setDisable(true);
+		try {
+			YearMonth ym = getSelectedYearMonth();
+			ReportMensile r = reportDao.getReportMensile(cfChef, ym);
+			if (lblTitolo != null) lblTitolo.setText("Report Mensile - " + ym.getMonth() + " " + ym.getYear());
 
-            ensureGridColumns();
-            gridValori.getChildren().clear();
+			ensureGridColumns();
+			gridValori.getChildren().clear();
 
-            addRow("Corsi totali:", str(r.totaleCorsi()), 0);
-            addRow("Sessioni online:", str(r.totaleOnline()), 1);
-            addRow("Sessioni pratiche:", str(r.totalePratiche()), 2);
-            addRow("Ricette - Media:", r.mediaRicettePratiche() == null ? "—" : fmt(r.mediaRicettePratiche()), 3);
-            addRow("Ricette - Max:", r.maxRicettePratiche() == null ? "—" : String.valueOf(r.maxRicettePratiche()), 4);
-            addRow("Ricette - Min:", r.minRicettePratiche() == null ? "—" : String.valueOf(r.minRicettePratiche()), 5);
+			addRow("Corsi totali:", str(r.totaleCorsi()), 0);
+			addRow("Sessioni online:", str(r.totaleOnline()), 1);
+			addRow("Sessioni pratiche:", str(r.totalePratiche()), 2);
+			addRow("Ricette - Media:", r.mediaRicettePratiche() == null ? "—" : fmt(r.mediaRicettePratiche()), 3);
+			addRow("Ricette - Max:", r.maxRicettePratiche() == null ? "—" : String.valueOf(r.maxRicettePratiche()), 4);
+			addRow("Ricette - Min:", r.minRicettePratiche() == null ? "—" : String.valueOf(r.minRicettePratiche()), 5);
 
-            if (rightCharts != null) rightCharts.getChildren().clear();
+			if (rightCharts != null) rightCharts.getChildren().clear();
 
-            DefaultCategoryDataset ds1 = new DefaultCategoryDataset();
-            ds1.addValue(r.totaleCorsi(), "Conteggi", "Corsi");
-            ds1.addValue(r.totaleOnline(), "Conteggi", "Online");
-            ds1.addValue(r.totalePratiche(), "Conteggi", "Pratiche");
+			DefaultCategoryDataset ds1 = new DefaultCategoryDataset();
+			ds1.addValue(r.totaleCorsi(), "Conteggi", "Corsi");
+			ds1.addValue(r.totaleOnline(), "Conteggi", "Online");
+			ds1.addValue(r.totalePratiche(), "Conteggi", "Pratiche");
 
-            JFreeChart chart1 = ChartFactory.createBarChart(
-                    "Corsi & Sessioni (" + ym.getMonth() + " " + ym.getYear() + ")",
-                    "Categoria", "Numero", ds1);
-            styleChart(chart1, new Color(66,133,244));
-            ChartViewer v1 = new ChartViewer(chart1);
-            v1.setPrefSize(520, 320);
-            if (rightCharts != null) rightCharts.getChildren().add(wrapChart(v1));
-            animateDataset(ds1);
+			JFreeChart chart1 = ChartFactory.createBarChart(
+					"Corsi & Sessioni (" + ym.getMonth() + " " + ym.getYear() + ")",
+					"Categoria", "Numero", ds1);
+			styleChart(chart1, new Color(66,133,244));
+			ChartViewer v1 = new ChartViewer(chart1);
+			v1.setPrefSize(520, 320);
+			if (rightCharts != null) rightCharts.getChildren().add(wrapChart(v1));
+			animateDataset(ds1);
 
-            DefaultCategoryDataset ds2 = new DefaultCategoryDataset();
-            ds2.addValue(zeroIfNull(r.minRicettePratiche()), "Ricette", "Min");
-            ds2.addValue(zeroIfNull(r.mediaRicettePratiche()), "Ricette", "Media");
-            ds2.addValue(zeroIfNull(r.maxRicettePratiche()), "Ricette", "Max");
+			DefaultCategoryDataset ds2 = new DefaultCategoryDataset();
+			ds2.addValue(zeroIfNull(r.minRicettePratiche()), "Ricette", "Min");
+			ds2.addValue(zeroIfNull(r.mediaRicettePratiche()), "Ricette", "Media");
+			ds2.addValue(zeroIfNull(r.maxRicettePratiche()), "Ricette", "Max");
 
-            JFreeChart chart2 = ChartFactory.createBarChart(
-                    "Ricette per Sessioni Pratiche (" + ym.getMonth() + " " + ym.getYear() + ")",
-                    "Metrica", "N. ricette", ds2);
-            styleChart(chart2, new Color(250,195,0));
-            ChartViewer v2 = new ChartViewer(chart2);
-            v2.setPrefSize(520, 320);
-            if (rightCharts != null) rightCharts.getChildren().add(wrapChart(v2));
-            animateDataset(ds2);
+			JFreeChart chart2 = ChartFactory.createBarChart(
+					"Ricette per Sessioni Pratiche (" + ym.getMonth() + " " + ym.getYear() + ")",
+					"Metrica", "N. ricette", ds2);
+			styleChart(chart2, new Color(250,195,0));
+			ChartViewer v2 = new ChartViewer(chart2);
+			v2.setPrefSize(520, 320);
+			if (rightCharts != null) rightCharts.getChildren().add(wrapChart(v2));
+			animateDataset(ds2);
 
-            chart1.getLegend().setVisible(false);
-            chart2.getLegend().setVisible(false);
+			chart1.getLegend().setVisible(false);
+			chart2.getLegend().setVisible(false);
 
-        } catch (Exception ex) {
-            showError(ex);
-        } finally {
-            if (btnCrea != null) btnCrea.setDisable(false);
-        }
-    }
+		} catch (Exception ex) {
+			showError(ex);
+		} finally {
+			if (btnCrea != null) btnCrea.setDisable(false);
+		}
+	}
 
-    @FXML
-    private void onIndietro() {
-        try {
-            if (previousRoot != null && root != null) {
-                root.getScene().setRoot(previousRoot);
-                Stage st = (Stage) previousRoot.getScene().getWindow();
-                if (st != null) st.setTitle("Corsi");
-            }
-        } catch (Exception ex) {
-            showError(ex);
-        }
-    }
+	@FXML
+	private void onIndietro() {
+		try {
+			if (previousRoot != null && root != null) {
+				root.getScene().setRoot(previousRoot);
+				Stage st = (Stage) previousRoot.getScene().getWindow();
+				if (st != null) st.setTitle("Corsi");
+			}
+		} catch (Exception ex) {
+			showError(ex);
+		}
+	}
 
-    private void addRow(String label, String value, int row) {
-        Label l = new Label(label);
-        Label v = new Label(value);
-        GridPane.setMargin(l, new Insets(2, 0, 2, 0));
-        GridPane.setMargin(v, new Insets(2, 0, 2, 0));
-        gridValori.add(l, 0, row);
-        gridValori.add(v, 1, row);
-    }
+	private void addRow(String label, String value, int row) {
+		Label l = new Label(label);
+		Label v = new Label(value);
+		GridPane.setMargin(l, new Insets(2, 0, 2, 0));
+		GridPane.setMargin(v, new Insets(2, 0, 2, 0));
+		gridValori.add(l, 0, row);
+		gridValori.add(v, 1, row);
+	}
 
-    private String str(int n) { return String.valueOf(n); }
+	private String str(int n) { return String.valueOf(n); }
 
-    private String fmt(Double val) {
-        if (val == null) return "—";
-        return new DecimalFormat("#,##0.00").format(val);
-    }
+	private String fmt(Double val) {
+		if (val == null) return "—";
+		return new DecimalFormat("#,##0.00").format(val);
+	}
 
-    private double zeroIfNull(Number n) { return (n == null) ? 0.0 : n.doubleValue(); }
+	private double zeroIfNull(Number n) { return (n == null) ? 0.0 : n.doubleValue(); }
 
-    private void styleChart(JFreeChart chart, Color accent) {
-        chart.setBackgroundPaint(new Color(0x20,0x28,0x2b));
-        chart.getTitle().setPaint(new Color(0xE9,0xF5,0xEC));
-        if (chart.getPlot() instanceof CategoryPlot plot) {
-            plot.setBackgroundPaint(new Color(0x24,0x2c,0x2f));
-            plot.setDomainGridlinePaint(new Color(255,255,255,30));
-            plot.setRangeGridlinePaint(new Color(255,255,255,30));
-            if (plot.getRenderer() instanceof BarRenderer r) {
-                r.setSeriesPaint(0, accent);
-                r.setDrawBarOutline(false);
-                r.setShadowVisible(false);
-                r.setBarPainter(new org.jfree.chart.renderer.category.StandardBarPainter());
-            }
-            plot.getDomainAxis().setTickLabelPaint(new Color(0xCF,0xE5,0xD9));
-            plot.getRangeAxis().setTickLabelPaint(new Color(0xCF,0xE5,0xD9));
-            plot.getDomainAxis().setLabelPaint(new Color(0xE9,0xF5,0xEC));
-            plot.getRangeAxis().setLabelPaint(new Color(0xE9,0xF5,0xEC));
-        }
-    }
+	private void styleChart(JFreeChart chart, Color accent) {
+		chart.setBackgroundPaint(new Color(0x20,0x28,0x2b));
+		chart.getTitle().setPaint(new Color(0xE9,0xF5,0xEC));
+		if (chart.getPlot() instanceof CategoryPlot plot) {
+			plot.setBackgroundPaint(new Color(0x24,0x2c,0x2f));
+			plot.setDomainGridlinePaint(new Color(255,255,255,30));
+			plot.setRangeGridlinePaint(new Color(255,255,255,30));
+			if (plot.getRenderer() instanceof BarRenderer r) {
+				r.setSeriesPaint(0, accent);
+				r.setDrawBarOutline(false);
+				r.setShadowVisible(false);
+				r.setBarPainter(new org.jfree.chart.renderer.category.StandardBarPainter());
+			}
+			plot.getDomainAxis().setTickLabelPaint(new Color(0xCF,0xE5,0xD9));
+			plot.getRangeAxis().setTickLabelPaint(new Color(0xCF,0xE5,0xD9));
+			plot.getDomainAxis().setLabelPaint(new Color(0xE9,0xF5,0xEC));
+			plot.getRangeAxis().setLabelPaint(new Color(0xE9,0xF5,0xEC));
+		}
+	}
 
-    private Pane wrapChart(ChartViewer viewer) {
-        StackPane card = new StackPane(viewer);
-        card.setPadding(new Insets(10));
-        card.getStyleClass().add("chart-card");
-        return card;
-    }
+	private Pane wrapChart(ChartViewer viewer) {
+		StackPane card = new StackPane(viewer);
+		card.setPadding(new Insets(10));
+		card.getStyleClass().add("chart-card");
+		return card;
+	}
 
-    private void animateDataset(DefaultCategoryDataset ds) {
-    }
+	private void animateDataset(DefaultCategoryDataset ds) {
+	}
 
-    private void showError(Throwable ex) {
-        Alert a = new Alert(Alert.AlertType.ERROR);
-        a.setTitle("Errore");
-        a.setHeaderText("Operazione non riuscita");
-        a.setContentText(ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage());
-        StringWriter sw = new StringWriter();
-        ex.printStackTrace(new PrintWriter(sw));
-        TextArea ta = new TextArea(sw.toString());
-        ta.setEditable(false);
-        ta.setWrapText(false);
-        ta.setMaxWidth(Double.MAX_VALUE);
-        ta.setMaxHeight(Double.MAX_VALUE);
-        GridPane gp = new GridPane();
-        gp.setMaxWidth(Double.MAX_VALUE);
-        gp.add(new Label("Dettagli:"), 0, 0);
-        gp.add(ta, 0, 1);
-        a.getDialogPane().setExpandableContent(gp);
-        a.getDialogPane().setExpanded(false);
-        a.showAndWait();
-    }
+	private void showError(Throwable ex) {
+		Alert a = new Alert(Alert.AlertType.ERROR);
+		a.setTitle("Errore");
+		a.setHeaderText("Operazione non riuscita");
+		a.setContentText(ex.getMessage() == null ? ex.getClass().getSimpleName() : ex.getMessage());
+		StringWriter sw = new StringWriter();
+		ex.printStackTrace(new PrintWriter(sw));
+		TextArea ta = new TextArea(sw.toString());
+		ta.setEditable(false);
+		ta.setWrapText(false);
+		ta.setMaxWidth(Double.MAX_VALUE);
+		ta.setMaxHeight(Double.MAX_VALUE);
+		GridPane gp = new GridPane();
+		gp.setMaxWidth(Double.MAX_VALUE);
+		gp.add(new Label("Dettagli:"), 0, 0);
+		gp.add(ta, 0, 1);
+		a.getDialogPane().setExpandableContent(gp);
+		a.getDialogPane().setExpanded(false);
+		a.showAndWait();
+	}
 }

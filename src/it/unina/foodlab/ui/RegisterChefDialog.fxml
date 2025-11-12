@@ -12,6 +12,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.unina.foodlab.controller.RegisterChefController"
             prefWidth="1080" prefHeight="680"
+            stylesheets="@/it/unina/foodlab/util/dark-theme.css"
             style="-fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:14px;
                    -fx-background-color: linear-gradient(to bottom,#0e1114,#0b1014);">
 

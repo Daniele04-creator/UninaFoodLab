@@ -7,6 +7,7 @@
       fx:controller="it.unina.foodlab.controller.AssociaRicetteController"
       fx:id="root"
       spacing="14" fillWidth="true"
+      stylesheets="@/it/unina/foodlab/util/dark-theme.css"
       style="-fx-background-color: transparent;
              -fx-font-family: 'Segoe UI', Inter, system-ui; -fx-font-size: 13px;">
 

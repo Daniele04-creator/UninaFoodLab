@@ -4,20 +4,14 @@ import it.unina.foodlab.model.Corso;
 import it.unina.foodlab.model.Sessione;
 import it.unina.foodlab.model.SessioneOnline;
 import it.unina.foodlab.model.SessionePresenza;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.scene.Cursor;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.stage.Screen;
-import javafx.stage.Stage;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.util.StringConverter;
 
 import java.time.LocalDate;
@@ -27,24 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-
 public class SessioniWizardController {
-
-    private static final String BG_CARD     = "#20282b";
-    private static final String BG_HDR      = "#242c2f";
-    private static final String TXT_MAIN    = "#e9f5ec";
-    private static final String BORDER_SOFT = "rgba(255,255,255,0.06)";
-    private static final String ACCENT      = "#1fb57a";
-    private static final String HOVER_BG    = "rgba(31,181,122,0.22)";
-    private static final String ZEBRA_BG    = "rgba(255,255,255,0.03)";
-
-    private static final String INPUT_STYLE =
-            "-fx-background-color:#2b3438;" +
-            "-fx-text-fill:" + TXT_MAIN + ";" +
-            "-fx-background-radius:8;" +
-            "-fx-border-color:" + BORDER_SOFT + ";" +
-            "-fx-border-radius:8;" +
-            "-fx-padding:2 6;";
 
     private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter HF = DateTimeFormatter.ofPattern("HH:mm");
@@ -68,32 +45,16 @@ public class SessioniWizardController {
     private Corso corso;
     private final ObservableList<Sessione> model = FXCollections.observableArrayList();
 
-   
     @FXML
     private void initialize() {
-        dialogPane.setStyle(
-                "-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);" +
-                "-fx-border-color:" + BORDER_SOFT + ";" +
-                "-fx-background-radius:12; -fx-border-radius:12;"
-        );
-
         table.setEditable(true);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setFixedCellSize(32);
         table.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-
-        applyTableBaseTheme();
-        hookHeaderStylingRelayout();
-        fixTableHeaderTheme();
-
         setupColumns();
-        setupRowFactory();
         setupOkCancelButtons();
-
         table.setPlaceholder(new Label("Nessuna sessione. Premi «Nuovo» per aggiungerne una."));
-        makeFullBleed();
     }
-
 
     public void initWithCorso(Corso c) {
         if (c == null) throw new IllegalStateException("Corso nullo");
@@ -114,7 +75,6 @@ public class SessioniWizardController {
         return new ArrayList<>(model);
     }
 
-   
     @FXML
     private void onNuovo(ActionEvent e) {
         LocalDate suggested = null;
@@ -139,7 +99,6 @@ public class SessioniWizardController {
         if (idx >= 0 && idx < model.size()) model.remove(idx);
     }
 
-    
     private void setupColumns() {
         cData.setText("Data");
         cData.setCellValueFactory(cd -> new SimpleStringProperty(
@@ -203,11 +162,9 @@ public class SessioniWizardController {
         static final int K_CAP = 4;
         static final int K_AULA = 5;
         static final int K_POSTI = 6;
-        final int kind;
-        FieldKind(int k){ this.kind = k; }
+        private FieldKind() {}
     }
 
-   
     private static final class TextCell extends TableCell<Sessione, String> {
         @Override protected void updateItem(String item, boolean empty) {
             super.updateItem(item, empty);
@@ -216,14 +173,12 @@ public class SessioniWizardController {
         }
     }
 
-   
     private final class EditableFieldCell extends TableCell<Sessione, String> {
         private final int kind;
         private final TextField tf = new TextField();
 
         EditableFieldCell(int kind) {
             this.kind = kind;
-            tf.setStyle(INPUT_STYLE);
             tf.setFocusTraversable(true);
             tf.setMaxWidth(Double.MAX_VALUE);
             tf.setOnAction(ev -> commit());
@@ -253,11 +208,9 @@ public class SessioniWizardController {
         @Override protected void updateItem(String item, boolean empty) {
             super.updateItem(item, empty);
             if (empty || getTableRow()==null || getTableRow().getItem()==null) { setGraphic(null); return; }
-
             Sessione s = (Sessione) getTableRow().getItem();
             boolean applicable = (s instanceof SessioneOnline) ? (kind == FieldKind.K_PIATTAFORMA)
                     : (kind != FieldKind.K_PIATTAFORMA);
-
             if (applicable) {
                 tf.setText(item == null ? "" : item);
                 tf.setDisable(false);
@@ -284,18 +237,13 @@ public class SessioniWizardController {
                     try { return LocalTime.parse(s.trim(), HF); } catch (Exception e) { return null; }
                 }
             });
-            cb.setStyle(INPUT_STYLE);
             HBox.setHgrow(cb, Priority.ALWAYS);
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-
-            
-            Platform.runLater(() -> clearArrowBackground(cb));
         }
 
         @Override protected void updateItem(String item, boolean empty) {
             super.updateItem(item, empty);
             if (empty || getTableRow()==null || getTableRow().getItem()==null) { setGraphic(null); return; }
-
             cb.setValue(parseTimeOrNull(item));
             cb.setOnAction(null);
             cb.setOnAction(ev -> {
@@ -309,9 +257,6 @@ public class SessioniWizardController {
                     if (isStart) sp.setOraInizio(t); else sp.setOraFine(t);
                 }
             });
-
-         
-            Platform.runLater(() -> clearArrowBackground(cb));
             setGraphic(wrapper);
         }
     }
@@ -332,7 +277,6 @@ public class SessioniWizardController {
         try { return LocalTime.parse(s, HF); } catch (Exception e) { return null; }
     }
 
- 
     private final class TipoCell extends TableCell<Sessione, String> {
         private final ComboBox<String> combo = new ComboBox<>();
 
@@ -340,37 +284,13 @@ public class SessioniWizardController {
             combo.getItems().addAll("Online", "In presenza");
             combo.setVisibleRowCount(6);
             combo.setPrefWidth(Double.MAX_VALUE);
-            combo.setStyle(
-                    "-fx-background-color:#2b3438; -fx-background-radius:8; " +
-                    "-fx-border-color:" + BORDER_SOFT + "; -fx-border-radius:8;"
-            );
-
-            combo.setButtonCell(new ListCell<>() {
-                @Override protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setText(empty ? null : item);
-                    setGraphic(null);
-                    setStyle("-fx-text-fill:" + TXT_MAIN + "; -fx-font-weight:600;");
-                }
-            });
-            combo.setCellFactory(lv -> new ListCell<>() {
-                @Override protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setText(empty ? null : item);
-                    setGraphic(null);
-                    setStyle("-fx-text-fill:" + TXT_MAIN + ";");
-                }
-            });
-
             combo.setOnAction(ev -> {
                 int idx = getIndex();
                 if (idx < 0 || idx >= getTableView().getItems().size()) return;
                 Sessione s = getTableView().getItems().get(idx);
-
                 LocalDate d  = s.getData();
                 LocalTime oi = s.getOraInizio();
                 LocalTime of = s.getOraFine();
-
                 if ("Online".equalsIgnoreCase(combo.getValue()) && !(s instanceof SessioneOnline)) {
                     SessioneOnline on = new SessioneOnline();
                     on.setCorso(corso); on.setData(d); on.setOraInizio(oi); on.setOraFine(of);
@@ -383,10 +303,6 @@ public class SessioniWizardController {
                 }
                 getTableView().refresh();
             });
-
-         
-            Platform.runLater(() -> clearArrowBackground(combo));
-
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         }
 
@@ -397,78 +313,10 @@ public class SessioniWizardController {
             }
             Sessione s = (Sessione) getTableRow().getItem();
             combo.setValue(s instanceof SessionePresenza ? "In presenza" : "Online");
-            Platform.runLater(() -> clearArrowBackground(combo));  
             setGraphic(combo);
             setText(null);
         }
     }
-
-    private void applyTableBaseTheme() {
-        table.setStyle(
-                "-fx-background-color:" + BG_CARD + ";" +
-                "-fx-control-inner-background:" + BG_CARD + ";" +
-                "-fx-text-background-color:" + TXT_MAIN + ";" +
-                "-fx-table-cell-border-color:" + BORDER_SOFT + ";" +
-                "-fx-table-header-border-color:" + BORDER_SOFT + ";" +
-                "-fx-background-insets:0; -fx-padding:0;"
-        );
-    }
-
-    private void fixTableHeaderTheme() {
-        final String GRID = BORDER_SOFT;
-        Platform.runLater(() -> {
-            Node headerBg = table.lookup(".column-header-background");
-            if (headerBg instanceof Region bg) bg.setStyle("-fx-background-color:" + BG_HDR + ";");
-
-            for (Node n : table.lookupAll(".column-header")) {
-                if (n instanceof Region r) {
-                    r.setStyle("-fx-background-color:" + BG_HDR + "; -fx-border-color:" + GRID + "; -fx-border-width:0 0 1 0;");
-                }
-                Node lab = n.lookup(".label");
-                if (lab instanceof Labeled l) {
-                    l.setTextFill(javafx.scene.paint.Color.web(TXT_MAIN));
-                    l.setStyle("-fx-font-weight:700;");
-                }
-            }
-            Node filler = table.lookup(".filler");
-            if (filler instanceof Region fr) fr.setStyle("-fx-background-color:" + BG_HDR + ";");
-        });
-    }
-
-    private void hookHeaderStylingRelayout() {
-        table.skinProperty().addListener((obs, o, n) -> fixTableHeaderTheme());
-        table.getColumns().addListener((ListChangeListener<? super TableColumn<Sessione, ?>>) c -> fixTableHeaderTheme());
-        table.widthProperty().addListener((obs, a, b) -> fixTableHeaderTheme());
-    }
-
-
-    private void setupRowFactory() {
-        table.setRowFactory(tv -> {
-            final TableRow<Sessione> row = new TableRow<>() {
-                @Override protected void updateItem(Sessione item, boolean empty) {
-                    super.updateItem(item, empty);
-                    paintRow(this);
-                }
-            };
-            row.hoverProperty().addListener((o,w,h) -> paintRow(row));
-            row.selectedProperty().addListener((o,w,s) -> paintRow(row));
-            return row;
-        });
-    }
-
-    private void paintRow(TableRow<Sessione> row) {
-        if (row == null || row.isEmpty()) { row.setStyle(""); row.setCursor(Cursor.DEFAULT); return; }
-        boolean on = row.isHover() || row.isSelected();
-        if (on) {
-            row.setStyle("-fx-background-color:" + HOVER_BG + "; -fx-border-color:" + ACCENT + "; -fx-border-width:0 0 0 3;");
-            row.setCursor(Cursor.HAND);
-        } else {
-            String base = (row.getIndex()%2==0) ? ZEBRA_BG : "transparent";
-            row.setStyle("-fx-background-color:" + base + "; -fx-border-width:0; -fx-border-color: transparent;");
-            row.setCursor(Cursor.DEFAULT);
-        }
-    }
-
 
     private void setupOkCancelButtons() {
         final Button okBtn = (okButtonType != null)
@@ -476,7 +324,6 @@ public class SessioniWizardController {
                 : (Button) dialogPane.lookupButton(ButtonType.OK);
         if (okBtn != null) {
             okBtn.setText("Conferma");
-            okBtn.setStyle("-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800; -fx-background-radius:10; -fx-padding:8 14;");
             okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
                 Optional<String> err = validateBeforeClose();
                 if (err.isPresent()) {
@@ -493,23 +340,18 @@ public class SessioniWizardController {
                 : (Button) dialogPane.lookupButton(ButtonType.CANCEL);
         if (cancelBtn != null) {
             cancelBtn.setText("Annulla");
-            cancelBtn.setStyle("-fx-background-color:transparent; -fx-text-fill:" + TXT_MAIN + ";" +
-                    "-fx-border-color:" + BORDER_SOFT + "; -fx-border-radius:10; -fx-background-radius:10; -fx-padding:8 14;");
         }
     }
 
- 
     private Optional<String> validateBeforeClose() {
         for (int i = 0; i < model.size(); i++) {
             Sessione s = model.get(i);
-
             if (s instanceof SessioneOnline) {
                 String p = tryGetPiattaforma((SessioneOnline) s);
                 if (p == null || p.trim().isEmpty()) {
                     return Optional.of("Inserisci la piattaforma (riga " + (i+1) + ")");
                 }
             }
-
             if (s instanceof SessionePresenza) {
                 SessionePresenza sp = (SessionePresenza) s;
                 if (isBlank(sp.getVia()) || isBlank(sp.getNum()) || isBlank(sp.getAula()) || sp.getPostiMax() <= 0) {
@@ -519,17 +361,12 @@ public class SessioniWizardController {
                     return Optional.of("CAP non valido (riga " + (i+1) + ")");
                 }
             }
-
-            if (s.getData() == null)
-                return Optional.of("Imposta la data per la riga " + (i+1));
-            if (s.getOraInizio() == null || s.getOraFine() == null)
-                return Optional.of("Imposta orari per la riga " + (i+1));
-            if (s.getOraFine().isBefore(s.getOraInizio()))
-                return Optional.of("L’orario di fine deve essere successivo all’inizio (riga " + (i+1) + ")");
+            if (s.getData() == null) return Optional.of("Imposta la data per la riga " + (i+1));
+            if (s.getOraInizio() == null || s.getOraFine() == null) return Optional.of("Imposta orari per la riga " + (i+1));
+            if (s.getOraFine().isBefore(s.getOraInizio())) return Optional.of("L’orario di fine deve essere successivo all’inizio (riga " + (i+1) + ")");
         }
         return Optional.empty();
     }
-
 
     private static boolean isBlank(String s) { return s == null || s.trim().isEmpty(); }
     private static boolean isValidCAP(String s){ return s != null && s.matches("\\d{5}"); }
@@ -555,77 +392,6 @@ public class SessioniWizardController {
         }
     }
 
-    private void makeFullBleed() {
-        dialogPane.setBackground(new Background(
-                new BackgroundFill(javafx.scene.paint.Color.web(BG_CARD), null, null)
-        ));
-        dialogPane.setPadding(Insets.EMPTY);
-
-        Platform.runLater(() -> {
-            Node header = dialogPane.lookup(".header-panel");
-            Node content = dialogPane.lookup(".content");
-            Node buttonBar = dialogPane.lookup(".button-bar");
-            Node graphic = dialogPane.lookup(".graphic-container");
-
-            setDarkNoPadding(header, BG_HDR);
-            setDarkNoPadding(content, BG_CARD);
-            setDarkNoPadding(buttonBar, BG_HDR);
-            setDarkNoPadding(graphic, BG_HDR);
-
-            Node scroll = table.lookup(".scroll-pane");
-            if (scroll instanceof Region sp) {
-                sp.setBackground(new Background(
-                        new BackgroundFill(javafx.scene.paint.Color.web(BG_CARD), null, null)
-                ));
-                sp.setPadding(Insets.EMPTY);
-                sp.setStyle("-fx-background-insets:0; -fx-padding:0;");
-            }
-            Node viewport = table.lookup(".viewport");
-            if (viewport instanceof Region vp) {
-                vp.setBackground(new Background(
-                        new BackgroundFill(javafx.scene.paint.Color.web(BG_CARD), null, null)
-                ));
-                ((Region) vp).setPadding(Insets.EMPTY);
-            }
-            for (Node corner : table.lookupAll(".corner")) {
-                if (corner instanceof Region rc) {
-                    rc.setBackground(new Background(
-                            new BackgroundFill(javafx.scene.paint.Color.web(BG_HDR), null, null)
-                    ));
-                }
-            }
-
-            if (dialogPane.getContent() instanceof Region root) {
-                root.setPadding(Insets.EMPTY);
-                root.setStyle("-fx-background-color:" + BG_CARD + ";");
-            }
-            VBox.setVgrow(table, Priority.ALWAYS);
-            table.setMinHeight(0);
-            table.setPrefHeight(Region.USE_COMPUTED_SIZE);
-            table.setMaxHeight(Double.MAX_VALUE);
-
-            try {
-                Stage st = (Stage) dialogPane.getScene().getWindow();
-                var vb = Screen.getPrimary().getVisualBounds();
-                st.setX(vb.getMinX());
-                st.setY(vb.getMinY());
-                st.setWidth(vb.getWidth());
-                st.setHeight(vb.getHeight());
-            } catch (Throwable ignore) { }
-        });
-    }
-
-    private static void setDarkNoPadding(Node n, String bg) {
-        if (n instanceof Region r) {
-            r.setBackground(new Background(
-                    new BackgroundFill(javafx.scene.paint.Color.web(bg), null, null)
-            ));
-            r.setPadding(Insets.EMPTY);
-            r.setStyle((r.getStyle() == null ? "" : r.getStyle()) + "; -fx-background-insets:0; -fx-padding:0;");
-        }
-    }
-
-   
     public void initWithCorsoAndBlank(Corso c, int initialRows) {
         initWithCorso(c);
         addBlankRows(c, initialRows);
@@ -655,20 +421,7 @@ public class SessioniWizardController {
             case "ogni 2 giorni" -> start.plusDays(2L * steps);
             case "bisettimanale" -> start.plusWeeks(2L * steps);
             case "mensile"       -> start.plusMonths(steps);
-            default              -> start.plusWeeks(steps); 
+            default              -> start.plusWeeks(steps);
         };
-    }
-
-   
-    private static void clearArrowBackground(Node rootOfControl) {
-        if (rootOfControl == null) return;
-        Node arrowBtn = rootOfControl.lookup(".arrow-button"); 
-        if (arrowBtn instanceof Region r) {
-            r.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-background-insets: 0;");
-        }
-        Node arrow = rootOfControl.lookup(".arrow"); 
-        if (arrow instanceof Region r2) {
-            r2.setStyle("-fx-background-color: -fx-mark-color;");
-        }
     }
 }

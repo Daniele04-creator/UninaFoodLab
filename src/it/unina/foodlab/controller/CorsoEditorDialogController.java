@@ -40,9 +40,7 @@ public class CorsoEditorDialogController {
             dialogPane.getStyleClass().add("corso-editor-dialog");
             dialogPane.getStylesheets().add(
                 Objects.requireNonNull(
-                    getClass().getResource("/it/unina/foodlab/util/dark-theme.css")
-                ).toExternalForm()
-            );
+                    getClass().getResource("/it/unina/foodlab/util/dark-theme.css")).toExternalForm());
         }
 
         if (cbArg != null && (cbArg.getItems() == null || cbArg.getItems().isEmpty())) {

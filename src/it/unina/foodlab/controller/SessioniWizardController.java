@@ -48,6 +48,8 @@ public class SessioniWizardController {
     @FXML
     private void initialize() {
         table.setEditable(true);
+        table.getStyleClass().add("sessioni-wizard");
+        table.getStylesheets().add(getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm());
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setFixedCellSize(32);
         table.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);

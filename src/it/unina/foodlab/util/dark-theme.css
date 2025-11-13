@@ -620,66 +620,82 @@
   
   
 }
-
 /* ===== SessioniWizard ===== */
 .sessioni-wizard {
   -fx-font-family: "Segoe UI", "Helvetica", "Arial";
   -fx-text-fill: -fx-txt-main;
 }
+
+/* Dialog principale */
 .sessioni-wizard .dialog-pane,
 .sessioni-wizard.dialog-pane {
-  -fx-background-color: linear-gradient(to bottom, -fx-bg-card, -fx-bg-surface);
-  -fx-border-color: -fx-grid-soft;
+  -fx-background-color: linear-gradient(to bottom, #242c2f, #1e2629);
+  -fx-border-color: #30393d;
   -fx-border-width: 1;
-  -fx-border-radius: 12;
-  -fx-background-radius: 12;
   -fx-padding: 14;
 }
-.sessioni-wizard .label { -fx-text-fill: -fx-txt-main; }
 
-/* Bottoni OK/Annulla del wizard */
+.sessioni-wizard .label {
+  -fx-text-fill: #e2e8f0;
+}
+
+/* Bottoni OK/Annulla */
 .sessioni-wizard .button:default {
-  -fx-background-color: -fx-accent;
-  -fx-text-fill: #0a1410;
+  -fx-background-color: #3b4a4e;
+  -fx-text-fill: #f0f0f0;
   -fx-font-weight: 800;
   -fx-background-radius: 10;
   -fx-padding: 8 14;
 }
 .sessioni-wizard .button {
-  -fx-background-color: #2b3438;
-  -fx-text-fill: -fx-txt-main;
+  -fx-background-color: #2f383b;
+  -fx-text-fill: #f0f0f0;
   -fx-font-weight: 700;
   -fx-background-radius: 10;
   -fx-padding: 8 14;
 }
-.sessioni-wizard .button:hover { -fx-background-color: #374151; }
-
-/* TableView del wizard (aggiungi anche la classe 'dark-table' alla TableView) */
-.sessioni-wizard .table-view {
-  -fx-background-color: -fx-bg-surface;
-  -fx-control-inner-background: -fx-bg-surface;
-  -fx-text-background-color: -fx-txt-main;
+.sessioni-wizard .button:hover {
+  -fx-background-color: #3a4548;
 }
 
-/* Editor inline: TextField nelle celle */
+/* TableView */
+.sessioni-wizard .table-view {
+  -fx-background-color: #242c2f;
+  -fx-control-inner-background: #242c2f;
+  -fx-table-cell-border-color: #30383b;
+  -fx-text-background-color: #f0f0f0;
+}
+
+/* Riga e cella */
+.sessioni-wizard .table-row-cell {
+  -fx-background-color: #242c2f;
+}
+.sessioni-wizard .table-row-cell:odd {
+  -fx-background-color: #2a3235;
+}
+.sessioni-wizard .table-row-cell:selected {
+  -fx-background-color: #3a4548;
+}
+
+/* Celle di testo */
 .sessioni-wizard .table-row-cell .text-field {
-  -fx-background-color: #2e3845;
-  -fx-control-inner-background: #2e3845;
-  -fx-text-fill: -fx-txt-main;
-  -fx-prompt-text-fill: #FFFFFFA6;
+  -fx-background-color: #2f383b;
+  -fx-control-inner-background: #2f383b;
+  -fx-text-fill: #f0f0f0;
+  -fx-prompt-text-fill: #aeb7bb;
   -fx-background-radius: 8;
-  -fx-border-color: #3a4657;
+  -fx-border-color: #3a4346;
   -fx-border-radius: 8;
   -fx-padding: 4 8;
 }
 
-/* Editor inline: ComboBox (TimeCell e TipoCell) */
+/* ComboBox e ChoiceBox */
 .sessioni-wizard .table-row-cell .combo-box,
 .sessioni-wizard .table-row-cell .choice-box {
-  -fx-background-color: #2e3845;
-  -fx-control-inner-background: #2e3845;
+  -fx-background-color: #2f383b;
+  -fx-control-inner-background: #2f383b;
   -fx-background-radius: 8;
-  -fx-border-color: #3a4657;
+  -fx-border-color: #3a4346;
   -fx-border-radius: 8;
   -fx-padding: 2 8;
   -fx-opacity: 1;
@@ -687,49 +703,88 @@
 .sessioni-wizard .combo-box .list-cell,
 .sessioni-wizard .combo-box-base .text,
 .sessioni-wizard .list-cell {
-  -fx-text-fill: -fx-txt-main;
+  -fx-text-fill: #f0f0f0;
   -fx-font-weight: 700;
 }
-.sessioni-wizard .combo-box .arrow-button { -fx-background-color: transparent; -fx-background-insets: 0; -fx-border-color: transparent; }
-.sessioni-wizard .combo-box .arrow { -fx-background-color: -fx-txt-main; }
 .sessioni-wizard .combo-box-popup > .list-view {
-  -fx-background-color: -fx-bg-surface;
-  -fx-control-inner-background: -fx-bg-surface;
-  -fx-background-insets: 0;
-  -fx-padding: 4 0;
-}
-.sessioni-wizard .combo-box-popup .list-cell {
-  -fx-background-color: transparent;
-  -fx-text-fill: -fx-txt-main;
-  -fx-font-weight: 700;
-  -fx-padding: 6 10;
+  -fx-background-color: #242c2f;
 }
 .sessioni-wizard .combo-box-popup .list-cell:hover {
-  -fx-background-color:
-    linear-gradient(to right, -fx-accent 0px, -fx-accent 4px, transparent 4px),
-    -fx-hover-bg;
-}
-.sessioni-wizard .combo-box-popup .list-cell:selected {
-  -fx-background-color: -fx-hover-bg;
-  -fx-text-fill: -fx-txt-main;
+  -fx-background-color: #3a4548;
 }
 
-/* Placeholder della TableView */
+/* Placeholder */
 .sessioni-wizard .table-view .placeholder .label {
-  -fx-text-fill: #b7c5cf;
+  -fx-text-fill: #9aa3a7;
   -fx-font-weight: 700;
 }
 
-/* Header tabella (se vuoi forzare qui, altrimenti eredita da .dark-table) */
+/* Header tabella */
 .sessioni-wizard .column-header,
 .sessioni-wizard .column-header-background,
 .sessioni-wizard .filler {
-  -fx-background-color: -fx-bg-card;
-  -fx-border-color: -fx-grid-soft;
+  -fx-background-color: #2f383b;
+  -fx-border-color: #3a4346;
   -fx-border-width: 0 0 1 0;
 }
 .sessioni-wizard .column-header .label {
-  -fx-text-fill: -fx-txt-main;
+  -fx-text-fill: #f0f0f0;
   -fx-font-weight: 700;
 }
+
+
+
+/* ComboBox e ChoiceBox nelle celle: adattamento dimensioni */
+.sessioni-wizard .table-row-cell .combo-box,
+.sessioni-wizard .table-row-cell .choice-box {
+  -fx-background-color: #2f383b;
+  -fx-control-inner-background: #2f383b;
+  -fx-background-radius: 8;
+  -fx-border-color: #3a4346;
+  -fx-border-radius: 8;
+  -fx-padding: 0 6;
+  -fx-opacity: 1;
+
+  /* 🔧 Allineamento dimensioni */
+  -fx-pref-height: 30;       /* altezza coerente con le celle */
+  -fx-min-height: 28;
+  -fx-max-height: 30;
+  -fx-pref-width: 100%;      /* si adatta alla cella */
+  -fx-max-width: infinity;   /* evita che venga tagliata */
+  -fx-alignment: CENTER_LEFT;
+}
+
+/* Contenuto interno: testo e freccia */
+.sessioni-wizard .combo-box .list-cell,
+.sessioni-wizard .combo-box-base .text,
+.sessioni-wizard .list-cell {
+  -fx-text-fill: #f0f0f0;
+  -fx-font-weight: 700;
+  -fx-font-size: 13px;
+}
+
+/* Freccia coerente e centrata */
+.sessioni-wizard .combo-box .arrow-button {
+  -fx-background-color: transparent;
+  -fx-padding: 0 6;
+  -fx-background-insets: 0;
+  -fx-border-color: transparent;
+  -fx-pref-width: 20;
+}
+.sessioni-wizard .combo-box .arrow {
+  -fx-background-color: #f0f0f0;
+}
+
+/* Popup coerente con il tema */
+.sessioni-wizard .combo-box-popup > .list-view {
+  -fx-background-color: #242c2f;
+  -fx-control-inner-background: #242c2f;
+  -fx-background-insets: 0;
+  -fx-padding: 2 0;
+}
+.sessioni-wizard .combo-box-popup .list-cell:hover {
+  -fx-background-color: #3a4548;
+}
+
+
 

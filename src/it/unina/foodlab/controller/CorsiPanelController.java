@@ -645,7 +645,7 @@ public class CorsiPanelController {
 					pane.setContent(sc);
 				}
 				Dialog<List<Sessione>> dlg = new Dialog<>();
-				dlg.setTitle("Modifica sessioni - " + safe(sel.getArgomento()));
+				dlg.setTitle("Modifica sessioni - " + nz(sel.getArgomento()));
 				dlg.setDialogPane(pane);
 				pane.setPrefSize(1200, 800);
 				dlg.setOnShown(e2 -> {
@@ -969,10 +969,6 @@ public class CorsiPanelController {
 			btnClearId.setVisible(on);
 			btnClearId.setManaged(on);
 		}
-	}
-
-	private static String safe(String s) {
-		return s == null ? "" : s;
 	}
 
 	private static String nz(String s) {

@@ -6,7 +6,6 @@ import it.unina.foodlab.model.Ricetta;
 import it.unina.foodlab.model.Sessione;
 import it.unina.foodlab.model.SessioneOnline;
 import it.unina.foodlab.model.SessionePresenza;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -18,8 +17,8 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -35,26 +34,23 @@ public class SessioniPreviewController {
 
     private final ObservableList<Sessione> backing = FXCollections.observableArrayList();
     private final FilteredList<Sessione> filtered = new FilteredList<>(backing, s -> true);
-    private Corso corso;
     private SessioneDao sessioneDao;
 
     public void init(Corso corso, List<Sessione> sessioni, SessioneDao sessioneDao) {
-        this.corso = corso;
         this.sessioneDao = sessioneDao;
 
-        // Header
         if (lblHeader != null) {
             String titolo = (corso != null && corso.getArgomento() != null) ? corso.getArgomento() : "Corso";
             lblHeader.setText("Sessioni — " + titolo);
         }
 
-        // Aggiunge CSS globale
         if (dialogPane != null) {
             dialogPane.getStyleClass().add("sessioni-preview");
-            dialogPane.getStylesheets().add(getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm());
+            dialogPane.getStylesheets().add(
+                    getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm()
+            );
         }
 
-        // Configura ListView
         if (lv != null) {
             lv.setItems(filtered);
             lv.getStyleClass().add("list-view");
@@ -70,7 +66,6 @@ public class SessioniPreviewController {
             });
         }
 
-        // Filtri toggle
         if (tgAll != null) {
             tgAll.setSelected(true);
             tgAll.setOnAction(e -> {
@@ -97,21 +92,19 @@ public class SessioniPreviewController {
             });
         }
 
-        // Search
         if (txtSearch != null) {
             txtSearch.textProperty().addListener((o, a, b) -> refilter());
             txtSearch.setPromptText("Cerca");
             txtSearch.getStyleClass().add("text-field");
         }
 
-        // Carica dati
         backing.clear();
         if (sessioni != null) backing.addAll(sessioni);
         refilter();
     }
 
     private void refilter() {
-        final boolean onlyOnline   = tgOnline != null && tgOnline.isSelected();
+        final boolean onlyOnline = tgOnline != null && tgOnline.isSelected();
         final boolean onlyPresenza = tgPresenza != null && tgPresenza.isSelected();
         final String q = (txtSearch != null && txtSearch.getText() != null)
                 ? txtSearch.getText().trim().toLowerCase(java.util.Locale.ROOT)
@@ -199,7 +192,10 @@ public class SessioniPreviewController {
             private final Label chip = new Label();
             @Override protected void updateItem(String s, boolean empty) {
                 super.updateItem(s, empty);
-                if (empty || s == null) { setGraphic(null); return; }
+                if (empty || s == null) {
+                    setGraphic(null);
+                    return;
+                }
                 chip.setText(s);
                 chip.getStyleClass().setAll("chip", s.trim().toLowerCase());
                 setGraphic(chip);
@@ -221,16 +217,20 @@ public class SessioniPreviewController {
         colDesc.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
         colDesc.setCellFactory(tc -> new TableCell<>() {
             private final Label lbl = new Label();
-            { lbl.getStyleClass().add("table-description"); }
+            {
+                lbl.getStyleClass().add("table-description");
+            }
             @Override protected void updateItem(String s, boolean empty) {
                 super.updateItem(s, empty);
-                if (empty || s == null) { setGraphic(null); return; }
+                if (empty || s == null) {
+                    setGraphic(null);
+                    return;
+                }
                 lbl.setText(s);
                 setGraphic(lbl);
             }
         });
 
-        tv.getColumns().setAll(colNome, colDiff, colTempo, colDesc);
         if (data != null) tv.getItems().addAll(data);
 
         Label ph = new Label("Nessuna ricetta associata.");
@@ -300,7 +300,9 @@ public class SessioniPreviewController {
         }
     }
 
-    private static String nz(String s) { return s == null ? "" : s; }
+    private static String nz(String s) {
+        return s == null ? "" : s;
+    }
 
     private static String join(String sep, String... parts) {
         StringBuilder sb = new StringBuilder();

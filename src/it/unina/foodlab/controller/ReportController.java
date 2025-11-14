@@ -138,7 +138,7 @@ public class ReportController {
 			ChartViewer v1 = new ChartViewer(chart1);
 			v1.setPrefSize(520, 320);
 			if (rightCharts != null) rightCharts.getChildren().add(wrapChart(v1));
-			animateDataset(ds1);
+			
 
 			DefaultCategoryDataset ds2 = new DefaultCategoryDataset();
 			ds2.addValue(zeroIfNull(r.minRicettePratiche()), "Ricette", "Min");
@@ -152,7 +152,7 @@ public class ReportController {
 			ChartViewer v2 = new ChartViewer(chart2);
 			v2.setPrefSize(520, 320);
 			if (rightCharts != null) rightCharts.getChildren().add(wrapChart(v2));
-			animateDataset(ds2);
+			
 
 			chart1.getLegend().setVisible(false);
 			chart2.getLegend().setVisible(false);
@@ -222,8 +222,6 @@ public class ReportController {
 		return card;
 	}
 
-	private void animateDataset(DefaultCategoryDataset ds) {
-	}
 
 	private void showError(Throwable ex) {
 		Alert a = new Alert(Alert.AlertType.ERROR);

@@ -8,7 +8,6 @@ import it.unina.foodlab.model.SessionePresenza;
 import it.unina.foodlab.util.Db;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -53,28 +52,12 @@ public class CorsoDao {
                 + "ORDER BY c.data_inizio DESC";
     }
 
-    private String sqlFindByIdOwner() {
-        return ""
-                + "SELECT  c.id_corso, c.data_inizio, c.data_fine, c.argomento, c.frequenza, c.\"numSessioni\" AS num_sessioni, "
-                + "        ch.CF_Chef, ch.nome, ch.cognome, ch.username, ch.password "
-                + "FROM " + tbl("corso") + " c "
-                + "JOIN " + tbl("chef") + " ch ON c.fk_cf_chef = ch.CF_Chef "
-                + "WHERE c.id_corso = ? AND c.fk_cf_chef = ?";
-    }
-
     private String sqlInsertCorso() {
         return ""
                 + "INSERT INTO " + tbl("corso")
                 + " (data_inizio, data_fine, argomento, frequenza, \"numSessioni\", fk_cf_chef) "
                 + "VALUES (?, ?, ?, ?, ?, ?) "
                 + "RETURNING id_corso";
-    }
-
-    private String sqlUpdateCorso() {
-        return ""
-                + "UPDATE " + tbl("corso") + " "
-                + "   SET data_inizio = ?, data_fine = ?, argomento = ?, frequenza = ?, \"numSessioni\" = ? "
-                + " WHERE id_corso = ? AND fk_cf_chef = ?";
     }
 
     private String sqlDeleteCorso() {
@@ -105,16 +88,6 @@ public class CorsoDao {
                 + "ORDER BY LOWER(a), a";
     }
 
-    private String sqlDistinctFreq() {
-        return ""
-                + "SELECT f FROM ( "
-                + "  SELECT DISTINCT TRIM(frequenza) AS f "
-                + "  FROM " + tbl("corso") + " "
-                + "  WHERE frequenza IS NOT NULL AND TRIM(frequenza) <> '' "
-                + ") t "
-                + "ORDER BY LOWER(f), f";
-    }
-
     public List<Corso> findAll() throws Exception {
         List<Corso> out = new ArrayList<>();
         try (Connection conn = Db.get();
@@ -129,47 +102,6 @@ public class CorsoDao {
             }
         }
         return out;
-    }
-
-    public Corso findById(long id) throws Exception {
-        try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sqlFindByIdOwner())) {
-            ps.setLong(1, id);
-            ps.setString(2, ownerCfChef);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapRow(rs) : null;
-            }
-        }
-    }
-
-    public long insert(Corso corso) throws Exception {
-        try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sqlInsertCorso())) {
-            bindWithoutOwner(ps, corso);
-            ps.setString(6, ownerCfChef);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getLong(1);
-                }
-                throw new SQLException("Insert corso: ID non restituito");
-            }
-        }
-    }
-
-    public void update(Corso corso) throws Exception {
-        if (corso.getIdCorso() <= 0) {
-            throw new IllegalArgumentException("idCorso mancante");
-        }
-        try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sqlUpdateCorso())) {
-            bindWithoutOwner(ps, corso);
-            ps.setLong(6, corso.getIdCorso());
-            ps.setString(7, ownerCfChef);
-            int n = ps.executeUpdate();
-            if (n != 1) {
-                throw new SQLException("Update negato o nessuna riga (id=" + corso.getIdCorso() + ")");
-            }
-        }
     }
 
     public void delete(long id) throws Exception {
@@ -281,18 +213,6 @@ public class CorsoDao {
         return out;
     }
 
-    public List<String> findDistinctFrequenze() throws Exception {
-        List<String> out = new ArrayList<>();
-        try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sqlDistinctFreq());
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                out.add(rs.getString(1));
-            }
-        }
-        return out;
-    }
-
     private Corso mapRow(ResultSet rs) throws SQLException {
         Corso c = new Corso();
         c.setIdCorso(rs.getLong("id_corso"));
@@ -347,30 +267,4 @@ public class CorsoDao {
         return ownerCfChef;
     }
 
-    public String getSchema() {
-        return schema;
-    }
-
-    public boolean isRestrictFindAllToOwner() {
-        return restrictFindAllToOwner;
-    }
-
-    public String sanityCheck() {
-        Connection conn = null;
-        try {
-            conn = Db.get();
-            DatabaseMetaData md = conn.getMetaData();
-            return "[CorsoDao] DB URL=" + md.getURL() + " | User=" + md.getUserName() + " | Schema=" + schema
-                    + " | restrictFindAllToOwner=" + restrictFindAllToOwner;
-        } catch (Exception ex) {
-            return "[CorsoDao] sanityCheck ERROR: " + ex.getMessage();
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception ignore) {
-                }
-            }
-        }
-    }
 }

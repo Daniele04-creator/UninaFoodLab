@@ -44,9 +44,9 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 	private FilteredList<Riga> filtered;
 
 	public AssociaRicetteController(SessioneDao sessioneDao,
-			int idSessionePresenza,
-			List<Ricetta> tutteLeRicette,
-			List<Ricetta> ricetteGiaAssociate) {
+	                                int idSessionePresenza,
+	                                List<Ricetta> tutteLeRicette,
+	                                List<Ricetta> ricetteGiaAssociate) {
 		this.sessioneDao = Objects.requireNonNull(sessioneDao, "sessioneDao");
 		this.idSessionePresenza = idSessionePresenza;
 		this.tutteLeRicette = tutteLeRicette != null ? tutteLeRicette : Collections.emptyList();
@@ -68,7 +68,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 		getDialogPane().getStyleClass().add("associa-ricette-dialog");
 		getDialogPane().getStylesheets().add(
 				Objects.requireNonNull(getClass().getResource("/it/unina/foodlab/util/dark-theme.css")).toExternalForm()
-				);
+		);
 		getDialogPane().setPrefSize(960, 620);
 		setResizable(true);
 
@@ -118,10 +118,10 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 				}
 				chip.setText(s);
 				String cls = switch (s.trim().toLowerCase(Locale.ROOT)) {
-				case "facile" -> "diff-facile";
-				case "medio" -> "diff-medio";
-				case "difficile" -> "diff-difficile";
-				default -> "diff-unknown";
+					case "facile" -> "diff-facile";
+					case "medio" -> "diff-medio";
+					case "difficile" -> "diff-difficile";
+					default -> "diff-unknown";
 				};
 				chip.getStyleClass().setAll("diff-chip", cls);
 				setGraphic(chip);
@@ -198,11 +198,11 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 		}
 
 		righe.forEach(r ->
-		r.checked.addListener((obs, oldV, newV) -> {
-			if (Boolean.TRUE.equals(newV)) selectedIds.add(r.idRicetta);
-			else selectedIds.remove(r.idRicetta);
-		})
-				);
+			r.checked.addListener((obs, oldV, newV) -> {
+				if (Boolean.TRUE.equals(newV)) selectedIds.add(r.idRicetta);
+				else selectedIds.remove(r.idRicetta);
+			})
+		);
 
 		filtered = new FilteredList<>(righe, r -> true);
 		table.setItems(filtered);
@@ -262,11 +262,13 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 
 				Set<Long> after = new HashSet<>(selectedNow);
 
-				for (Long idAdd : after) if (!before.contains(idAdd))
-					sessioneDao.addRicettaToSessionePresenza(idSessionePresenza, idAdd);
+				for (Long idAdd : after)
+					if (!before.contains(idAdd))
+						sessioneDao.addRicettaToSessionePresenza(idSessionePresenza, idAdd);
 
-				for (Long idRem : before) if (!after.contains(idRem))
-					sessioneDao.removeRicettaFromSessionePresenza(idSessionePresenza, idRem);
+				for (Long idRem : before)
+					if (!after.contains(idRem))
+						sessioneDao.removeRicettaFromSessionePresenza(idSessionePresenza, idRem);
 
 				return null;
 			}

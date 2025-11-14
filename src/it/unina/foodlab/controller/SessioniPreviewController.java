@@ -23,6 +23,7 @@ import javafx.scene.layout.VBox;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class SessioniPreviewController {
 
@@ -138,107 +139,125 @@ public class SessioniPreviewController {
         return s != null && s.toLowerCase(java.util.Locale.ROOT).contains(pieceLower);
     }
 
-    private void openRicetteDialog(SessionePresenza sp) {
-        List<Ricetta> lista;
-        try {
-            lista = (sessioneDao != null)
-                    ? sessioneDao.findRicetteBySessionePresenza(sp.getId())
-                    : new ArrayList<>();
-        } catch (Exception ex) {
-            showError("Errore caricamento ricette associate: " + ex.getMessage());
-            return;
+   private void openRicetteDialog(SessionePresenza sp) {
+    List<Ricetta> lista;
+    try {
+        lista = (sessioneDao != null)
+                ? sessioneDao.findRicetteBySessionePresenza(sp.getId())
+                : new ArrayList<>();
+    } catch (Exception ex) {
+        showError("Errore caricamento ricette associate: " + ex.getMessage());
+        return;
+    }
+
+    Dialog<Void> dlg = new Dialog<>();
+    DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    dlg.setTitle("Ricette — sessione del " + (sp.getData() != null ? df.format(sp.getData()) : ""));
+
+    DialogPane pane = new DialogPane();
+    pane.getStyleClass().addAll("sessioni-preview", "dialog-pane");
+
+   
+    pane.getStylesheets().add(
+            Objects.requireNonNull(
+                    getClass().getResource("/it/unina/foodlab/util/dark-theme.css")
+            ).toExternalForm()
+    );
+
+    pane.getButtonTypes().setAll(ButtonType.CLOSE);
+
+    TableView<Ricetta> tv = buildRicetteTable(lista);
+    pane.setContent(tv);
+
+    dlg.setDialogPane(pane);
+
+    Button closeBtn = (Button) pane.lookupButton(ButtonType.CLOSE);
+    if (closeBtn != null) closeBtn.getStyleClass().add("button-close");
+
+    dlg.setResizable(true);
+    dlg.setOnShown(ev -> {
+        Node c = pane.getContent();
+        if (c instanceof Region region) {
+            region.setPrefSize(900, 520);
         }
+    });
+    dlg.showAndWait();
+}
 
-        Dialog<Void> dlg = new Dialog<>();
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        dlg.setTitle("Ricette — sessione del " + (sp.getData() != null ? df.format(sp.getData()) : ""));
 
-        DialogPane pane = new DialogPane();
-        pane.getStyleClass().addAll("sessioni-preview", "dialog-pane");
-        pane.getButtonTypes().setAll(ButtonType.CLOSE);
+   private TableView<Ricetta> buildRicetteTable(List<Ricetta> data) {
+    TableView<Ricetta> tv = new TableView<>();
+    tv.getStyleClass().add("table-view");
+    tv.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+    tv.setTableMenuButtonVisible(false);
+    tv.setFixedCellSize(40);
 
-        TableView<Ricetta> tv = buildRicetteTable(lista);
-        pane.setContent(tv);
+    TableColumn<Ricetta, String> colNome = new TableColumn<>("Nome");
+    colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
 
-        dlg.setDialogPane(pane);
-
-        Button closeBtn = (Button) pane.lookupButton(ButtonType.CLOSE);
-        if (closeBtn != null) closeBtn.getStyleClass().add("button-close");
-
-        dlg.setResizable(true);
-        dlg.setOnShown(ev -> {
-            Node c = pane.getContent();
-            if (c instanceof Region region) {
-                region.setPrefSize(900, 520);
+    TableColumn<Ricetta, String> colDiff = new TableColumn<>("Difficoltà");
+    colDiff.setCellValueFactory(new PropertyValueFactory<>("difficolta"));
+    colDiff.setPrefWidth(140);
+    colDiff.setCellFactory(tc -> new TableCell<>() {
+        private final Label chip = new Label();
+        @Override
+        protected void updateItem(String s, boolean empty) {
+            super.updateItem(s, empty);
+            if (empty || s == null) {
+                setGraphic(null);
+                return;
             }
-        });
-        dlg.showAndWait();
+            chip.setText(s);
+            chip.getStyleClass().setAll("chip", s.trim().toLowerCase());
+            setGraphic(chip);
+        }
+    });
+
+    TableColumn<Ricetta, Integer> colTempo = new TableColumn<>("Minuti");
+    colTempo.setCellValueFactory(new PropertyValueFactory<>("tempoPreparazione"));
+    colTempo.setPrefWidth(110);
+    colTempo.setStyle("-fx-alignment: CENTER;");
+    colTempo.setCellFactory(tc -> new TableCell<>() {
+        @Override
+        protected void updateItem(Integer n, boolean empty) {
+            super.updateItem(n, empty);
+            setText(empty || n == null ? null : (n + " min"));
+        }
+    });
+
+    TableColumn<Ricetta, String> colDesc = new TableColumn<>("Descrizione");
+    colDesc.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
+    colDesc.setCellFactory(tc -> new TableCell<>() {
+        private final Label lbl = new Label();
+        {
+            lbl.getStyleClass().add("table-description");
+        }
+        @Override
+        protected void updateItem(String s, boolean empty) {
+            super.updateItem(s, empty);
+            if (empty || s == null) {
+                setGraphic(null);
+                return;
+            }
+            lbl.setText(s);
+            setGraphic(lbl);
+        }
+    });
+
+
+    tv.getColumns().setAll(colNome, colDiff, colTempo, colDesc);
+
+    if (data != null) {
+        tv.getItems().addAll(data);
     }
 
-    private TableView<Ricetta> buildRicetteTable(List<Ricetta> data) {
-        TableView<Ricetta> tv = new TableView<>();
-        tv.getStyleClass().add("table-view");
-        tv.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        tv.setTableMenuButtonVisible(false);
-        tv.setFixedCellSize(40);
+    Label ph = new Label("Nessuna ricetta associata.");
+    ph.getStyleClass().add("table-placeholder");
+    tv.setPlaceholder(ph);
 
-        TableColumn<Ricetta, String> colNome = new TableColumn<>("Nome");
-        colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
+    return tv;
+}
 
-        TableColumn<Ricetta, String> colDiff = new TableColumn<>("Difficoltà");
-        colDiff.setCellValueFactory(new PropertyValueFactory<>("difficolta"));
-        colDiff.setPrefWidth(140);
-        colDiff.setCellFactory(tc -> new TableCell<>() {
-            private final Label chip = new Label();
-            @Override protected void updateItem(String s, boolean empty) {
-                super.updateItem(s, empty);
-                if (empty || s == null) {
-                    setGraphic(null);
-                    return;
-                }
-                chip.setText(s);
-                chip.getStyleClass().setAll("chip", s.trim().toLowerCase());
-                setGraphic(chip);
-            }
-        });
-
-        TableColumn<Ricetta, Integer> colTempo = new TableColumn<>("Minuti");
-        colTempo.setCellValueFactory(new PropertyValueFactory<>("tempoPreparazione"));
-        colTempo.setPrefWidth(110);
-        colTempo.setStyle("-fx-alignment: CENTER;");
-        colTempo.setCellFactory(tc -> new TableCell<>() {
-            @Override protected void updateItem(Integer n, boolean empty) {
-                super.updateItem(n, empty);
-                setText(empty || n == null ? null : (n + " min"));
-            }
-        });
-
-        TableColumn<Ricetta, String> colDesc = new TableColumn<>("Descrizione");
-        colDesc.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
-        colDesc.setCellFactory(tc -> new TableCell<>() {
-            private final Label lbl = new Label();
-            {
-                lbl.getStyleClass().add("table-description");
-            }
-            @Override protected void updateItem(String s, boolean empty) {
-                super.updateItem(s, empty);
-                if (empty || s == null) {
-                    setGraphic(null);
-                    return;
-                }
-                lbl.setText(s);
-                setGraphic(lbl);
-            }
-        });
-
-        if (data != null) tv.getItems().addAll(data);
-
-        Label ph = new Label("Nessuna ricetta associata.");
-        ph.getStyleClass().add("table-placeholder");
-        tv.setPlaceholder(ph);
-
-        return tv;
-    }
 
     private final class CardCell extends ListCell<Sessione> {
         private final VBox card = new VBox();

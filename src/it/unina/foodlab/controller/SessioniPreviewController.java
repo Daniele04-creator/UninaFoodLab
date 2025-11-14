@@ -245,7 +245,7 @@ public class SessioniPreviewController {
     });
 
 
-    tv.getColumns().setAll(colNome, colDiff, colTempo, colDesc);
+    tv.getColumns().setAll(List.of(colNome, colDiff, colTempo, colDesc));
 
     if (data != null) {
         tv.getItems().addAll(data);

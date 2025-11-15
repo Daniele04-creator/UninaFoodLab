@@ -1063,7 +1063,8 @@ public class CorsiPanelController {
 			fx.load();
 			AssociaRicetteController dlg = fx.getController();
 			Optional<List<Long>> result = dlg.showAndWait();
-			dlg.salvaSeConfermato(result);
+			dlg.salvaSeConfermato(result.orElse(null));
+			
 		} catch (Exception e) {
 			showError("Errore associazione ricette: " + e.getMessage());
 			e.printStackTrace();

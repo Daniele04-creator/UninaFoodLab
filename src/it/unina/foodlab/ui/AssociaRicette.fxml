@@ -1,29 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.*?>
 
-<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="it.unina.foodlab.controller.AssociaRicetteController"
       fx:id="root"
-      spacing="14" fillWidth="true"
+      spacing="14"
+      fillWidth="true"
       stylesheets="@/it/unina/foodlab/util/dark-theme.css"
       style="-fx-background-color: transparent;
              -fx-font-family: 'Segoe UI', Inter, system-ui;
              -fx-font-size: 13px;">
 
-    <!-- SOLO BOTTONI – niente barra, niente background -->
+    <!-- Pulsanti selezione -->
     <HBox spacing="10" alignment="CENTER_RIGHT"
           style="-fx-padding: 4 2 0 2;">
         <children>
-            <Button fx:id="btnSelAll" text="Tutte"
+            <Button fx:id="btnSelAll"
+                    text="Tutte"
+                    onAction="#selectAll"
                     style="-fx-background-color:#2b3438;
                            -fx-text-fill:#e9f5ec;
                            -fx-background-radius:10;
                            -fx-font-weight:700;
                            -fx-padding:6 12;"/>
 
-            <Button fx:id="btnSelNone" text="Nessuna"
+            <Button fx:id="btnSelNone"
+                    text="Nessuna"
+                    onAction="#selectNone"
                     style="-fx-background-color:#2b3438;
                            -fx-text-fill:#e9f5ec;
                            -fx-background-radius:10;
@@ -32,8 +39,11 @@
         </children>
     </HBox>
 
-    <!-- TABELLA -->
-    <TableView fx:id="table" VBox.vgrow="ALWAYS"
+    <!-- Tabella ricette -->
+    <TableView fx:id="table"
+               editable="true"
+               VBox.vgrow="ALWAYS"
+               styleClass="dark-table"
                style="-fx-background-color:#20282b;
                       -fx-control-inner-background:#20282b;
                       -fx-text-background-color:#e9f5ec;
@@ -41,13 +51,44 @@
                       -fx-border-color: rgba(255,255,255,0.06);
                       -fx-border-radius:12;
                       -fx-background-radius:12;">
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+        </columnResizePolicy>
+
         <columns>
-            <TableColumn fx:id="colChk"  text="✓" prefWidth="60"  style="-fx-alignment: CENTER;"/>
-            <TableColumn fx:id="colNome" text="Nome"/>
-            <TableColumn fx:id="colDiff" text="Difficoltà" prefWidth="120"/>
-            <TableColumn fx:id="colTempo" text="Tempo prep. (min)" prefWidth="150" style="-fx-alignment: CENTER-RIGHT;"/>
-            <TableColumn fx:id="colDesc" text="Descrizione"/>
+            <TableColumn fx:id="colChk"
+                         text="✓"
+                         prefWidth="60"
+                         style="-fx-alignment: CENTER;"/>
+
+            <TableColumn fx:id="colNome"
+                         text="Nome">
+                <cellValueFactory>
+                    <PropertyValueFactory property="nome"/>
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn fx:id="colDiff"
+                         text="Difficoltà"
+                         prefWidth="120">
+                <cellValueFactory>
+                    <PropertyValueFactory property="difficolta"/>
+                </cellValueFactory>
+            </TableColumn>
+
+            <TableColumn fx:id="colTempo"
+                         text="Tempo prep. (min)"
+                         prefWidth="150"
+                         style="-fx-alignment: CENTER-RIGHT;"/>
+
+            <TableColumn fx:id="colDesc"
+                         text="Descrizione">
+                <cellValueFactory>
+                    <PropertyValueFactory property="descrizione"/>
+                </cellValueFactory>
+            </TableColumn>
         </columns>
+
         <placeholder>
             <Label text="Nessuna ricetta trovata."
                    style="-fx-text-fill: rgba(233,245,236,0.85);

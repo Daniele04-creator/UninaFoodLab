@@ -10,6 +10,26 @@
   -fx-hover-bg: #1FB57A2E;
 }
 
+/* Sfondo header della dialog */
+.dialog-pane > .header-panel {
+    -fx-background-color: #2b2b2b;  /* grigio scuro */
+}
+
+/* Testo dell’header */
+.dialog-pane > .header-panel > .label {
+    -fx-text-fill: #cccccc;
+}
+
+/* Sfondo generale della dialog */
+.dialog-pane {
+    -fx-background-color: #2b2b2b;
+}
+
+/* Sfondo del contenuto interno */
+.dialog-pane > *.content {
+    -fx-background-color: #2b2b2b;
+}
+
 .associa-ricette-dialog {
   -fx-background-color: linear-gradient(to bottom, -fx-bg-card, -fx-bg-surface);
   -fx-border-color: -fx-grid-soft;
@@ -856,4 +876,3 @@
     -fx-background-color: #145c46;
     -fx-text-fill: #ffffff;
 }
-

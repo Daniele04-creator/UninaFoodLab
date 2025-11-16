@@ -9,43 +9,38 @@
       spacing="14" fillWidth="true"
       stylesheets="@/it/unina/foodlab/util/dark-theme.css"
       style="-fx-background-color: transparent;
-             -fx-font-family: 'Segoe UI', Inter, system-ui; -fx-font-size: 13px;">
+             -fx-font-family: 'Segoe UI', Inter, system-ui;
+             -fx-font-size: 13px;">
 
-    <!-- TOP BAR FILTRI -->
-    <HBox spacing="10" alignment="CENTER_LEFT"
-          style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
-                 -fx-background-radius: 12; -fx-padding: 10 12;">
+    <!-- SOLO BOTTONI – niente barra, niente background -->
+    <HBox spacing="10" alignment="CENTER_RIGHT"
+          style="-fx-padding: 4 2 0 2;">
         <children>
-            <Label text="Filtro:" style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;"/>
-            <TextField fx:id="txtSearch" promptText="Cerca per nome o descrizione…"
-                       HBox.hgrow="ALWAYS"
-                       style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec;
-                              -fx-prompt-text-fill: rgba(233,245,236,0.70);
-                              -fx-background-radius:10; -fx-border-color: rgba(255,255,255,0.06);
-                              -fx-border-radius:10; -fx-padding:8 10;"/>
-
-            <Label text="Difficoltà:" style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;"/>
-            <ChoiceBox fx:id="chDifficolta"
-                       style="-fx-background-color:#2b3438; -fx-background-radius:10;
-                              -fx-text-fill:#e9f5ec; -fx-padding:6 10;"/>
-
-            <Region fx:id="topBarSpacer" HBox.hgrow="ALWAYS"/>
-
             <Button fx:id="btnSelAll" text="Tutte"
-                    style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec;
-                           -fx-background-radius:10; -fx-font-weight:700; -fx-padding:8 12;"/>
+                    style="-fx-background-color:#2b3438;
+                           -fx-text-fill:#e9f5ec;
+                           -fx-background-radius:10;
+                           -fx-font-weight:700;
+                           -fx-padding:6 12;"/>
+
             <Button fx:id="btnSelNone" text="Nessuna"
-                    style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec;
-                           -fx-background-radius:10; -fx-font-weight:700; -fx-padding:8 12;"/>
+                    style="-fx-background-color:#2b3438;
+                           -fx-text-fill:#e9f5ec;
+                           -fx-background-radius:10;
+                           -fx-font-weight:700;
+                           -fx-padding:6 12;"/>
         </children>
     </HBox>
 
     <!-- TABELLA -->
     <TableView fx:id="table" VBox.vgrow="ALWAYS"
-               style="-fx-background-color:#20282b; -fx-control-inner-background:#20282b;
-                      -fx-text-background-color:#e9f5ec; -fx-padding:8;
+               style="-fx-background-color:#20282b;
+                      -fx-control-inner-background:#20282b;
+                      -fx-text-background-color:#e9f5ec;
+                      -fx-padding:8;
                       -fx-border-color: rgba(255,255,255,0.06);
-                      -fx-border-radius:12; -fx-background-radius:12;">
+                      -fx-border-radius:12;
+                      -fx-background-radius:12;">
         <columns>
             <TableColumn fx:id="colChk"  text="✓" prefWidth="60"  style="-fx-alignment: CENTER;"/>
             <TableColumn fx:id="colNome" text="Nome"/>
@@ -55,9 +50,13 @@
         </columns>
         <placeholder>
             <Label text="Nessuna ricetta trovata."
-                   style="-fx-text-fill: rgba(233,245,236,0.85); -fx-padding:12;"/>
+                   style="-fx-text-fill: rgba(233,245,236,0.85);
+                          -fx-padding:12;"/>
         </placeholder>
     </TableView>
 
-    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
+
 </VBox>

@@ -5,22 +5,11 @@ import it.unina.foodlab.model.Ricetta;
 import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.DialogPane;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
@@ -31,24 +20,19 @@ import java.util.Set;
 public class AssociaRicetteController extends Dialog<List<Long>> {
 
     @FXML private VBox root;
-    @FXML private TextField txtSearch;
-    @FXML private ChoiceBox<String> chDifficolta;
-    @FXML private javafx.scene.control.Button btnSelAll;
-    @FXML private javafx.scene.control.Button btnSelNone;
+    @FXML private Button btnSelAll;
+    @FXML private Button btnSelNone;
     @FXML private TableView<Riga> table;
     @FXML private TableColumn<Riga, Boolean> colChk;
     @FXML private TableColumn<Riga, String> colNome;
     @FXML private TableColumn<Riga, String> colDiff;
     @FXML private TableColumn<Riga, Number> colTempo;
     @FXML private TableColumn<Riga, String> colDesc;
-    @FXML private Region topBarSpacer;
 
     private final SessioneDao sessioneDao;
     private final int idSessionePresenza;
     private final List<Ricetta> tutteLeRicette;
     private final List<Ricetta> ricetteGiaAssociate;
-
-    private FilteredList<Riga> filtered;
 
     public AssociaRicetteController(SessioneDao sessioneDao,
                                     int idSessionePresenza,
@@ -64,6 +48,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 
         setTitle("Associa ricette alla sessione (id=" + idSessionePresenza + ")");
         getDialogPane().getButtonTypes().setAll(ButtonType.CANCEL, ButtonType.OK);
+
         setResultConverter(bt -> {
             if (bt != ButtonType.OK) return null;
             List<Long> out = new ArrayList<>();
@@ -89,11 +74,6 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         pane.setPrefSize(960, 620);
         setResizable(true);
 
-        chDifficolta.setItems(FXCollections.observableArrayList("Tutte", "Facile", "Medio", "Difficile"));
-        chDifficolta.getSelectionModel().selectFirst();
-
-        txtSearch.setPromptText("Cerca per nome o descrizione");
-
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         table.setTableMenuButtonVisible(false);
         table.setPlaceholder(new Label("Nessuna ricetta trovata."));
@@ -112,11 +92,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
             @Override
             protected void updateItem(Number n, boolean empty) {
                 super.updateItem(n, empty);
-                if (empty || n == null) {
-                    setText(null);
-                } else {
-                    setText(n.intValue() + " min");
-                }
+                setText(empty || n == null ? null : n.intValue() + " min");
             }
         });
 
@@ -139,62 +115,28 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
             riga.checkedProperty().set(preSelected.contains(riga.getIdRicetta()));
         }
 
-        filtered = new FilteredList<>(righe, r -> true);
-        table.setItems(filtered);
+        table.setItems(righe);
 
-        txtSearch.textProperty().addListener((o, ov, nv) -> applyFilter());
-        chDifficolta.valueProperty().addListener((o, ov, nv) -> applyFilter());
-
-        if (btnSelAll != null) btnSelAll.setOnAction(this::selectAll);
-        if (btnSelNone != null) btnSelNone.setOnAction(this::selectNone);
-    }
-
-    private void applyFilter() {
-        if (filtered == null) return;
-
-        String q = txtSearch.getText();
-        if (q == null) q = "";
-        q = q.trim().toLowerCase();
-
-        String diff = chDifficolta.getValue();
-        if (diff == null || diff.isEmpty()) {
-            diff = "Tutte";
-        }
-        String finalQ = q;
-        String finalDiff = diff;
-
-        filtered.setPredicate(r -> {
-            if (r == null) return false;
-
-            boolean okTxt = finalQ.isEmpty()
-                    || containsIgnoreCase(r.getNome(), finalQ)
-                    || containsIgnoreCase(r.getDescrizione(), finalQ);
-
-            boolean okDiff = "Tutte".equalsIgnoreCase(finalDiff)
-                    || (r.getDifficolta() != null && finalDiff.equalsIgnoreCase(r.getDifficolta()));
-
-            return okTxt && okDiff;
-        });
+        btnSelAll.setOnAction(this::selectAll);
+        btnSelNone.setOnAction(this::selectNone);
     }
 
     private void selectAll(ActionEvent e) {
-        if (filtered == null) return;
-        for (Riga r : filtered) {
+        for (Riga r : table.getItems()) {
             r.checkedProperty().set(true);
         }
     }
 
     private void selectNone(ActionEvent e) {
-        if (filtered == null) return;
-        for (Riga r : filtered) {
+        for (Riga r : table.getItems()) {
             r.checkedProperty().set(false);
         }
     }
 
     public void salvaSeConfermato(List<Long> result) {
-        if (result == null || result.isEmpty()) return;
+        if (result == null) return; // Annulla → non modifico niente
 
-        List<Long> selectedNow = new ArrayList<>(result);
+        Set<Long> after = new HashSet<>(result);
 
         try {
             List<Ricetta> gia = sessioneDao.findRicetteBySessionePresenza(idSessionePresenza);
@@ -207,14 +149,14 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
                 }
             }
 
-            Set<Long> after = new HashSet<>(selectedNow);
-
+            // aggiungi nuove associazioni
             for (Long idAdd : after) {
                 if (!before.contains(idAdd)) {
                     sessioneDao.addRicettaToSessionePresenza(idSessionePresenza, idAdd);
                 }
             }
 
+            // rimuovi quelle non più selezionate
             for (Long idRem : before) {
                 if (!after.contains(idRem)) {
                     sessioneDao.removeRicettaFromSessionePresenza(idSessionePresenza, idRem);
@@ -228,22 +170,17 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         }
     }
 
-    private static boolean containsIgnoreCase(String s, String q) {
-        if (s == null || q == null) return false;
-        return s.toLowerCase().contains(q);
-    }
-
     public static class Riga {
-        final long idRicetta;
-        final javafx.beans.property.SimpleBooleanProperty checked =
+        private final long idRicetta;
+        private final javafx.beans.property.SimpleBooleanProperty checked =
                 new javafx.beans.property.SimpleBooleanProperty(false);
-        final javafx.beans.property.SimpleStringProperty nome =
+        private final javafx.beans.property.SimpleStringProperty nome =
                 new javafx.beans.property.SimpleStringProperty();
-        final javafx.beans.property.SimpleStringProperty descrizione =
+        private final javafx.beans.property.SimpleStringProperty descrizione =
                 new javafx.beans.property.SimpleStringProperty();
-        final javafx.beans.property.SimpleStringProperty difficolta =
+        private final javafx.beans.property.SimpleStringProperty difficolta =
                 new javafx.beans.property.SimpleStringProperty();
-        final javafx.beans.property.SimpleIntegerProperty tempoPreparazione =
+        private final javafx.beans.property.SimpleIntegerProperty tempoPreparazione =
                 new javafx.beans.property.SimpleIntegerProperty();
 
         public Riga(Ricetta r) {
@@ -259,7 +196,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
         public String getNome() { return nome.get(); }
         public String getDescrizione() { return descrizione.get(); }
         public String getDifficolta() { return difficolta.get(); }
-        public Integer getTempoPreparazione() { return tempoPreparazione.get(); }
+        public int getTempoPreparazione() { return tempoPreparazione.get(); }
         public javafx.beans.property.BooleanProperty checkedProperty() { return checked; }
     }
 

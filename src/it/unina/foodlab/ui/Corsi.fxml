@@ -57,27 +57,19 @@
 
                 <Region HBox.hgrow="ALWAYS"/>
 
-                <!-- Menu Filtri con classe per tema scuro -->
-                <MenuButton fx:id="btnFilters" text="Filtri"
-                            contentDisplay="LEFT" graphicTextGap="8"
-                            styleClass="dark-menubutton">
-                    <graphic>
-                        <ImageView fitHeight="16" preserveRatio="true">
-                            <image><Image url="@/icons/filled-filter-16.png"/></image>
-                        </ImageView>
-                    </graphic>
-                    <tooltip><Tooltip text="Filtri avanzati"/></tooltip>
+                <!-- Filtro diretto per argomento -->
+                <Label text="Argomento:"
+                       style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;"/>
 
-                    <!-- Voci solo di placeholder: il controller sostituisce con il ContextMenu custom -->
-                    <items>
-                        <MenuItem fx:id="miFiltroArg"  text="Argomento"/>
-                        <MenuItem fx:id="miFiltroFreq" text="Frequenza"/>
-                        <MenuItem fx:id="miFiltroChef" text="Chef"/>
-                        <MenuItem fx:id="miFiltroId"   text="ID"/>
-                        <SeparatorMenuItem/>
-                        <MenuItem fx:id="btnClearInMenu" text="Pulisci tutti i filtri"/>
-                    </items>
-                </MenuButton>
+                <ComboBox fx:id="cbFiltroArgomento"
+                          prefWidth="220"
+                          styleClass="dark-combobox"
+                          style="-fx-background-color:#2b3438;
+                                 -fx-background-radius:10;
+                                 -fx-border-color: rgba(255,255,255,0.10);
+                                 -fx-border-radius:10;
+                                 -fx-text-fill:#e9f5ec;
+                                 -fx-padding:6 10;"/>
 
                 <Button fx:id="btnRefresh"
                         style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10; -fx-padding:8 10;

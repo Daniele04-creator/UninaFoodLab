@@ -787,4 +787,73 @@
 }
 
 
+/* ComboBox scuro – bottone */
+.dark-combobox {
+    -fx-background-color: #20252b;
+    -fx-text-fill: #f0f0f0;
+}
+
+/* testo nel bottone */
+.dark-combobox .text {
+    -fx-fill: #f0f0f0;
+}
+
+/* freccia */
+.dark-combobox .arrow-button {
+    -fx-background-color: transparent;
+}
+.dark-combobox .arrow {
+    -fx-background-color: #f0f0f0;
+}
+
+/* popup (lista) */
+.dark-combobox .combo-box-popup .list-view {
+    -fx-background-color: #20252b;
+}
+
+/* celle della lista */
+.dark-combobox .combo-box-popup .list-cell {
+    -fx-background-color: #20252b;
+    -fx-text-fill: #f0f0f0;
+}
+
+/* cella selezionata/hover */
+.dark-combobox .combo-box-popup .list-cell:selected,
+.dark-combobox .combo-box-popup .list-cell:hover {
+    -fx-background-color: #145c46;   /* lo stesso verde che usi per la selezione */
+    -fx-text-fill: #ffffff;
+}
+
+/* campo del DatePicker */
+.dark-datepicker {
+    -fx-background-color: #20252b;
+    -fx-text-fill: #f0f0f0;
+}
+
+/* parte testo */
+.dark-datepicker .text-field {
+    -fx-background-color: #20252b;
+    -fx-text-fill: #f0f0f0;
+}
+
+/* bottone calendario */
+.dark-datepicker .arrow-button {
+    -fx-background-color: transparent;
+}
+
+/* popup calendario */
+.dark-datepicker .calendar-pane,
+.dark-datepicker .combo-box-popup,
+.dark-datepicker .month-year-pane,
+.dark-datepicker .day-cell {
+    -fx-background-color: #20252b;
+    -fx-text-fill: #f0f0f0;
+}
+
+/* giorno selezionato/hover */
+.dark-datepicker .day-cell:selected,
+.dark-datepicker .day-cell:hover {
+    -fx-background-color: #145c46;
+    -fx-text-fill: #ffffff;
+}
 

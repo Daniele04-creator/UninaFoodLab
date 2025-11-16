@@ -5,105 +5,185 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.SVGPath?>
 
-<DialogPane fx:id="dialogPane" prefWidth="560" style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b); -fx-border-radius: 12; -fx-border-color: rgba(255,255,255,0.06); -fx-border-width: 1; -fx-font-family: 'Segoe UI', Inter, system-ui; -fx-font-size: 13px;"
-			xmlns="http://javafx.com/javafx"
-			xmlns:fx="http://javafx.com/fxml/1"
-			stylesheets="@/it/unina/foodlab/util/dark-theme.css"
-			fx:controller="it.unina.foodlab.controller.CorsoEditorDialogController">
+<DialogPane fx:id="dialogPane" prefWidth="560"
+            style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
+                   -fx-border-radius: 12;
+                   -fx-border-color: rgba(255,255,255,0.06);
+                   -fx-border-width: 1;
+                   -fx-font-family: 'Segoe UI', Inter, system-ui;
+                   -fx-font-size: 13px;"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml/1"
+            stylesheets="@/it/unina/foodlab/util/dark-theme.css"
+            fx:controller="it.unina.foodlab.controller.CorsoEditorDialogController">
 
     <header>
-        <VBox alignment="CENTER" prefWidth="558.0" spacing="6" style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022); -fx-padding: 16 20;">
+        <VBox alignment="CENTER" prefWidth="558.0" spacing="6"
+              style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
+                     -fx-padding: 16 20;">
             <children>
-                <Label style="-fx-text-fill:#a7f3d0; -fx-font-weight:900; -fx-font-size:18px;" text="Crea Nuovo Corso" />
-                <Label style="-fx-text-fill:#e9f5ec; -fx-opacity:0.85;" text="Configura i dettagli del corso" />
+                <Label text="Crea Nuovo Corso"
+                       style="-fx-text-fill:#a7f3d0; -fx-font-weight:900; -fx-font-size:18px;"/>
+                <Label text="Configura i dettagli del corso"
+                       style="-fx-text-fill:#e9f5ec; -fx-opacity:0.85;"/>
             </children>
         </VBox>
     </header>
 
     <content>
-        <GridPane hgap="16" style="-fx-padding:20;" vgap="16">
+        <GridPane hgap="16" vgap="16" style="-fx-padding:20;">
             <children>
 
-                
-                <Label style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;" text="Argomento" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                <HBox alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <!-- Argomento -->
+                <Label text="Argomento"
+                       GridPane.columnIndex="0" GridPane.rowIndex="0"
+                       style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"/>
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      GridPane.columnIndex="1" GridPane.rowIndex="0">
                     <children>
                         <StackPane maxHeight="18" maxWidth="18" minHeight="18" minWidth="18">
-                            <SVGPath content="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" fill="#93a5be" />
+                            <SVGPath content="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"
+                                     fill="#93a5be"/>
                         </StackPane>
 
-                        <ComboBox fx:id="cbArg" promptText="Seleziona argomento" style="-fx-background-color:#2b3438; -fx-control-inner-background:#2b3438;                                          -fx-text-fill:#e9f5ec; -fx-prompt-text-fill: rgba(233,245,236,0.70);                                          -fx-background-radius:10; -fx-border-color: rgba(255,255,255,0.06);                                          -fx-border-radius:10; -fx-padding:4 8;" HBox.hgrow="ALWAYS" />
+                        <ComboBox fx:id="cbArg"
+                                  promptText="Seleziona argomento"
+                                  HBox.hgrow="ALWAYS"
+                                  style="-fx-background-color:#2b3438;
+                                         -fx-control-inner-background:#2b3438;
+                                         -fx-text-fill:#e9f5ec;
+                                         -fx-prompt-text-fill: rgba(233,245,236,0.70);
+                                         -fx-background-radius:10;
+                                         -fx-border-color: rgba(255,255,255,0.06);
+                                         -fx-border-radius:10;
+                                         -fx-padding:4 8;"/>
 
-                        <Button fx:id="btnAddArg" focusTraversable="false" style="-fx-background-color:#2b3438; -fx-background-radius:10; -fx-padding:6;">
+                        <Button fx:id="btnAddArg" focusTraversable="false"
+                                style="-fx-background-color:#2b3438;
+                                       -fx-background-radius:10;
+                                       -fx-padding:6;">
                             <graphic>
-                                <SVGPath content="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="#e9f5ec" />
+                                <SVGPath content="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                                         fill="#e9f5ec"/>
                             </graphic>
-                            <cursor><Cursor fx:constant="HAND" /></cursor>
-                            <tooltip><Tooltip text="Aggiungi argomento" /></tooltip>
+                            <cursor>
+                                <Cursor fx:constant="HAND"/>
+                            </cursor>
+                            <tooltip>
+                                <Tooltip text="Aggiungi argomento"/>
+                            </tooltip>
                         </Button>
                     </children>
                 </HBox>
 
-                
-                <Label style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;" text="Frequenza" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                <HBox alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <!-- Frequenza -->
+                <Label text="Frequenza"
+                       GridPane.columnIndex="0" GridPane.rowIndex="1"
+                       style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"/>
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <children>
                         <StackPane maxHeight="18" maxWidth="18" minHeight="18" minWidth="18">
-                            <SVGPath content="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" fill="#93a5be" />
+                            <SVGPath content="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"
+                                     fill="#93a5be"/>
                         </StackPane>
-                        <ChoiceBox fx:id="cbFreq" style="-fx-background-color:#2b3438; -fx-background-radius:10;                                           -fx-text-fill:#e9f5ec; -fx-padding:4 10;" />
+                        <ChoiceBox fx:id="cbFreq"
+                                   style="-fx-background-color:#2b3438;
+                                          -fx-background-radius:10;
+                                          -fx-text-fill:#e9f5ec;
+                                          -fx-padding:4 10;"/>
                     </children>
                 </HBox>
 
-                
-                <Label style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;" text="Data Inizio" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                <HBox alignment="CENTER_LEFT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                <!-- Data inizio -->
+                <Label text="Data Inizio"
+                       GridPane.columnIndex="0" GridPane.rowIndex="2"
+                       style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"/>
+                <HBox alignment="CENTER_LEFT" spacing="10"
+                      GridPane.columnIndex="1" GridPane.rowIndex="2">
                     <children>
                         <StackPane maxHeight="18" maxWidth="18" minHeight="18" minWidth="18">
-                            <SVGPath content="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zM19 19H5V8h14z" fill="#93a5be" />
+                            <SVGPath content="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zM19 19H5V8h14z"
+                                     fill="#93a5be"/>
                         </StackPane>
-                        <DatePicker fx:id="dpInizio" promptText="Seleziona data" showWeekNumbers="false" style="-fx-background-color:#2b3438; -fx-control-inner-background:#2b3438;                                            -fx-text-fill:#e9f5ec; -fx-prompt-text-fill: rgba(233,245,236,0.70);                                            -fx-background-radius:10; -fx-border-color: rgba(255,255,255,0.06);                                            -fx-border-radius:10; -fx-padding:4 8;" HBox.hgrow="ALWAYS" />
+                        <DatePicker fx:id="dpInizio"
+                                    promptText="Seleziona data"
+                                    showWeekNumbers="false"
+                                    HBox.hgrow="ALWAYS"
+                                    style="-fx-background-color:#2b3438;
+                                           -fx-control-inner-background:#2b3438;
+                                           -fx-text-fill:#e9f5ec;
+                                           -fx-prompt-text-fill: rgba(233,245,236,0.70);
+                                           -fx-background-radius:10;
+                                           -fx-border-color: rgba(255,255,255,0.06);
+                                           -fx-border-radius:10;
+                                           -fx-padding:4 8;"/>
                     </children>
                 </HBox>
 
-                
-                <Label style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;" text="Sessioni" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-                <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                <!-- Sessioni + Fine -->
+                <Label text="Sessioni"
+                       GridPane.columnIndex="0" GridPane.rowIndex="3"
+                       style="-fx-text-fill:#cfe5d9; -fx-font-weight:700;"/>
+                <HBox spacing="10"
+                      GridPane.columnIndex="1" GridPane.rowIndex="3">
                     <children>
-                        <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-background-color: transparent;" HBox.hgrow="ALWAYS">
+                        <!-- Spinner -->
+                        <HBox alignment="CENTER_LEFT" spacing="10"
+                              style="-fx-background-color: transparent;">
                             <children>
                                 <StackPane maxHeight="18" maxWidth="18" minHeight="18" minWidth="18">
-                                    <SVGPath content="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="#93a5be" />
+                                    <SVGPath content="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                                             fill="#93a5be"/>
                                 </StackPane>
-                                <Spinner fx:id="spNumSess" editable="true" style="-fx-background-color:#2b3438; -fx-control-inner-background:#2b3438;                                                 -fx-text-fill:#e9f5ec; -fx-background-radius:10;                                                 -fx-border-color: rgba(255,255,255,0.06); -fx-border-radius:10;" HBox.hgrow="ALWAYS" />
+                                <Spinner fx:id="spNumSess"
+                                         editable="true"
+                                         style="-fx-background-color:#2b3438;
+                                                -fx-control-inner-background:#2b3438;
+                                                -fx-text-fill:#e9f5ec;
+                                                -fx-background-radius:10;
+                                                -fx-border-color: rgba(255,255,255,0.06);
+                                                -fx-border-radius:10;"/>
                             </children>
                         </HBox>
 
-                        <HBox alignment="CENTER_LEFT" spacing="6" style="-fx-background-color: rgba(255,255,255,0.04);                                      -fx-background-radius:10; -fx-padding:4 8;">
+                        <!-- Fine -->
+                        <HBox alignment="CENTER_LEFT" spacing="6"
+                              prefWidth="190"
+                              style="-fx-background-color: rgba(255,255,255,0.04);
+                                     -fx-background-radius:10;
+                                     -fx-padding:4 8;">
                             <children>
-                                <Label style="-fx-text-fill:#9fb6aa;" text="Fine:" />
-                                <Label fx:id="lblFine" style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;" text="—" />
+                                <Label text="Fine:"
+                                       style="-fx-text-fill:#9fb6aa;"
+                                       minWidth="40"/>
+                                <Label fx:id="lblFine"
+                                       text="—"
+                                       textOverrun="CLIP"
+                                       style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;"/>
                             </children>
                         </HBox>
                     </children>
                 </HBox>
 
             </children>
+
             <columnConstraints>
-                <ColumnConstraints percentWidth="32" />
-                <ColumnConstraints percentWidth="68" />
+                <ColumnConstraints percentWidth="32"/>
+                <ColumnConstraints percentWidth="68"/>
             </columnConstraints>
-         <rowConstraints>
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-            <RowConstraints />
-         </rowConstraints>
+
+            <rowConstraints>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+                <RowConstraints/>
+            </rowConstraints>
         </GridPane>
     </content>
 
     <buttonTypes>
-        <ButtonType fx:id="createButtonType" buttonData="OK_DONE" text="Crea Corso" />
-        <ButtonType fx:id="cancelButtonType" buttonData="CANCEL_CLOSE" text="Annulla" />
+        <ButtonType fx:id="createButtonType" buttonData="OK_DONE" text="Crea Corso"/>
+        <ButtonType fx:id="cancelButtonType" buttonData="CANCEL_CLOSE" text="Annulla"/>
     </buttonTypes>
 </DialogPane>

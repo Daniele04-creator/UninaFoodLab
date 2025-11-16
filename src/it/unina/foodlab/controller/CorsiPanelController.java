@@ -404,7 +404,8 @@ public class CorsiPanelController {
             Dialog<List<Sessione>> dlg = new Dialog<>();
             dlg.setTitle("Modifica sessioni - " + nz(sel.getArgomento()));
             dlg.setDialogPane(pane);
-            pane.setPrefSize(1200, 800);
+            pane.setPrefSize(1600, 800);
+            dlg.setResizable(true);
             dlg.setResultConverter(bt -> (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE) ? ctrl.buildResult() : null);
             Optional<List<Sessione>> res = dlg.showAndWait();
             if (res.isPresent() && res.get() != null) {
@@ -568,7 +569,8 @@ public class CorsiPanelController {
             Dialog<List<Sessione>> dlg = new Dialog<>();
             dlg.setTitle("Configura sessioni del corso");
             dlg.setDialogPane(pane);
-            pane.setPrefSize(1200, 800);
+            pane.setPrefSize(1600, 800);
+            dlg.setResizable(true);
             dlg.setResultConverter(bt -> (bt != null && bt.getButtonData() == ButtonBar.ButtonData.OK_DONE) ? ctrl.buildResult() : null);
             return dlg.showAndWait();
         } catch (Exception ex) {

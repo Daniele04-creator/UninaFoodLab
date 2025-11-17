@@ -68,6 +68,14 @@ public class Corso {
 	public Chef getChef() {
 		return chef;
 	}
+	
+	public String getNomeChef() {
+	    return chef != null ? chef.getNome() : "";
+	}
+
+	public String getCognomeChef() {
+	    return chef != null ? chef.getCognome() : "";
+	}
 
 	public void setChef(Chef chef) {
 		this.chef = chef;

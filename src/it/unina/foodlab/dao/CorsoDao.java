@@ -52,6 +52,16 @@ public class CorsoDao {
                 + "ORDER BY c.data_inizio DESC";
     }
 
+    private String sqlFindById() {
+        return ""
+                + "SELECT  c.id_corso, c.data_inizio, c.data_fine, c.argomento, c.frequenza, c.\"numSessioni\" AS num_sessioni, "
+                + "        ch.CF_Chef, ch.nome, ch.cognome, ch.username, ch.password "
+                + "FROM " + tbl("corso") + " c "
+                + "LEFT JOIN " + tbl("chef") + " ch ON ch.CF_Chef = c.fk_cf_chef "
+                + "WHERE c.id_corso = ? "
+                + (restrictFindAllToOwner ? "AND c.fk_cf_chef = ? " : "");
+    }
+
     private String sqlInsertCorso() {
         return ""
                 + "INSERT INTO " + tbl("corso")
@@ -102,6 +112,22 @@ public class CorsoDao {
             }
         }
         return out;
+    }
+
+    public Corso findById(long id) throws Exception {
+        try (Connection conn = Db.get();
+             PreparedStatement ps = conn.prepareStatement(sqlFindById())) {
+            ps.setLong(1, id);
+            if (restrictFindAllToOwner) {
+                ps.setString(2, ownerCfChef);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+        }
+        return null;
     }
 
     public void delete(long id) throws Exception {

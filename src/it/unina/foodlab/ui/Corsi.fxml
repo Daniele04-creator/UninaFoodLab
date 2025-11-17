@@ -157,10 +157,24 @@
                                     </cellValueFactory>
                                 </TableColumn>
 
-                                <TableColumn fx:id="colChef"
-                                             text="Chef"
-                                             prefWidth="220"
-                                             style="-fx-alignment: CENTER_LEFT;"/>
+                                <TableColumn fx:id="colNomeChef"
+             text="Nome chef"
+             prefWidth="140"
+             style="-fx-alignment: CENTER_LEFT;">
+    <cellValueFactory>
+        <PropertyValueFactory property="nomeChef"/>
+    </cellValueFactory>
+</TableColumn>
+
+<TableColumn fx:id="colCognomeChef"
+             text="Cognome chef"
+             prefWidth="140"
+             style="-fx-alignment: CENTER_LEFT;">
+    <cellValueFactory>
+        <PropertyValueFactory property="cognomeChef"/>
+    </cellValueFactory>
+</TableColumn>
+
                                 <!-- chef usa la logica nel controller -->
                             </columns>
 

@@ -40,7 +40,6 @@ public class CorsiPanelController {
 
 	@FXML private ComboBox<String> cbFiltroArgomento;
 	@FXML private TableView<Corso> table;
-	@FXML private TableColumn<Corso, String> colChef;
 	@FXML private Button btnEdit, btnDelete, btnAssocRicette;
 	@FXML private TableColumn<Corso, String> colStato;
 
@@ -56,7 +55,9 @@ public class CorsiPanelController {
 
 	@FXML
 	private void initialize() {
-		initTableColumns();
+		colStato.setCellValueFactory(cd ->
+		Bindings.createStringBinding(() -> statoOf(cd.getValue()))
+				);
 
 		table.setItems(sorted);
 		sorted.comparatorProperty().bind(table.comparatorProperty());
@@ -84,22 +85,6 @@ public class CorsiPanelController {
 		});
 
 		refreshTitleWithCount();
-	}
-
-
-	private void initTableColumns() {
-		colStato.setCellValueFactory(cd ->
-		Bindings.createStringBinding(() -> statoOf(cd.getValue()))
-				);
-
-		colChef.setCellValueFactory(cd -> Bindings.createStringBinding(() -> {
-			Corso c = cd.getValue();
-			if (c == null || c.getChef() == null) return "";
-			String nome = nz(c.getChef().getNome());
-			String cognome = nz(c.getChef().getCognome());
-			String full = (nome + " " + cognome).trim();
-			return full.isEmpty() ? nz(c.getChef().getCF_Chef()) : full;
-		}));
 	}
 
 	private String statoOf(Corso c) {
@@ -154,6 +139,9 @@ public class CorsiPanelController {
 				list = Collections.emptyList();
 			}
 			backing.setAll(list);
+
+			refreshArgomentiCondivisi();
+
 			refilter();
 			populateFiltroArgomento();
 			refreshTitleWithCount();
@@ -163,19 +151,18 @@ public class CorsiPanelController {
 	}
 
 
+
 	private void populateFiltroArgomento() {
 		if (cbFiltroArgomento == null) return;
 
-		List<String> argOpts = distinctArgomenti();
-		cbFiltroArgomento.getItems().setAll(argOpts);
-
-		String toSelect;
-		if (filtroArg == null) {
-			toSelect = ALL_OPTION;
-		} else {
-			toSelect = filtroArg;
+		List<String> argOpts = new ArrayList<>(argomentiCondivisi);
+		if (!argOpts.contains(ALL_OPTION)) {
+			argOpts.add(0, ALL_OPTION);
 		}
 
+		cbFiltroArgomento.getItems().setAll(argOpts);
+
+		String toSelect = (filtroArg == null) ? ALL_OPTION : filtroArg;
 		if (!argOpts.contains(toSelect)) {
 			toSelect = ALL_OPTION;
 			filtroArg = null;
@@ -210,24 +197,6 @@ public class CorsiPanelController {
 	}
 
 
-	private List<String> distinctArgomenti() {
-		Set<String> set = new HashSet<>();
-		for (Corso c : backing) {
-			if (c == null) continue;
-			String a = c.getArgomento();
-			if (a != null) {
-				a = a.trim();
-				if (!a.isEmpty()) {
-					set.add(a);
-				}
-			}
-		}
-		List<String> out = new ArrayList<>(set);
-		out.sort(String.CASE_INSENSITIVE_ORDER);
-		out.add(0, ALL_OPTION);
-		return out;
-	}
-
 	@FXML
 	private void openReportMode() {
 		if (corsoDao == null) {
@@ -235,10 +204,6 @@ public class CorsiPanelController {
 			return;
 		}
 		String cf = corsoDao.getOwnerCfChef();
-		if (isBlank(cf)) {
-			showError("Chef non identificato. Effettua il login.");
-			return;
-		}
 
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/Report.fxml"));
@@ -312,7 +277,7 @@ public class CorsiPanelController {
 			}
 
 			Dialog<List<Sessione>> dlg = new Dialog<>();
-			dlg.setTitle("Modifica sessioni - " + nz(sel.getArgomento()));
+			dlg.setTitle("Modifica sessioni - " + sel.getArgomento());
 			dlg.setDialogPane(pane);
 			pane.setPrefSize(1600, 800);
 			dlg.setResizable(true);
@@ -338,78 +303,85 @@ public class CorsiPanelController {
 
 	@FXML
 	public void onNew() {
-		try {
-			FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/CorsiEditorDialog.fxml"));
-			refreshArgomentiCondivisi();
+	    try {
+	        FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/CorsiEditorDialog.fxml"));
+	        refreshArgomentiCondivisi();
 
-			DialogPane pane = fx.load();
-			pane.getStyleClass().add("dark-dialog");
+	        DialogPane pane = fx.load();
+	        pane.getStyleClass().add("dark-dialog");
 
-			CorsoEditorDialogController ctrl = fx.getController();
-			ctrl.bindArgomenti(argomentiCondivisi);
-			ctrl.setCorso(null);
+	        CorsoEditorDialogController ctrl = fx.getController();
+	        ctrl.bindArgomenti(argomentiCondivisi);
+	        ctrl.setCorso(null);
 
-			Dialog<Corso> dialog = new Dialog<>();
-			dialog.setTitle("Nuovo Corso");
-			dialog.setDialogPane(pane);
-			dialog.setResizable(true);
-			dialog.setResultConverter(bt -> {
-				if (bt != null && bt == ctrl.getCreateButtonType()) {
-					return ctrl.getResult();
-				}
-				return null;
-			});
+	        Dialog<Corso> dialog = new Dialog<>();
+	        dialog.setTitle("Nuovo Corso");
+	        dialog.setDialogPane(pane);
+	        dialog.setResizable(true);
+	        dialog.setResultConverter(bt -> {
+	            if (bt != null && bt == ctrl.getCreateButtonType()) {
+	                return ctrl.getResult();
+	            }
+	            return null;
+	        });
 
-			Optional<Corso> res = dialog.showAndWait();
-			if (res.isEmpty()) {
-				return;
-			}
+	        Optional<Corso> res = dialog.showAndWait();
+	        if (res.isEmpty()) {
+	            return;
+	        }
 
-			Corso nuovo = res.get();
+	        Corso nuovo = res.get();
 
-			if (corsoDao != null) {
-				String cfChef = corsoDao.getOwnerCfChef();
-				if (cfChef != null) {
-					cfChef = cfChef.trim();
-					if (!cfChef.isEmpty()) {
-						Chef chef = new Chef();
-						chef.setCF_Chef(cfChef);
-						nuovo.setChef(chef);
-					}
-				}
-			}
+	        if (corsoDao != null) {
+	            String cfChef = corsoDao.getOwnerCfChef();
+	            if (cfChef != null) {
+	                cfChef = cfChef.trim();
+	                if (!cfChef.isEmpty()) {
+	                    Chef chef = new Chef();
+	                    chef.setCF_Chef(cfChef);
+	                    nuovo.setChef(chef);
+	                }
+	            }
+	        }
 
-			Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo, Math.max(0, nuovo.getNumSessioni()));
-			if (sessOpt.isEmpty()) {
-				return;
-			}
+	        Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo, Math.max(0, nuovo.getNumSessioni()));
+	        if (sessOpt.isEmpty()) {
+	            return;
+	        }
 
-			List<Sessione> sessions = sessOpt.get();
-			if (sessions == null || sessions.isEmpty()) {
-				return;
-			}
+	        List<Sessione> sessions = sessOpt.get();
+	        if (sessions == null || sessions.isEmpty()) {
+	            return;
+	        }
 
-			long id = corsoDao.insertWithSessions(nuovo, sessions);
-			nuovo.setIdCorso(id);
-			backing.add(nuovo);
-			table.getSelectionModel().select(nuovo);
+	        long id = corsoDao.insertWithSessions(nuovo, sessions);
 
-			String arg = nuovo.getArgomento();
-			if (arg != null) {
-				arg = arg.trim();
-				if (!arg.isEmpty() && !argomentiCondivisi.contains(arg)) {
-					argomentiCondivisi.add(arg);
-					FXCollections.sort(argomentiCondivisi);
-				}
-			}
+	        Corso salvato = corsoDao.findById(id);
+	        if (salvato == null) {
+	            nuovo.setIdCorso(id);
+	            salvato = nuovo;
+	        }
 
-			populateFiltroArgomento();
-			refreshTitleWithCount();
-		} catch (Exception ex) {
-			showError("Errore apertura/salvataggio corso: " + ex.getMessage());
-			ex.printStackTrace();
-		}
+	        backing.add(salvato);
+	        table.getSelectionModel().select(salvato);
+
+	        String arg = salvato.getArgomento();
+	        if (arg != null) {
+	            arg = arg.trim();
+	            if (!arg.isEmpty() && !argomentiCondivisi.contains(arg)) {
+	                argomentiCondivisi.add(arg);
+	                FXCollections.sort(argomentiCondivisi);
+	            }
+	        }
+
+	        populateFiltroArgomento();
+	        refreshTitleWithCount();
+	    } catch (Exception ex) {
+	        showError("Errore apertura/salvataggio corso: " + ex.getMessage());
+	        ex.printStackTrace();
+	    }
 	}
+
 
 
 	@FXML
@@ -620,8 +592,7 @@ public class CorsiPanelController {
 			String oraInizio = sp.getOraInizio() != null ? tf.format(sp.getOraInizio()) : "";
 			String oraFine = sp.getOraFine() != null ? tf.format(sp.getOraFine()) : "";
 			String orari = oraInizio + "-" + oraFine;
-
-			String indirizzo = joinNonEmpty(" ", nz(sp.getVia()), nz(sp.getNum()), nz(sp.getCap())).trim();
+			String indirizzo = sp.getVia() + " " + sp.getNum() + " " + sp.getCap();
 			String base = (data + " " + orari + " " + indirizzo).trim();
 
 			String key = base;
@@ -679,44 +650,23 @@ public class CorsiPanelController {
 		return fallback;
 	}
 
-	private static String joinNonEmpty(String sep, String... parts) {
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		if (parts != null) {
-			for (String p : parts) {
-				if (p != null && !p.trim().isEmpty()) {
-					if (!first) sb.append(sep);
-					sb.append(p.trim());
-					first = false;
-				}
-			}
-		}
-		return sb.toString();
-	}
-
-	private static String nz(String s) {
-		return s == null ? "" : s;
-	}
-
-	private static String nz(int n) {
-		return n > 0 ? String.valueOf(n) : "";
-	}
-
-	private static boolean isBlank(String s) {
-		return s == null || s.trim().isEmpty();
-	}
-
 	private static boolean matchesEqIgnoreCase(String value, String filter) {
-		if (isBlank(filter)) return true;
-		return value != null && value.equalsIgnoreCase(filter);
+	    if (filter == null) {
+	        return true;
+	    }
+	    return value != null && value.equalsIgnoreCase(filter);
 	}
+
 
 	private boolean isOwnedByLoggedChef(Corso c) {
-		if (c == null || c.getChef() == null || isBlank(c.getChef().getCF_Chef())) {
-			return false;
-		}
-		String owner = corsoDao != null ? corsoDao.getOwnerCfChef() : null;
-		return !isBlank(owner) && c.getChef().getCF_Chef().equalsIgnoreCase(owner);
+	    if (c == null || c.getChef() == null) {
+	        return false;
+	    }
+	    String owner = (corsoDao != null) ? corsoDao.getOwnerCfChef() : null;
+	    if (owner == null) {
+	        return false;
+	    }
+	    return c.getChef().getCF_Chef().equalsIgnoreCase(owner);
 	}
 
 

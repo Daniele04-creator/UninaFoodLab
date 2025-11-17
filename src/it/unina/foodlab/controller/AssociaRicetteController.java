@@ -24,10 +24,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 	@FXML private VBox root;
 	@FXML private TableView<Riga> table;
 	@FXML private TableColumn<Riga, Boolean> colChk;
-	@FXML private TableColumn<Riga, String> colNome;
-	@FXML private TableColumn<Riga, String> colDiff;
 	@FXML private TableColumn<Riga, Number> colTempo;
-	@FXML private TableColumn<Riga, String> colDesc;
 
 	private final SessioneDao sessioneDao;
 	private final int idSessionePresenza;

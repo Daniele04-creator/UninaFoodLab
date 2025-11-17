@@ -637,6 +637,7 @@ public class CorsiPanelController {
 		Dialog<String> dlg = new Dialog<>();
 		dlg.setTitle("Seleziona la sessione in presenza");
 		dlg.setHeaderText("Scegli la sessione a cui associare le ricette");
+		dlg.getDialogPane().getStyleClass().add("dark-dialog1");
 
 		ButtonType okType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
 		ButtonType cancelType = new ButtonType("Annulla", ButtonBar.ButtonData.CANCEL_CLOSE);

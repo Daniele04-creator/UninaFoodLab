@@ -10,6 +10,22 @@
   -fx-hover-bg: #1FB57A2E;
 }
 
+.dark-dialog1 > .header-panel {
+    -fx-background-color: #232b2e;
+}
+
+.dark-dialog1 > .header-panel > .label {
+    -fx-text-fill: #cccccc;
+}
+
+.dark-dialog1 {
+    -fx-background-color: #232b2e;
+}
+
+.dark-dialog1 > *.content {
+    -fx-background-color: #232b2e;
+} 
+
 .associa-ricette-dialog {
   -fx-background-color: linear-gradient(to bottom, -fx-bg-card, -fx-bg-surface);
   -fx-border-color: -fx-grid-soft;
@@ -875,3 +891,6 @@
 .table-row-cell:filled:selected {
     -fx-background-color: #1c5b4b;
 }
+
+
+

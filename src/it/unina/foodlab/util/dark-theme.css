@@ -10,26 +10,6 @@
   -fx-hover-bg: #1FB57A2E;
 }
 
-/* Sfondo header della dialog */
-.dialog-pane > .header-panel {
-    -fx-background-color: #2b2b2b;  /* grigio scuro */
-}
-
-/* Testo dell’header */
-.dialog-pane > .header-panel > .label {
-    -fx-text-fill: #cccccc;
-}
-
-/* Sfondo generale della dialog */
-.dialog-pane {
-    -fx-background-color: #2b2b2b;
-}
-
-/* Sfondo del contenuto interno */
-.dialog-pane > *.content {
-    -fx-background-color: #2b2b2b;
-}
-
 .associa-ricette-dialog {
   -fx-background-color: linear-gradient(to bottom, -fx-bg-card, -fx-bg-surface);
   -fx-border-color: -fx-grid-soft;
@@ -875,4 +855,23 @@
 .dark-datepicker .day-cell:hover {
     -fx-background-color: #145c46;
     -fx-text-fill: #ffffff;
+} 
+
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 6 4;
+}
+
+.table-row-cell:filled {
+    -fx-background-color: #2c3437;
+    -fx-background-radius: 12;
+    -fx-background-insets: 0 6;
+}
+
+.table-row-cell:filled:hover {
+    -fx-background-color: #324044;
+}
+
+.table-row-cell:filled:selected {
+    -fx-background-color: #1c5b4b;
 }

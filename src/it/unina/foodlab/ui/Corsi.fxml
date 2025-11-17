@@ -99,7 +99,8 @@
                         <!-- TableView con classe 'dark-table' -->
                         <TableView fx:id="table"
                                    HBox.hgrow="ALWAYS"
-                                   styleClass="dark-table">
+                                   styleClass="dark-table"
+                                   fixedCellSize="48">
                             <columnResizePolicy>
                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                             </columnResizePolicy>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
@@ -16,7 +17,7 @@
 
     <!-- LEFT SIDEBAR -->
     <left>
-        <VBox spacing="12" BorderPane.alignment="CENTER"
+        <VBox spacing="12"
               style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
                      -fx-background-radius: 0 14 14 0;
                      -fx-background-insets: 0;
@@ -28,6 +29,7 @@
                 <Separator/>
 
                 <Button fx:id="btnReport" maxWidth="Infinity" prefHeight="44"
+                        onAction="#openReportMode"
                         style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10;
                                -fx-font-weight:bold; -fx-padding:10 12; -fx-content-display:left;
                                -fx-graphic: url('/icons/pie-chart-16.png');
@@ -45,7 +47,7 @@
 
     <!-- TOP BAR -->
     <top>
-        <HBox spacing="12" alignment="CENTER_LEFT" BorderPane.alignment="CENTER"
+        <HBox spacing="12" alignment="CENTER_LEFT"
               style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
                      -fx-background-radius: 0 0 14 0;
                      -fx-background-insets: 0;
@@ -72,6 +74,7 @@
                                  -fx-padding:6 10;"/>
 
                 <Button fx:id="btnRefresh"
+                        onAction="#reload"
                         style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10; -fx-padding:8 10;
                                -fx-graphic: url('/icons/refresh-2-16.png'); -fx-content-display: graphic-only;
                                -fx-effect:dropshadow(gaussian, rgba(0,0,0,0.25), 6,0,0,1);">
@@ -93,20 +96,71 @@
                              -fx-background-radius:12; -fx-border-radius:12; -fx-padding:10;">
                     <children>
 
-                        <!-- TableView con classe 'dark-table' per hover/border accent -->
-                        <TableView fx:id="table" HBox.hgrow="ALWAYS" styleClass="dark-table">
+                        <!-- TableView con classe 'dark-table' -->
+                        <TableView fx:id="table"
+                                   HBox.hgrow="ALWAYS"
+                                   styleClass="dark-table">
                             <columnResizePolicy>
                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
                             </columnResizePolicy>
 
                             <columns>
-                                <TableColumn fx:id="colId"     text="ID"         prefWidth="80"  style="-fx-alignment: CENTER;"/>
-                                <TableColumn fx:id="colArg"    text="Argomento"  prefWidth="260" style="-fx-alignment: CENTER_LEFT;"/>
-                                <TableColumn fx:id="colFreq"   text="Frequenza"  prefWidth="140" style="-fx-alignment: CENTER_LEFT;"/>
-                                <TableColumn fx:id="colStato"  text="Stato"      prefWidth="120" style="-fx-alignment: CENTER;"/>
-                                <TableColumn fx:id="colInizio" text="Inizio"     prefWidth="130" style="-fx-alignment: CENTER;"/>
-                                <TableColumn fx:id="colFine"   text="Fine"       prefWidth="130" style="-fx-alignment: CENTER;"/>
-                                <TableColumn fx:id="colChef"   text="Chef"       prefWidth="220" style="-fx-alignment: CENTER_LEFT;"/>
+                                <TableColumn fx:id="colId"
+                                             text="ID"
+                                             prefWidth="80"
+                                             style="-fx-alignment: CENTER;">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="idCorso"/>
+                                    </cellValueFactory>
+                                </TableColumn>
+
+                                <TableColumn fx:id="colArg"
+                                             text="Argomento"
+                                             prefWidth="260"
+                                             style="-fx-alignment: CENTER_LEFT;">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="argomento"/>
+                                    </cellValueFactory>
+                                </TableColumn>
+
+                                <TableColumn fx:id="colFreq"
+                                             text="Frequenza"
+                                             prefWidth="140"
+                                             style="-fx-alignment: CENTER_LEFT;">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="frequenza"/>
+                                    </cellValueFactory>
+                                </TableColumn>
+
+                                <TableColumn fx:id="colStato"
+                                             text="Stato"
+                                             prefWidth="120"
+                                             style="-fx-alignment: CENTER;"/>
+                                <!-- stato usa statoOf(...) nel controller -->
+
+                                <TableColumn fx:id="colInizio"
+                                             text="Inizio"
+                                             prefWidth="130"
+                                             style="-fx-alignment: CENTER;">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="dataInizio"/>
+                                    </cellValueFactory>
+                                </TableColumn>
+
+                                <TableColumn fx:id="colFine"
+                                             text="Fine"
+                                             prefWidth="130"
+                                             style="-fx-alignment: CENTER;">
+                                    <cellValueFactory>
+                                        <PropertyValueFactory property="dataFine"/>
+                                    </cellValueFactory>
+                                </TableColumn>
+
+                                <TableColumn fx:id="colChef"
+                                             text="Chef"
+                                             prefWidth="220"
+                                             style="-fx-alignment: CENTER_LEFT;"/>
+                                <!-- chef usa la logica nel controller -->
                             </columns>
 
                             <placeholder>
@@ -125,7 +179,10 @@ Crea il primo corso per iniziare a pianificare le sessioni."
                       style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
                              -fx-background-radius:12; -fx-padding:12 14;">
                     <children>
+                        <Region HBox.hgrow="ALWAYS"/>
+
                         <Button fx:id="btnNew" prefWidth="160" prefHeight="46"
+                                onAction="#onNew"
                                 style="-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;
                                        -fx-background-radius:12; -fx-border-radius:12;
                                        -fx-graphic: url('/icons/plus-16.png'); -fx-content-display:left;
@@ -135,6 +192,7 @@ Crea il primo corso per iniziare a pianificare le sessioni."
                         </Button>
 
                         <Button fx:id="btnEdit" disable="true" prefWidth="140" prefHeight="46"
+                                onAction="#onEdit"
                                 style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec;
                                        -fx-background-radius:12; -fx-border-radius:12;
                                        -fx-graphic: url('/icons/edit-2-16.png'); -fx-content-display:left;">
@@ -143,6 +201,7 @@ Crea il primo corso per iniziare a pianificare le sessioni."
                         </Button>
 
                         <Button fx:id="btnAssocRicette" disable="true" prefWidth="170" prefHeight="46"
+                                onAction="#onAssociateRecipes"
                                 style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec;
                                        -fx-background-radius:12; -fx-border-radius:12;
                                        -fx-graphic: url('/icons/bill-16.png'); -fx-content-display:left;">
@@ -150,9 +209,8 @@ Crea il primo corso per iniziare a pianificare le sessioni."
                             <text>Associa ricette</text>
                         </Button>
 
-                        <Region HBox.hgrow="ALWAYS"/>
-
                         <Button fx:id="btnDelete" disable="true" prefWidth="140" prefHeight="46"
+                                onAction="#onDelete"
                                 style="-fx-background-color:#ef4444; -fx-text-fill:#fff; -fx-font-weight:800;
                                        -fx-background-radius:12; -fx-border-radius:12;
                                        -fx-graphic: url('/icons/trash-2-16.png'); -fx-content-display:left;">

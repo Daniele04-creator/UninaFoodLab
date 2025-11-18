@@ -5,90 +5,35 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
-import javafx.scene.control.ListCell;
-import javafx.util.StringConverter;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.Optional;
+import java.util.Objects;
 
 public class CorsoEditorDialogController {
 
     @FXML private ButtonType createButtonType;
-    @FXML private ButtonType cancelButtonType;
-
     @FXML private ComboBox<String> cbArg;
-    @FXML private Button btnAddArg;
     @FXML private ChoiceBox<String> cbFreq;
     @FXML private Spinner<Integer> spNumSess;
     @FXML private DatePicker dpInizio;
     @FXML private Label lblFine;
     @FXML private DialogPane dialogPane;
 
-    private boolean edit;
-    private Corso original;
-
     private static final DateTimeFormatter UI_DF = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private ObservableList<String> argomentiShared;
 
     @FXML
     private void initialize() {
-        cbArg.setPromptText("Seleziona argomento");
-        cbArg.setButtonCell(new ListCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? null : item);
-                setStyle("-fx-text-fill: white;");
-            }
-        });
-        cbArg.setCellFactory(listView -> new ListCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? null : item);
-                setStyle("-fx-text-fill: white;");
-            }
-        });
-
-        cbFreq.setItems(FXCollections.observableArrayList(
-            "settimanale",
-            "ogni 2 giorni",
-            "bisettimanale",
-            "mensile"
-        ));
-        cbFreq.setValue("settimanale");
-
-        spNumSess.setValueFactory(new IntegerSpinnerValueFactory(1, 365, 5));
+        spNumSess.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 365, 5));
         spNumSess.setEditable(true);
 
         dpInizio.setValue(LocalDate.now().plusDays(7));
-        dpInizio.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(LocalDate date) {
-                return date == null ? "" : UI_DF.format(date);
-            }
-
-            @Override
-            public LocalDate fromString(String text) {
-                if (text == null || text.isBlank()) return null;
-                try {
-                    return LocalDate.parse(text.trim(), UI_DF);
-                } catch (DateTimeParseException e) {
-                    return null;
-                }
-            }
-        });
 
         updateDataFine();
 
         cbFreq.valueProperty().addListener((o, a, b) -> updateDataFine());
         dpInizio.valueProperty().addListener((o, a, b) -> updateDataFine());
         spNumSess.valueProperty().addListener((o, a, b) -> updateDataFine());
-
-        btnAddArg.setOnAction(e -> addNewArgomento());
 
         Button okBtn = (Button) dialogPane.lookupButton(createButtonType);
         if (okBtn != null) {
@@ -101,27 +46,22 @@ public class CorsoEditorDialogController {
         }
     }
 
-    public void setCorso(Corso corso) {
-        original = corso;
-        edit = corso != null;
-        if (!edit) return;
-
-        cbArg.setValue(corso.getArgomento());
-        cbFreq.setValue(corso.getFrequenza());
-        if (spNumSess.getValueFactory() != null) {
-            spNumSess.getValueFactory().setValue(corso.getNumSessioni());
-        }
-        dpInizio.setValue(corso.getDataInizio());
-        lblFine.setText(formatOrDash(corso.getDataFine()));
-    }
-
     public Corso getResult() {
-        Corso c = edit && original != null ? original : new Corso();
+        Corso c = new Corso();
+
         c.setArgomento(cbArg.getValue());
         c.setFrequenza(cbFreq.getValue());
         c.setDataInizio(dpInizio.getValue());
-        c.setNumSessioni(safeSpinnerValue());
-        c.setDataFine(computeDataFine(c.getDataInizio(), c.getFrequenza(), c.getNumSessioni()));
+
+        int numSess = spNumSess.getValue();
+        c.setNumSessioni(numSess);
+
+        c.setDataFine(computeDataFine(
+                c.getDataInizio(),
+                c.getFrequenza(),
+                c.getNumSessioni()
+        ));
+
         return c;
     }
 
@@ -129,53 +69,50 @@ public class CorsoEditorDialogController {
         return createButtonType;
     }
 
+    @FXML
     private void addNewArgomento() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Nuovo Argomento");
+        dialog.setTitle("Nuovo argomento");
         dialog.setHeaderText("Inserisci il nuovo argomento");
         dialog.setContentText("Argomento:");
 
         DialogPane pane = dialog.getDialogPane();
         pane.getStyleClass().add("text-input-dark-dialog");
         pane.getStylesheets().add(
-            getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm()
+                Objects.requireNonNull(
+                        getClass().getResource("/it/unina/foodlab/util/dark-theme.css")
+                ).toExternalForm()
         );
 
-        Optional<String> res = dialog.showAndWait();
-        if (res.isEmpty()) return;
+        dialog.showAndWait().ifPresent(input -> {
+            String trimmed = input.trim();
+            if (trimmed.isEmpty()) {
+                showWarning("Avvertenza", "L'argomento non può essere vuoto.");
+                return;
+            }
 
-        String trimmed = res.get().trim();
-        if (trimmed.isEmpty()) {
-            showWarning("Avvertenza", "L'argomento non può essere vuoto.");
-            return;
-        }
+            ObservableList<String> target =
+                    (argomentiShared != null) ? argomentiShared : cbArg.getItems();
 
-        ObservableList<String> target =
-            argomentiShared != null ? argomentiShared : cbArg.getItems();
+            if (target.contains(trimmed)) {
+                showWarning("Informazione", "L'argomento \"" + trimmed + "\" esiste già.");
+                return;
+            }
 
-        if (target.contains(trimmed)) {
-            showWarning("Informazione", "L'argomento \"" + trimmed + "\" esiste già.");
-            return;
-        }
-
-        target.add(trimmed);
-        FXCollections.sort(target);
-        cbArg.setItems(target);
-        cbArg.setValue(trimmed);
+            target.add(trimmed);
+            FXCollections.sort(target);
+            cbArg.setValue(trimmed);
+        });
     }
 
     private void updateDataFine() {
+        int n = spNumSess.getValue();
         LocalDate fine = computeDataFine(
-            dpInizio.getValue(),
-            cbFreq.getValue(),
-            safeSpinnerValue()
+                dpInizio.getValue(),
+                cbFreq.getValue(),
+                n
         );
         lblFine.setText(formatOrDash(fine));
-    }
-
-    private int safeSpinnerValue() {
-        Integer v = spNumSess.getValue();
-        return v == null ? 0 : v;
     }
 
     private String formatOrDash(LocalDate d) {
@@ -197,10 +134,23 @@ public class CorsoEditorDialogController {
     }
 
     private boolean isFormValid() {
-        if (cbArg.getValue() == null || cbArg.getValue().isBlank()) return false;
-        if (cbFreq.getValue() == null) return false;
-        if (dpInizio.getValue() == null) return false;
-        return safeSpinnerValue() > 0;
+        String arg = cbArg.getValue();
+        if (arg == null || arg.isBlank()) {
+            return false;
+        }
+        if (cbFreq.getValue() == null) {
+            return false;
+        }
+        if (dpInizio.getValue() == null) {
+            return false;
+        }
+
+        Integer n = spNumSess.getValue();
+        if (n == null || n <= 0) {
+            return false;
+        }
+
+        return true;
     }
 
     private void showValidationMessage() {
@@ -220,7 +170,7 @@ public class CorsoEditorDialogController {
         DialogPane pane = alert.getDialogPane();
         pane.getStyleClass().add("dark-dialog");
         pane.getStylesheets().add(
-            getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm()
+                getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm()
         );
         pane.setMinWidth(460);
 

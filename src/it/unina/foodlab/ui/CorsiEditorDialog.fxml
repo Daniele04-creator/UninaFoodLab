@@ -4,6 +4,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.SVGPath?>
+<?import javafx.collections.FXCollections?>
+<?import java.lang.String?>
 
 <DialogPane fx:id="dialogPane" prefWidth="560"
             style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
@@ -15,6 +17,7 @@
             xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
             stylesheets="@/it/unina/foodlab/util/dark-theme.css"
+            styleClass="corso-editor-dialog"
             fx:controller="it.unina.foodlab.controller.CorsoEditorDialogController">
 
     <header>
@@ -58,7 +61,7 @@
                                          -fx-border-radius:10;
                                          -fx-padding:4 8;"/>
 
-                        <Button fx:id="btnAddArg" focusTraversable="false"
+                        <Button fx:id="btnAddArg" focusTraversable="false"  onAction="#addNewArgomento"
                                 style="-fx-background-color:#2b3438;
                                        -fx-background-radius:10;
                                        -fx-padding:6;">
@@ -88,10 +91,20 @@
                                      fill="#93a5be"/>
                         </StackPane>
                         <ChoiceBox fx:id="cbFreq"
+                                   value="settimanale"
                                    style="-fx-background-color:#2b3438;
                                           -fx-background-radius:10;
                                           -fx-text-fill:#e9f5ec;
-                                          -fx-padding:4 10;"/>
+                                          -fx-padding:4 10;">
+                            <items>
+                                <FXCollections fx:factory="observableArrayList">
+                                    <String fx:value="settimanale"/>
+                                    <String fx:value="ogni 2 giorni"/>
+                                    <String fx:value="bisettimanale"/>
+                                    <String fx:value="mensile"/>
+                                </FXCollections>
+                            </items>
+                        </ChoiceBox>
                     </children>
                 </HBox>
 

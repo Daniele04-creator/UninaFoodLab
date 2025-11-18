@@ -3,7 +3,6 @@ package it.unina.foodlab.controller;
 import it.unina.foodlab.dao.CorsoDao;
 import it.unina.foodlab.dao.RicettaDao;
 import it.unina.foodlab.dao.SessioneDao;
-import it.unina.foodlab.model.Chef;
 import it.unina.foodlab.model.Corso;
 import it.unina.foodlab.model.Ricetta;
 import it.unina.foodlab.model.Sessione;
@@ -27,7 +26,6 @@ import javafx.scene.layout.Region;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -241,16 +239,6 @@ public class CorsiPanelController {
 	@FXML
 	private void onEdit() {
 		Corso sel = table.getSelectionModel().getSelectedItem();
-		if (sel == null) {
-			return;
-		}
-		if (!isOwnedByLoggedChef(sel)) {
-			makeDarkAlert(Alert.AlertType.WARNING, "Attenzione",
-					"Puoi modificare solo i corsi che appartengono al tuo profilo.")
-			.showAndWait();
-			return;
-		}
-
 
 		try {
 			List<Sessione> esistenti = sessioneDao.findByCorso(sel.getIdCorso());
@@ -312,8 +300,7 @@ public class CorsiPanelController {
 
 	        CorsoEditorDialogController ctrl = fx.getController();
 	        ctrl.bindArgomenti(argomentiCondivisi);
-	        ctrl.setCorso(null);
-
+	        
 	        Dialog<Corso> dialog = new Dialog<>();
 	        dialog.setTitle("Nuovo Corso");
 	        dialog.setDialogPane(pane);
@@ -331,18 +318,6 @@ public class CorsiPanelController {
 	        }
 
 	        Corso nuovo = res.get();
-
-	        if (corsoDao != null) {
-	            String cfChef = corsoDao.getOwnerCfChef();
-	            if (cfChef != null) {
-	                cfChef = cfChef.trim();
-	                if (!cfChef.isEmpty()) {
-	                    Chef chef = new Chef();
-	                    chef.setCF_Chef(cfChef);
-	                    nuovo.setChef(chef);
-	                }
-	            }
-	        }
 
 	        Optional<List<Sessione>> sessOpt = openSessioniWizard(nuovo, Math.max(0, nuovo.getNumSessioni()));
 	        if (sessOpt.isEmpty()) {
@@ -382,14 +357,9 @@ public class CorsiPanelController {
 	    }
 	}
 
-
-
 	@FXML
 	private void onDelete() {
 		Corso sel = table.getSelectionModel().getSelectedItem();
-		if (sel == null) {
-			return;
-		}
 
 		boolean conferma = showConfirmDark(
 				"Conferma eliminazione",
@@ -422,13 +392,7 @@ public class CorsiPanelController {
 			SessioniPreviewController ctrl = l.getController();
 			long id = corso.getIdCorso();
 
-			List<Sessione> sessions = Collections.emptyList();
-			if (sessioneDao != null) {
-				List<Sessione> found = sessioneDao.findByCorso(id);
-				if (found != null) {
-					sessions = found;
-				}
-			}
+			List<Sessione> sessions = sessioneDao.findByCorso(id);
 
 			ctrl.init(corso, sessions, sessioneDao);
 
@@ -446,93 +410,84 @@ public class CorsiPanelController {
 
 
 	@FXML
-	private void onAssociateRecipes() {
-		Corso sel = table.getSelectionModel().getSelectedItem();
-		if (sel == null) {
-			return;
-		}
-		if (!isOwnedByLoggedChef(sel)) {
-			showInfoDark("Puoi modificare solo i corsi del tuo profilo.");
-			return;
-		}
+private void onAssociateRecipes() {
+    Corso sel = table.getSelectionModel().getSelectedItem();
 
-		try {
-			List<Sessione> tutte = sessioneDao.findByCorso(sel.getIdCorso());
-			if (tutte == null) {
-				tutte = Collections.emptyList();
-			}
+    try {
+        List<Sessione> tutte = sessioneDao.findByCorso(sel.getIdCorso());
+        if (tutte == null) {
+            tutte = Collections.emptyList();
+        }
 
-			List<SessionePresenza> presenze = new ArrayList<>();
-			for (Sessione s : tutte) {
-				if (s instanceof SessionePresenza sp) {
-					presenze.add(sp);
-				}
-			}
+        List<SessionePresenza> presenze = new ArrayList<>();
+        for (Sessione s : tutte) {
+            if (s instanceof SessionePresenza sp) {
+                presenze.add(sp);
+            }
+        }
 
-			if (presenze.isEmpty()) {
-				showInfoDark("Il corso non ha sessioni in presenza.");
-				return;
-			}
+        if (presenze.isEmpty()) {
+            showInfoDark("Il corso non ha sessioni in presenza.");
+            return;
+        }
 
-			SessionePresenza target;
-			if (presenze.size() == 1) {
-				target = presenze.get(0);
-			} else {
-				target = choosePresenza(presenze).orElse(null);
-			}
+        SessionePresenza target;
+        if (presenze.size() == 1) {
+            target = presenze.get(0);
+        } else {
+            target = choosePresenza(presenze).orElse(null);
+        }
 
-			if (target == null) {
-				return;
-			}
+        if (target == null) {
+            return;
+        }
 
-			if (ricettaDao == null) {
-				ricettaDao = new RicettaDao();
-			}
+        if (ricettaDao == null) {
+            ricettaDao = new RicettaDao();
+        }
 
-			List<Ricetta> tutteLeRicette = ricettaDao.findAll();
-			if (tutteLeRicette == null) {
-				tutteLeRicette = Collections.emptyList();
-			}
+        List<Ricetta> tutteLeRicette = ricettaDao.findAll();
+        if (tutteLeRicette == null) {
+            tutteLeRicette = Collections.emptyList();
+        }
 
-			List<Ricetta> associate = sessioneDao.findRicetteBySessionePresenza(target.getId());
-			if (associate == null) {
-				associate = Collections.emptyList();
-			}
+        List<Ricetta> associate = sessioneDao.findRicetteBySessionePresenza(target.getId());
+        if (associate == null) {
+            associate = Collections.emptyList();
+        }
 
-			URL url = AssociaRicetteController.class.getResource("/it/unina/foodlab/ui/AssociaRicette.fxml");
-			if (url == null) {
-				throw new IllegalStateException("FXML non trovato: /AssociaRicette.fxml");
-			}
+        List<Ricetta> tutteFinal = tutteLeRicette;
+        List<Ricetta> associateFinal = associate;
 
-			List<Ricetta> tutteFinal = tutteLeRicette;
-			List<Ricetta> associateFinal = associate;
+        FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/AssociaRicette.fxml"));
+        DialogPane pane = fx.load();
+        pane.getStyleClass().add("dark-dialog");
 
-			FXMLLoader fx = new FXMLLoader(url);
-			fx.setControllerFactory(t -> {
-				if (t == AssociaRicetteController.class) {
-					return new AssociaRicetteController(
-							sessioneDao,
-							target.getId(),
-							tutteFinal,
-							associateFinal
-							);
-				}
-				try {
-					return t.getDeclaredConstructor().newInstance();
-				} catch (Exception e) {
-					throw new RuntimeException("Errore creazione controller: " + t, e);
-				}
-			});
+        fx.setControllerFactory(t -> {
+            if (t == AssociaRicetteController.class) {
+                return new AssociaRicetteController(
+                        sessioneDao,
+                        target.getId(),
+                        tutteFinal,
+                        associateFinal
+                );
+            }
+            try {
+                return t.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("Errore creazione controller: " + t, e);
+            }
+        });
 
-			fx.load();
-			AssociaRicetteController dlg = fx.getController();
-			Optional<List<Long>> result = dlg.showAndWait();
-			dlg.salvaSeConfermato(result.orElse(null));
-		} catch (Exception e) {
-			showError("Errore associazione ricette: " + e.getMessage());
-			e.printStackTrace();
-		}
-	}
+        AssociaRicetteController dlg = fx.getController();
+        Optional<List<Long>> result = dlg.showAndWait();
+        dlg.salvaSeConfermato(result.orElse(null));
+    } catch (Exception e) {
+        showError("Errore associazione ricette: " + e.getMessage());
+        e.printStackTrace();
+    }
+}
+
 
 
 	private Optional<List<Sessione>> openSessioniWizard(Corso corso, int initialRows) {

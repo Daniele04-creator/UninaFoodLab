@@ -11,6 +11,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.shape.SVGPath;
+import javafx.stage.Stage;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -31,6 +32,7 @@ public class RegisterChefController {
     @FXML private Button registerButton;
 
     private final ChefDao chefDao = new ChefDao();
+	private Stage stage;
 
     private static final String EYE_OPEN  = "M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12zm11 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
     private static final String EYE_SLASH = "M2 5l19 14-1.5 2L.5 7 2 5zm3.3 2.4C7.7 6.2 9.7 5 12 5c7 0 11 7 11 7-.7 1.1-1.7 2.3-3 3.3L18.6 13c.3-.6.4-1.2.4-1.9a5 5 0 0 0-5-5c-.7 0-1.3.1-1.9.4L5.3 7.4z";
@@ -271,4 +273,9 @@ public class RegisterChefController {
         if (cfField       != null) cfField.setOnAction(e ->       { if (nascitaPicker!= null) nascitaPicker.requestFocus(); });
         if (nascitaPicker != null) nascitaPicker.setOnAction(e -> { if (usernameField!= null) usernameField.requestFocus(); });
     }
+
+	public void setStage(Stage stage) {
+		this.stage=stage;
+		
+	}
 }

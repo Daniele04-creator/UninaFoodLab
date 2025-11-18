@@ -3,6 +3,7 @@ package it.unina.foodlab.controller;
 import it.unina.foodlab.model.Corso;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import java.time.LocalDate;
@@ -36,15 +37,14 @@ public class CorsoEditorDialogController {
         spNumSess.valueProperty().addListener((o, a, b) -> updateDataFine());
 
         Button okBtn = (Button) dialogPane.lookupButton(createButtonType);
-        if (okBtn != null) {
-            okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, evt -> {
-                if (!isFormValid()) {
-                    evt.consume();
-                    showValidationMessage();
-                }
-            });
+        okBtn.addEventFilter(ActionEvent.ACTION, evt -> {
+            if (!isFormValid()) {
+                evt.consume();
+                showValidationMessage();
+            }
+        });
+
         }
-    }
 
     public Corso getResult() {
         Corso c = new Corso();

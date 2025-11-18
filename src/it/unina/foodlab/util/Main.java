@@ -24,8 +24,6 @@ public class Main extends Application {
         stage.getIcons().add(icon);
         stage.setMaximized(true);
         stage.show();
-
-        controller.requestInitialFocus();
     }
 
     public static void main(String[] args) {

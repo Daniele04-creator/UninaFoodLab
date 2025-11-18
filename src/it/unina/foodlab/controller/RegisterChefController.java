@@ -2,19 +2,19 @@ package it.unina.foodlab.controller;
 
 import it.unina.foodlab.dao.ChefDao;
 import it.unina.foodlab.model.Chef;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.IOException;
 import java.time.LocalDate;
 
 public class RegisterChefController {
@@ -23,19 +23,13 @@ public class RegisterChefController {
     @FXML private TextField cognomeField;
     @FXML private TextField cfField;
     @FXML private TextField usernameField;
-    @FXML private PasswordField passwordField;
-    @FXML private TextField passwordVisibleField;
-    @FXML private ToggleButton toggleVisibilityButton;
-    @FXML private SVGPath eyeIcon;
+    @FXML private TextField passwordField;
     @FXML private DatePicker nascitaPicker;
     @FXML private Label errorLabel;
     @FXML private Button registerButton;
 
     private final ChefDao chefDao = new ChefDao();
-	private Stage stage;
-
-    private static final String EYE_OPEN  = "M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12zm11 4a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
-    private static final String EYE_SLASH = "M2 5l19 14-1.5 2L.5 7 2 5zm3.3 2.4C7.7 6.2 9.7 5 12 5c7 0 11 7 11 7-.7 1.1-1.7 2.3-3 3.3L18.6 13c.3-.6.4-1.2.4-1.9a5 5 0 0 0-5-5c-.7 0-1.3.1-1.9.4L5.3 7.4z";
+    private Stage stage;
 
     private static final String REGEX_NOME     = "^[A-Za-zÀ-ÖØ-öø-ÿ'`\\-\\s]{2,50}$";
     private static final String REGEX_COGNOME  = REGEX_NOME;
@@ -43,104 +37,171 @@ public class RegisterChefController {
     private static final String REGEX_USERNAME = "^[A-Za-z0-9_.]{3,20}$";
     private static final int    MIN_PWD_LEN    = 6;
 
-    @FXML
-    private void initialize() {
-        initPasswordToggle();
-        clearError();
-        setEnterFocusTraversal();
-        hookOpenOnClick(nascitaPicker);
 
-        if (usernameField != null) {
-            usernameField.setOnAction(e -> { if (passwordField != null) passwordField.requestFocus(); });
-        }
-        if (passwordField != null) {
-            passwordField.setOnAction(e -> onRegister());
-        }
-        if (passwordVisibleField != null) {
-            passwordVisibleField.setOnAction(e -> onRegister());
-        }
+    public void setStage(Stage stage) {
+        this.stage = stage;
     }
 
     @FXML
     private void showCalendarPopup(MouseEvent e) {
-        if (nascitaPicker != null) {
-            nascitaPicker.show();
-            nascitaPicker.requestFocus();
-        }
+        nascitaPicker.show();
+        nascitaPicker.requestFocus();
+    }
+
+    @FXML
+    private void goNextFromNome() {
+        cognomeField.requestFocus();
+    }
+
+    @FXML
+    private void goNextFromCognome() {
+        cfField.requestFocus();
+    }
+
+    @FXML
+    private void goNextFromCf() {
+        nascitaPicker.requestFocus();
+    }
+
+    @FXML
+    private void goNextFromNascita() {
+        usernameField.requestFocus();
     }
 
     @FXML
     public void onRegister() {
-        clearError();
-        Chef c = getChef();
-        if (c == null) return;
+        
+
+        Chef chef = getChef();
+        if (chef == null) {
+            return;
+        }
 
         setUiDisabled(true);
         try {
-            ChefDao.RegisterOutcome esito = chefDao.register(c);
+            ChefDao.RegisterOutcome esito = chefDao.register(chef);
+
             switch (esito) {
-                case OK -> { showInfo("Registrazione completata", "Chef registrato correttamente."); clearForm(); }
-                case DUPLICATE_CF -> { showError("Codice Chef già presente. Scegli un altro codice (es. CH123)."); focusSelect(cfField); }
-                case DUPLICATE_USERNAME -> { showError("Username già in uso. Scegline un altro."); focusSelect(usernameField); }
+                case OK -> {
+                    showInfo("Registrazione completata", "Chef registrato correttamente.");
+                }
+                case DUPLICATE_CF -> {
+                    showError("Codice Chef già presente. Scegli un altro codice (es. CH123).");
+                }
+                case DUPLICATE_USERNAME -> {
+                    showError("Username già in uso. Scegline un altro.");
+                }
                 default -> showError("Registrazione non riuscita. Riprovare.");
             }
-        } catch (Throwable ex) {
-            showException("Errore durante la registrazione", ex);
+        } catch (Exception ex) {
+        	ex.printStackTrace(); 
+            showError("Errore durante la registrazione. Riprova.");
         } finally {
             setUiDisabled(false);
         }
     }
 
-    private void setUiDisabled(boolean disabled) {
-        if (registerButton != null) registerButton.setDisable(disabled);
-        if (nomeField != null) nomeField.setDisable(disabled);
-        if (cognomeField != null) cognomeField.setDisable(disabled);
-        if (cfField != null) cfField.setDisable(disabled);
-        if (usernameField != null) usernameField.setDisable(disabled);
-        if (passwordField != null) passwordField.setDisable(disabled);
-        if (passwordVisibleField != null) passwordVisibleField.setDisable(disabled);
-        if (nascitaPicker != null) nascitaPicker.setDisable(disabled);
-        if (toggleVisibilityButton != null) toggleVisibilityButton.setDisable(disabled);
+    @FXML
+    private void onCancel() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/LoginFrame.fxml"));
+            Parent root = loader.load();
+
+            LoginController login = loader.getController();
+            login.setStage(stage);
+
+            Stage st = stage;
+            Scene scene = st.getScene();
+            if (scene == null) {
+                st.setScene(new Scene(root, 700, 540));
+            } else {
+                scene.setRoot(root);
+            }
+        } catch (IOException e) {
+            showError("Errore nel caricamento della schermata di login.");
+        }
     }
 
-    public Chef getChef() {
-        clearError();
+    private void setUiDisabled(boolean disabled) {
+        registerButton.setDisable(disabled);
+        nomeField.setDisable(disabled);
+        cognomeField.setDisable(disabled);
+        cfField.setDisable(disabled);
+        usernameField.setDisable(disabled);
+        passwordField.setDisable(disabled);
+        nascitaPicker.setDisable(disabled);
+    }
 
-        String nome     = safeText(nomeField);
-        String cognome  = safeText(cognomeField);
-        String cf       = safeText(cfField);
+    private Chef getChef() {
+        String nome = safeText(nomeField);
+        String cognome = safeText(cognomeField);
+        String cf = safeText(cfField);
         String username = safeText(usernameField);
+        String pwd = safeText(passwordField);
+        LocalDate nasc = nascitaPicker.getValue();
 
-        String pwd = (passwordField != null && passwordField.getText() != null)
-                ? passwordField.getText()
-                : (passwordVisibleField != null && passwordVisibleField.getText() != null ? passwordVisibleField.getText() : "");
-
-        LocalDate nasc  = (nascitaPicker == null) ? null : nascitaPicker.getValue();
-
-        String err;
-
-        err = validateRequired(nome, "Inserisci il nome.");
-        if (err != null) { showError(err); focusSelect(nomeField); return null; }
-        if (!nome.matches(REGEX_NOME)) { showError("Nome non valido."); focusSelect(nomeField); return null; }
+        String err = validateRequired(nome, "Inserisci il nome.");
+        if (err != null) {
+            showError(err);
+            nomeField.requestFocus();
+            return null;
+        }
+        if (!nome.matches(REGEX_NOME)) {
+            showError("Nome non valido.");
+            nomeField.requestFocus();
+            return null;
+        }
 
         err = validateRequired(cognome, "Inserisci il cognome.");
-        if (err != null) { showError(err); focusSelect(cognomeField); return null; }
-        if (!cognome.matches(REGEX_COGNOME)) { showError("Cognome non valido."); focusSelect(cognomeField); return null; }
+        if (err != null) {
+            showError(err);
+            cognomeField.requestFocus();
+            return null;
+        }
+        if (!cognome.matches(REGEX_COGNOME)) {
+            showError("Cognome non valido.");
+            cognomeField.requestFocus();
+            return null;
+        }
 
         err = validateRequired(cf, "Inserisci il codice chef.");
-        if (err != null) { showError(err); focusSelect(cfField); return null; }
-        if (!cf.matches(REGEX_CF_CHEF)) { showError("Codice Chef nel formato CH### (es. CH123)."); focusSelect(cfField); return null; }
+        if (err != null) {
+            showError(err);
+            cfField.requestFocus();
+            return null;
+        }
+        if (!cf.matches(REGEX_CF_CHEF)) {
+            showError("Codice Chef nel formato CH### (es. CH123).");
+            cfField.requestFocus();
+            return null;
+        }
 
-        if (nasc == null) { showError("Inserisci la data di nascita."); nascitaPicker.requestFocus(); return null; }
-        if (nasc.isAfter(LocalDate.now())) { showError("La data di nascita non può essere futura."); nascitaPicker.requestFocus(); return null; }
+        if (nasc == null) {
+            showError("Inserisci la data di nascita.");
+            nascitaPicker.requestFocus();
+            return null;
+        }
+        if (nasc.isAfter(LocalDate.now())) {
+            showError("La data di nascita non può essere futura.");
+            nascitaPicker.requestFocus();
+            return null;
+        }
 
         err = validateRequired(username, "Inserisci lo username.");
-        if (err != null) { showError(err); focusSelect(usernameField); return null; }
-        if (!username.matches(REGEX_USERNAME)) { showError("Username non valido (3-20, lettere/numeri/._)."); focusSelect(usernameField); return null; }
+        if (err != null) {
+            showError(err);
+            usernameField.requestFocus();
+            return null;
+        }
+        if (!username.matches(REGEX_USERNAME)) {
+            showError("Username non valido (3-20, lettere/numeri/._).");
+            usernameField.requestFocus();
+            return null;
+        }
 
-        if (pwd == null || pwd.trim().length() < MIN_PWD_LEN) {
+        if (pwd.length() < MIN_PWD_LEN) {
             showError("La password deve avere almeno " + MIN_PWD_LEN + " caratteri.");
-            if (passwordField != null) focusSelect(passwordField);
+            passwordField.requestFocus();
             return null;
         }
 
@@ -154,128 +215,39 @@ public class RegisterChefController {
         return c;
     }
 
-    private void initPasswordToggle() {
-        if (passwordField == null || passwordVisibleField == null || toggleVisibilityButton == null) return;
-
-        passwordVisibleField.textProperty().bindBidirectional(passwordField.textProperty());
-        setPasswordVisible(false);
-
-        toggleVisibilityButton.setOnMousePressed(e -> toggleVisibilityButton.setOpacity(0.75));
-        toggleVisibilityButton.setOnMouseReleased(e -> toggleVisibilityButton.setOpacity(1.0));
-
-        toggleVisibilityButton.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> obs, Boolean was, Boolean showPlain) {
-                setPasswordVisible(Boolean.TRUE.equals(showPlain));
-            }
-        });
-    }
-
-    private void setPasswordVisible(boolean show) {
-        if (passwordField != null) {
-            passwordField.setVisible(!show);
-            passwordField.setManaged(!show);
-        }
-        if (passwordVisibleField != null) {
-            passwordVisibleField.setVisible(show);
-            passwordVisibleField.setManaged(show);
-        }
-        if (eyeIcon != null) eyeIcon.setContent(show ? EYE_OPEN : EYE_SLASH);
-        if (show && passwordVisibleField != null) { passwordVisibleField.requestFocus(); passwordVisibleField.end(); }
-        else if (passwordField != null)            { passwordField.requestFocus();        passwordField.end();        }
-    }
-
-    private void hookOpenOnClick(DatePicker dp) {
-        if (dp == null) return;
-        dp.setOnMouseClicked(e -> dp.show());
-        if (dp.getEditor() != null) {
-            dp.getEditor().setOnMouseClicked(e -> dp.show());
-            dp.getEditor().setOnKeyPressed(e -> {
-                if (e.getCode() == KeyCode.ENTER || e.getCode() == KeyCode.SPACE) dp.show();
-            });
-        }
-    }
-
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+
+        DialogPane pane = alert.getDialogPane();
+        pane.getStylesheets().add(
+                getClass().getResource("/it/unina/foodlab/util/dark-theme.css").toExternalForm()
+        );
+        pane.getStyleClass().add("dark-alert");
+
         alert.showAndWait();
     }
 
     public void showError(String msg) {
-        if (errorLabel != null) {
-            errorLabel.setText(msg);
-            errorLabel.setManaged(true);
-            errorLabel.setVisible(true);
-        }
+        errorLabel.setText(msg);
+        errorLabel.setManaged(true);
+        errorLabel.setVisible(true);
     }
 
-    public void clearError() {
-        if (errorLabel != null) {
-            errorLabel.setText("");
-            errorLabel.setManaged(false);
-            errorLabel.setVisible(false);
-        }
+
+    private static String validateRequired(String v, String m) {
+        return (v == null || v.trim().isEmpty()) ? m : null;
     }
 
-    private void showException(String header, Throwable ex) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Errore");
-        alert.setHeaderText(header);
-        alert.setContentText(ex.getMessage() == null ? ex.getClass().getName() : ex.getMessage());
-
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        ex.printStackTrace(pw);
-        String exceptionText = sw.toString();
-
-        Label label = new Label("Dettagli (stack trace):");
-        TextArea textArea = new TextArea(exceptionText);
-        textArea.setEditable(false);
-        textArea.setWrapText(false);
-        textArea.setMaxWidth(Double.MAX_VALUE);
-        textArea.setMaxHeight(Double.MAX_VALUE);
-        GridPane.setVgrow(textArea, Priority.ALWAYS);
-        GridPane.setHgrow(textArea, Priority.ALWAYS);
-
-        GridPane expContent = new GridPane();
-        expContent.setMaxWidth(Double.MAX_VALUE);
-        expContent.add(label, 0, 0);
-        expContent.add(textArea, 0, 1);
-
-        alert.getDialogPane().setExpandableContent(expContent);
-        alert.getDialogPane().setExpanded(true);
-        alert.showAndWait();
+    private static String safeText(TextField tf) {
+        return (tf == null || tf.getText() == null) ? "" : tf.getText().trim();
     }
 
-    private void focusSelect(TextField tf) { if (tf != null) { tf.requestFocus(); tf.selectAll(); } }
-    private static String validateRequired(String v, String m) { return (v == null || v.trim().isEmpty()) ? m : null; }
-    private static String safeText(TextField tf) { return (tf == null || tf.getText() == null) ? "" : tf.getText().trim(); }
-    private static String capitalize(String s) { if (s == null) return ""; String t = s.trim(); return t.isEmpty()? t : Character.toUpperCase(t.charAt(0)) + t.substring(1).toLowerCase(); }
-
-    private void clearForm() {
-        if (nomeField != null) nomeField.clear();
-        if (cognomeField != null) cognomeField.clear();
-        if (cfField != null) cfField.clear();
-        if (usernameField != null) usernameField.clear();
-        if (passwordField != null) passwordField.clear();
-        if (passwordVisibleField != null) passwordVisibleField.clear();
-        if (nascitaPicker != null) nascitaPicker.setValue(null);
-        clearError();
-        if (nomeField != null) nomeField.requestFocus();
+    private static String capitalize(String s) {
+        if (s == null) return "";
+        String t = s.trim();
+        return t.isEmpty() ? t : Character.toUpperCase(t.charAt(0)) + t.substring(1).toLowerCase();
     }
-
-    private void setEnterFocusTraversal() {
-        if (nomeField     != null) nomeField.setOnAction(e -> { if (cognomeField  != null) cognomeField.requestFocus(); });
-        if (cognomeField  != null) cognomeField.setOnAction(e -> { if (cfField      != null) cfField.requestFocus(); });
-        if (cfField       != null) cfField.setOnAction(e ->       { if (nascitaPicker!= null) nascitaPicker.requestFocus(); });
-        if (nascitaPicker != null) nascitaPicker.setOnAction(e -> { if (usernameField!= null) usernameField.requestFocus(); });
-    }
-
-	public void setStage(Stage stage) {
-		this.stage=stage;
-		
-	}
 }

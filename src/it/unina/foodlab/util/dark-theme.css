@@ -892,5 +892,38 @@
     -fx-background-color: #1c5b4b;
 }
 
+.dark-alert {
+    -fx-background-color: #1b2427;
+}
 
+.dark-alert .label {
+    -fx-text-fill: #e9f5ec;
+}
+
+.dark-alert .button {
+    -fx-background-color: #1fb57a;
+    -fx-text-fill: #0a1410;
+}
+
+.date-picker > .text-field {
+    -fx-background-color: #252f33;
+    -fx-control-inner-background: #252f33;
+    -fx-text-fill: #f0f4f6;
+    -fx-prompt-text-fill: rgba(255,255,255,0.60);
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: rgba(255,255,255,0.12);
+}
+
+/* Bottone calendario: trasparente ma ancora presente */
+.date-picker > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 6 0 6;
+}
+
+/* Icona interna resa invisibile */
+.date-picker > .arrow-button > .arrow {
+    -fx-background-color: transparent;
+}
 

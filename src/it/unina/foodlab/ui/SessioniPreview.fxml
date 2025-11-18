@@ -5,11 +5,13 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
-<DialogPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1"
+<DialogPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="it.unina.foodlab.controller.SessioniPreviewController"
             fx:id="dialogPane"
             prefWidth="760" prefHeight="560"
             stylesheets="@/it/unina/foodlab/util/dark-theme.css"
+            styleClass="sessioni-preview"
             style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
                    -fx-border-color: rgba(255,255,255,0.06);
                    -fx-background-radius:12; -fx-border-radius:12;
@@ -21,7 +23,9 @@
                      -fx-background-radius:12 12 0 0; -fx-padding:12;">
             <children>
                 <ImageView fitHeight="20" fitWidth="20" pickOnBounds="true" preserveRatio="true">
-                    <image><Image url="@/icons/Report-Logo.png"/></image>
+                    <image>
+                        <Image url="@/icons/Report-Logo.png"/>
+                    </image>
                 </ImageView>
                 <Label fx:id="lblHeader"
                        style="-fx-text-fill:#e9f5ec; -fx-font-weight:800; -fx-font-size:16px;"/>
@@ -31,32 +35,55 @@
 
     <content>
         <VBox spacing="14" fillWidth="true">
-            <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+            <padding>
+                <Insets top="12" right="12" bottom="12" left="12"/>
+            </padding>
 
-            
+            <!-- FILTRI E SEARCH -->
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <children>
-                    <ToggleButton fx:id="tgAll" text="Tutte" selected="true"
-                                  style="-fx-background-color:#2b3438; -fx-background-radius:10; -fx-text-fill:#e9f5ec; -fx-padding:6 12;"/>
-                    <ToggleButton fx:id="tgOnline" text="Online"
-                                  style="-fx-background-color:#2b3438; -fx-background-radius:10; -fx-text-fill:#e9f5ec; -fx-padding:6 12;"/>
-                    <ToggleButton fx:id="tgPresenza" text="In presenza"
-                                  style="-fx-background-color:#2b3438; -fx-background-radius:10; -fx-text-fill:#e9f5ec; -fx-padding:6 12;"/>
+                    <ToggleButton fx:id="tgAll"
+                                  text="Tutte"
+                                  selected="true"
+                                  onAction="#onFiltroAll"
+                                  style="-fx-background-color:#2b3438; -fx-background-radius:10;
+                                         -fx-text-fill:#e9f5ec; -fx-padding:6 12;"/>
+
+                    <ToggleButton fx:id="tgOnline"
+                                  text="Online"
+                                  onAction="#onFiltroOnline"
+                                  style="-fx-background-color:#2b3438; -fx-background-radius:10;
+                                         -fx-text-fill:#e9f5ec; -fx-padding:6 12;"/>
+
+                    <ToggleButton fx:id="tgPresenza"
+                                  text="In presenza"
+                                  onAction="#onFiltroPresenza"
+                                  style="-fx-background-color:#2b3438; -fx-background-radius:10;
+                                         -fx-text-fill:#e9f5ec; -fx-padding:6 12;"/>
+
                     <Region HBox.hgrow="ALWAYS"/>
-                    <TextField fx:id="txtSearch" promptText="Cerca (piattaforma, via, aula, data)…"
+
+                    <TextField fx:id="txtSearch"
+                               promptText="Cerca"
                                style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec;
                                       -fx-prompt-text-fill: rgba(233,245,236,0.70);
-                                      -fx-background-radius:10; -fx-border-color: rgba(255,255,255,0.06);
-                                      -fx-border-radius:10; -fx-padding:8 12;"/>
+                                      -fx-background-radius:10;
+                                      -fx-border-color: rgba(255,255,255,0.06);
+                                      -fx-border-radius:10;
+                                      -fx-padding:8 12;"/>
                 </children>
             </HBox>
 
-            
-            <ListView fx:id="lv" prefHeight="480"
+            <!-- LISTA SESSIONI -->
+            <ListView fx:id="lv"
+                      prefHeight="480"
+                      styleClass="list-view"
                       style="-fx-background-color:#20282b; -fx-control-inner-background:#20282b;
                              -fx-text-background-color:#e9f5ec; -fx-background-insets:0;
                              -fx-selection-bar: transparent; -fx-selection-bar-non-focused: transparent;">
-                <VBox.vgrow><Priority fx:constant="ALWAYS"/></VBox.vgrow>
+                <VBox.vgrow>
+                    <Priority fx:constant="ALWAYS"/>
+                </VBox.vgrow>
             </ListView>
         </VBox>
     </content>

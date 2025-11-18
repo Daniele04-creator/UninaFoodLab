@@ -9,30 +9,34 @@
             prefWidth="1100" prefHeight="700"
             stylesheets="@/it/unina/foodlab/util/dark-theme.css"
             style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
-                   -fx-border-color: rgba(255,255,255,0.06);
-                   -fx-background-radius:12; -fx-border-radius:12;
-                   -fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;">
+                   -fx-border-color: transparent;
+                   -fx-border-width: 0;
+                   -fx-background-radius:12;
+                   -fx-border-radius:12;
+                   -fx-font-family:'Segoe UI', Inter, system-ui;
+                   -fx-font-size:13px;">
 
-    
+
     <buttonTypes>
         <ButtonType fx:id="cancelButtonType" text="Annulla"  buttonData="CANCEL_CLOSE"/>
         <ButtonType fx:id="okButtonType"     text="Conferma" buttonData="OK_DONE"/>
     </buttonTypes>
 
     <content>
-        
         <BorderPane style="-fx-background-color:#20282b; -fx-padding:0;">
 
-            
             <top>
                 <Label text="Imposta modalità e dettagli per ciascuna sessione:"
                        style="-fx-background-color:#242c2f; -fx-text-fill:#e9f5ec;
-                              -fx-font-weight:800; -fx-padding:10 12;" />
+                              -fx-font-weight:800; -fx-padding:10 12;"/>
             </top>
 
-            
             <center>
-                <TableView fx:id="table" editable="true"
+                <TableView fx:id="table"
+                           editable="true"
+                           fixedCellSize="32.0"
+                           VBox.vgrow="ALWAYS"
+                           styleClass="sessioni-wizard"
                            BorderPane.alignment="CENTER"
                            style="-fx-background-color:#20282b; -fx-control-inner-background:#20282b;
                                   -fx-text-background-color:#e9f5ec;
@@ -42,6 +46,7 @@
                                   -fx-table-header-border-color: rgba(255,255,255,0.06);
                                   -fx-background-insets:0; -fx-padding:0;
                                   -fx-selection-bar: transparent; -fx-selection-bar-non-focused: transparent;">
+
                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
                     </columnResizePolicy>
@@ -66,7 +71,6 @@
                 </TableView>
             </center>
 
-            
             <bottom>
                 <HBox spacing="10" alignment="CENTER"
                       style="-fx-background-color:#20282b; -fx-padding:12 0 0 0;">
@@ -75,7 +79,9 @@
                                 style="-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;
                                        -fx-background-radius:10; -fx-padding:8 14;
                                        -fx-graphic: url('/icons/plus-16.png'); -fx-content-display: left;">
-                            <tooltip><Tooltip text="Aggiungi una nuova riga"/></tooltip>
+                            <tooltip>
+                                <Tooltip text="Aggiungi una nuova riga"/>
+                            </tooltip>
                             <graphicTextGap>8</graphicTextGap>
                         </Button>
 
@@ -83,7 +89,9 @@
                                 style="-fx-background-color:#ef4444; -fx-text-fill:#fff; -fx-font-weight:800;
                                        -fx-background-radius:10; -fx-padding:8 14;
                                        -fx-graphic: url('/icons/trash-2-16.png'); -fx-content-display: left;">
-                            <tooltip><Tooltip text="Rimuovi la riga selezionata"/></tooltip>
+                            <tooltip>
+                                <Tooltip text="Rimuovi la riga selezionata"/>
+                            </tooltip>
                             <graphicTextGap>8</graphicTextGap>
                         </Button>
                     </children>

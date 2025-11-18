@@ -50,9 +50,6 @@ public class LoginController {
 
     @FXML
     private void initialize() {
-    	 if (passwordVisibleField == null || passwordField == null || toggleVisibilityButton == null) {
-             return;
-         }
 
          passwordVisibleField.textProperty().bindBidirectional(passwordField.textProperty());
          setPasswordVisible(false);

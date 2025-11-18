@@ -11,13 +11,14 @@
             fx:controller="it.unina.foodlab.controller.ReportController"
             prefWidth="1000.0" prefHeight="600.0"
             stylesheets="@/it/unina/foodlab/util/dark-theme.css"
+            styleClass="report-controller"
             style="-fx-background-color: linear-gradient(to bottom,#0e1114,#0b1014);
                    -fx-font-family:'Segoe UI', Inter, system-ui; -fx-font-size:13px;">
     <padding>
         <Insets top="12" right="12" bottom="12" left="12"/>
     </padding>
 
-    
+    <!-- BARRA SUPERIORE -->
     <top>
         <VBox spacing="8" alignment="CENTER_LEFT"
               style="-fx-background-color: linear-gradient(to bottom,#1b2427,#152022);
@@ -26,6 +27,7 @@
                 <HBox spacing="8" alignment="CENTER_LEFT">
                     <children>
                         <Button fx:id="btnIndietro"
+                                onAction="#onIndietro"
                                 style="-fx-background-color:#2b3438; -fx-text-fill:#e9f5ec; -fx-background-radius:10;
                                        -fx-graphic: url('/icons/arrow-88-16.png'); -fx-content-display: graphic-only; -fx-padding:8 10;"/>
                         <ImageView fitHeight="46" preserveRatio="true">
@@ -36,35 +38,54 @@
 
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <children>
-                       
-                       <HBox spacing="8" alignment="CENTER_LEFT">
-    <Label text="Seleziona mese:" style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;"/>
-    <ComboBox fx:id="cbMese" promptText="Mese" prefWidth="140"/>
-    <ComboBox fx:id="cbAnno" promptText="Anno" prefWidth="100"/>
-    <Button fx:id="btnCrea" text="Crea" style="-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800; -fx-background-radius:10;"/>
-</HBox>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="Seleziona mese:"
+                                       style="-fx-text-fill:#e9f5ec; -fx-font-weight:700;"/>
+                                <ComboBox fx:id="cbMese"
+                                          promptText="Mese"
+                                          prefWidth="140"/>
+                                <ComboBox fx:id="cbAnno"
+                                          promptText="Anno"
+                                          prefWidth="100"/>
+                                <Button fx:id="btnCrea"
+                                        text="Crea"
+                                        onAction="#onGenera"
+                                        style="-fx-background-color:#1fb57a; -fx-text-fill:#0a1410; -fx-font-weight:800;
+                                               -fx-background-radius:10; -fx-padding:8 16;"/>
+                            </children>
+                        </HBox>
                     </children>
                 </HBox>
             </children>
         </VBox>
     </top>
 
-    
+    <!-- PARTE CENTRALE: VALORI -->
     <center>
         <VBox spacing="12" fillWidth="true">
             <children>
-                <Label fx:id="lblTitolo" text="Report Mensile"
+                <Label fx:id="lblTitolo"
+                       text="Report Mensile"
                        style="-fx-text-fill:#e9f5ec; -fx-font-weight:800; -fx-font-size:18px;"/>
                 <Separator style="-fx-background-color: rgba(255,255,255,0.06); -fx-opacity:1;"/>
 
-                <VBox fx:id="cardValori" fillWidth="true"
+                <VBox fx:id="cardValori"
+                      fillWidth="true"
                       style="-fx-background-color: linear-gradient(to bottom,#242c2f,#20282b);
                              -fx-background-radius:12; -fx-border-color: rgba(255,255,255,0.06);
                              -fx-border-radius:12; -fx-padding:16;">
                     <children>
-                        <GridPane fx:id="gridValori" hgap="16" vgap="10">
-                            <padding><Insets top="6" right="6" bottom="6" left="6"/></padding>
-                            
+                        <GridPane fx:id="gridValori"
+                                  hgap="16" vgap="10">
+                            <padding>
+                                <Insets top="6" right="6" bottom="6" left="6"/>
+                            </padding>
+                            <columnConstraints>
+                                <ColumnConstraints halignment="LEFT" percentWidth="45"/>
+                                <ColumnConstraints halignment="LEFT" percentWidth="55"/>
+                            </columnConstraints>
+                            <!-- Righe e valori saranno aggiunti da codice -->
                         </GridPane>
                     </children>
                 </VBox>
@@ -72,13 +93,20 @@
         </VBox>
     </center>
 
-    
+    <!-- AREA DEI GRAFICI A DESTRA -->
     <right>
-        <ScrollPane fx:id="spCharts" fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" prefWidth="540.0"
-            style="-fx-background-color: transparent; -fx-background-insets:0;">
-    <content>
-        <VBox fx:id="rightCharts" spacing="12" fillWidth="true" style="-fx-padding:8;"/>
-    </content>
-</ScrollPane>
+        <ScrollPane fx:id="spCharts"
+                    fitToWidth="true"
+                    fitToHeight="true"
+                    hbarPolicy="NEVER"
+                    prefWidth="540.0"
+                    style="-fx-background-color: transparent; -fx-background-insets:0;">
+            <content>
+                <VBox fx:id="rightCharts"
+                      spacing="12"
+                      fillWidth="true"
+                      style="-fx-padding:8;"/>
+            </content>
+        </ScrollPane>
     </right>
 </BorderPane>

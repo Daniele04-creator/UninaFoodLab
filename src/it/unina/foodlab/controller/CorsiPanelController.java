@@ -390,6 +390,7 @@ public class CorsiPanelController {
 			dlg.setDialogPane(pane);
 			dlg.initOwner(table.getScene().getWindow());
 			dlg.initModality(Modality.WINDOW_MODAL);
+			dlg.setResizable(true);
 			dlg.showAndWait();
 		} catch (Exception ex) {
 			showError("Errore apertura anteprima sessioni: " + ex.getMessage());

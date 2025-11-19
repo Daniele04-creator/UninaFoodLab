@@ -13,16 +13,12 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseButton;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 public class SessioniPreviewController {
 
@@ -33,9 +29,55 @@ public class SessioniPreviewController {
     @FXML private ToggleButton tgPresenza;
     @FXML private TextField txtSearch;
 
+    @FXML private TableView<Ricetta> tvRicette;
+    @FXML private TableColumn<Ricetta, String> colDiff;
+    @FXML private TableColumn<Ricetta, String> colDesc;
+
     private final ObservableList<Sessione> backing = FXCollections.observableArrayList();
     private final FilteredList<Sessione> filtered = new FilteredList<>(backing, s -> true);
     private SessioneDao sessioneDao;
+
+    @FXML
+    public void initialize() {
+        if (tvRicette != null) {
+            tvRicette.getStyleClass().add("table-view");
+            tvRicette.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+            tvRicette.setTableMenuButtonVisible(false);
+            tvRicette.setFixedCellSize(40);
+        }
+
+        colDiff.setCellFactory(tc -> new TableCell<>() {
+            private final Label chip = new Label();
+            @Override
+            protected void updateItem(String s, boolean empty) {
+                super.updateItem(s, empty);
+                if (empty || s == null) {
+                    setGraphic(null);
+                    return;
+                }
+                chip.setText(s);
+                chip.getStyleClass().setAll("chip", s.trim().toLowerCase());
+                setGraphic(chip);
+            }
+        });
+
+        colDesc.setCellFactory(tc -> new TableCell<>() {
+            private final Label lbl = new Label();
+            {
+                lbl.getStyleClass().add("table-description");
+            }
+            @Override
+            protected void updateItem(String s, boolean empty) {
+                super.updateItem(s, empty);
+                if (empty || s == null) {
+                    setGraphic(null);
+                    return;
+                }
+                lbl.setText(s);
+                setGraphic(lbl);
+            }
+        });
+    }
 
     public void init(Corso corso, List<Sessione> sessioni, SessioneDao sessioneDao) {
         this.sessioneDao = sessioneDao;
@@ -51,10 +93,15 @@ public class SessioniPreviewController {
             if (e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2) {
                 Sessione sel = lv.getSelectionModel().getSelectedItem();
                 if (sel instanceof SessionePresenza sp) {
-                    openRicetteDialog(sp);
+                    loadRicetteFor(sp);
+                } else {
+                    if (tvRicette != null) {
+                        tvRicette.getItems().clear();
+                    }
                 }
             }
         });
+
 
         txtSearch.textProperty().addListener((o, oldV, newV) -> refilter());
 
@@ -90,171 +137,94 @@ public class SessioniPreviewController {
     }
 
     private void refilter() {
-        boolean onlyOnline = tgOnline.isSelected();
-        boolean onlyPresenza = tgPresenza.isSelected();
-        String q = txtSearch.getText() == null
-                ? ""
-                : txtSearch.getText().trim().toLowerCase(Locale.ROOT);
+    boolean onlyOnline = tgOnline.isSelected();
+    boolean onlyPresenza = tgPresenza.isSelected();
+    String q = txtSearch.getText() == null
+            ? ""
+            : txtSearch.getText().trim().toLowerCase(Locale.ROOT);
 
-        filtered.setPredicate(s -> {
-            if (s == null) {
-                return false;
-            }
+    filtered.setPredicate(s -> {
+        if (s == null) {
+            return false;
+        }
 
-            if (onlyOnline && !(s instanceof SessioneOnline)) {
-                return false;
-            }
-            if (onlyPresenza && !(s instanceof SessionePresenza)) {
-                return false;
-            }
+        if (onlyOnline && !(s instanceof SessioneOnline)) {
+            return false;
+        }
+        if (onlyPresenza && !(s instanceof SessionePresenza)) {
+            return false;
+        }
 
-            if (q.isEmpty()) {
-                return true;
-            }
+        if (q.isEmpty()) {
+            return true;
+        }
 
-            String dataStr = s.getData() != null ? s.getData().toString() : "";
-            String timeStr = "";
-            if (s.getOraInizio() != null) {
-                timeStr += s.getOraInizio().toString();
+        String dataStr = s.getData() != null ? s.getData().toString() : "";
+        String timeStr = "";
+        if (s.getOraInizio() != null) {
+            timeStr += s.getOraInizio().toString();
+        }
+        if (s.getOraFine() != null) {
+            if (!timeStr.isEmpty()) {
+                timeStr += " ";
             }
-            if (s.getOraFine() != null) {
-                if (!timeStr.isEmpty()) {
-                    timeStr += " ";
-                }
-                timeStr += s.getOraFine().toString();
-            }
+            timeStr += s.getOraFine().toString();
+        }
 
-            if (s instanceof SessioneOnline so) {
-                return contains(dataStr, q)
-                        || contains(timeStr, q)
-                        || contains(so.getPiattaforma(), q);
-            } else {
-                SessionePresenza sp = (SessionePresenza) s;
-                String ind = (sp.getVia() + " "
-                        + sp.getNum() + " "
-                        + (sp.getCap() > 0 ? String.valueOf(sp.getCap()) : "") + " "
-                        + sp.getAula()).trim();
-                return contains(dataStr, q)
-                        || contains(timeStr, q)
-                        || contains(ind, q);
-            }
-        });
+        if (s instanceof SessioneOnline so) {
+            return contains(dataStr, q)
+                    || contains(timeStr, q)
+                    || contains(so.getPiattaforma(), q);
+        } else {
+            SessionePresenza sp = (SessionePresenza) s;
+            String ind = (sp.getVia() + " "
+                    + sp.getNum() + " "
+                    + (sp.getCap() > 0 ? String.valueOf(sp.getCap()) : "") + " "
+                    + sp.getAula()).trim();
+            return contains(dataStr, q)
+                    || contains(timeStr, q)
+                    || contains(ind, q);
+        }
+    });
+
+    if (tvRicette != null) {
+        boolean showRicette = !onlyOnline;
+
+        if (!showRicette) {
+            tvRicette.getItems().clear();
+        }
+
+        tvRicette.setVisible(showRicette);
+        tvRicette.setManaged(showRicette);
     }
+}
+
 
     private static boolean contains(String s, String pieceLower) {
         return s != null && s.toLowerCase(Locale.ROOT).contains(pieceLower);
     }
 
-    private void openRicetteDialog(SessionePresenza sp) {
-        List<Ricetta> lista;
-        try {
-            lista = sessioneDao.findRicetteBySessionePresenza(sp.getId());
-        } catch (Exception ex) {
-            showError("Errore caricamento ricette associate: " + ex.getMessage());
-            return;
-        }
-
-        Dialog<Void> dialog = new Dialog<>();
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String dataLabel = sp.getData() != null ? df.format(sp.getData()) : "";
-        dialog.setTitle("Ricette — sessione del " + dataLabel);
-
-        DialogPane pane = new DialogPane();
-        pane.getStyleClass().addAll("sessioni-preview", "dialog-pane");
-        pane.getStylesheets().add(
-                Objects.requireNonNull(
-                        getClass().getResource("/it/unina/foodlab/util/dark-theme.css")
-                ).toExternalForm()
-        );
-        pane.getButtonTypes().setAll(ButtonType.CLOSE);
-
-        TableView<Ricetta> tv = buildRicetteTable(lista);
-        pane.setContent(tv);
-        dialog.setDialogPane(pane);
-
-        Button closeBtn = (Button) pane.lookupButton(ButtonType.CLOSE);
-        if (closeBtn != null) {
-            closeBtn.getStyleClass().add("button-close");
-        }
-
-        dialog.setResizable(true);
-        dialog.setOnShown(ev -> {
-            Node content = pane.getContent();
-            if (content instanceof Region region) {
-                region.setPrefSize(900, 520);
-            }
-        });
-
-        dialog.showAndWait();
+    private void loadRicetteFor(SessionePresenza sp) {
+    if (tvRicette == null) {
+        return;
     }
 
-    private TableView<Ricetta> buildRicetteTable(List<Ricetta> data) {
-        TableView<Ricetta> tv = new TableView<>();
-        tv.getStyleClass().add("table-view");
-        tv.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        tv.setTableMenuButtonVisible(false);
-        tv.setFixedCellSize(40);
-
-        TableColumn<Ricetta, String> colNome = new TableColumn<>("Nome");
-        colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
-
-        TableColumn<Ricetta, String> colDiff = new TableColumn<>("Difficoltà");
-        colDiff.setCellValueFactory(new PropertyValueFactory<>("difficolta"));
-        colDiff.setPrefWidth(140);
-        colDiff.setCellFactory(tc -> new TableCell<>() {
-            private final Label chip = new Label();
-            @Override
-            protected void updateItem(String s, boolean empty) {
-                super.updateItem(s, empty);
-                if (empty || s == null) {
-                    setGraphic(null);
-                    return;
-                }
-                chip.setText(s);
-                chip.getStyleClass().setAll("chip", s.trim().toLowerCase());
-                setGraphic(chip);
-            }
-        });
-
-        TableColumn<Ricetta, Integer> colTempo = new TableColumn<>("Minuti");
-        colTempo.setCellValueFactory(new PropertyValueFactory<>("tempoPreparazione"));
-        colTempo.setPrefWidth(110);
-        colTempo.setStyle("-fx-alignment: CENTER;");
-        colTempo.setCellFactory(tc -> new TableCell<>() {
-            @Override
-            protected void updateItem(Integer n, boolean empty) {
-                super.updateItem(n, empty);
-                setText(empty || n == null ? null : (n + " min"));
-            }
-        });
-
-        TableColumn<Ricetta, String> colDesc = new TableColumn<>("Descrizione");
-        colDesc.setCellValueFactory(new PropertyValueFactory<>("descrizione"));
-        colDesc.setCellFactory(tc -> new TableCell<>() {
-            private final Label lbl = new Label();
-            {
-                lbl.getStyleClass().add("table-description");
-            }
-            @Override
-            protected void updateItem(String s, boolean empty) {
-                super.updateItem(s, empty);
-                if (empty || s == null) {
-                    setGraphic(null);
-                    return;
-                }
-                lbl.setText(s);
-                setGraphic(lbl);
-            }
-        });
-
-        tv.getColumns().add(colNome);
-        tv.getColumns().add(colDiff);
-        tv.getColumns().add(colTempo);
-        tv.getColumns().add(colDesc);
-        tv.getItems().setAll(data);
-
-        return tv;
+    List<Ricetta> lista;
+    try {
+        lista = sessioneDao.findRicetteBySessionePresenza(sp.getId());
+    } catch (Exception ex) {
+        showError("Errore caricamento ricette associate: " + ex.getMessage());
+        tvRicette.getItems().clear();
+        return;
     }
+
+    if (lista == null) {
+        lista = java.util.Collections.emptyList();
+    }
+
+    tvRicette.getItems().setAll(lista);
+}
+
 
     private final class CardCell extends ListCell<Sessione> {
 

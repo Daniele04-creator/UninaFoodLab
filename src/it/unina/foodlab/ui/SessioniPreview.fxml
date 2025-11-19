@@ -4,6 +4,7 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 
 <DialogPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -34,6 +35,7 @@
     </header>
 
     <content>
+        <!-- ROOT UNICO DEL CONTENT -->
         <VBox spacing="14" fillWidth="true">
             <padding>
                 <Insets top="12" right="12" bottom="12" left="12"/>
@@ -76,7 +78,7 @@
 
             <!-- LISTA SESSIONI -->
             <ListView fx:id="lv"
-                      prefHeight="480"
+                      prefHeight="220"
                       styleClass="list-view"
                       style="-fx-background-color:#20282b; -fx-control-inner-background:#20282b;
                              -fx-text-background-color:#e9f5ec; -fx-background-insets:0;
@@ -85,10 +87,55 @@
                     <Priority fx:constant="ALWAYS"/>
                 </VBox.vgrow>
             </ListView>
+
+            <!-- TABELLA RICETTE -->
+            <TableView fx:id="tvRicette"
+                       prefHeight="220"
+                       fixedCellSize="40"
+                       tableMenuButtonVisible="false"
+                       styleClass="table-view">
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+                </columnResizePolicy>
+
+                <columns>
+                    <TableColumn fx:id="colNome"
+                                 text="Nome">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="nome"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn fx:id="colDiff"
+                                 text="Difficoltà"
+                                 prefWidth="140">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="difficolta"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn fx:id="colTempo"
+                                 text="Minuti"
+                                 prefWidth="110"
+                                 style="-fx-alignment: CENTER;">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="tempoPreparazione"/>
+                        </cellValueFactory>
+                    </TableColumn>
+
+                    <TableColumn fx:id="colDesc"
+                                 text="Descrizione">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="descrizione"/>
+                        </cellValueFactory>
+                    </TableColumn>
+                </columns>
+            </TableView>
         </VBox>
     </content>
 
     <buttonTypes>
         <ButtonType text="Chiudi" buttonData="CANCEL_CLOSE"/>
     </buttonTypes>
+
 </DialogPane>

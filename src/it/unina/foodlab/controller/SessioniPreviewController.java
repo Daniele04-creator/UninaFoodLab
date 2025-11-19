@@ -17,6 +17,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.VBox;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -219,7 +220,7 @@ public class SessioniPreviewController {
     }
 
     if (lista == null) {
-        lista = java.util.Collections.emptyList();
+        lista =Collections.emptyList();
     }
 
     tvRicette.getItems().setAll(lista);

@@ -14,16 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SessioneDao {
-
-    private static final String TBL_ONLINE   = "sessione_online";
-    private static final String TBL_PRESENZA = "sessione_presenza";
-    private static final String TBL_CORSO    = "corso";
-    private static final String TBL_RICETTA  = "ricetta";
-    private static final String TBL_LINK     = "sessione_presenza_ricetta";
-
-    private static final String COL_FK_SESS = "fk_id_sess_pr";
-    private static final String COL_FK_RIC  = "fk_id_ricetta";
-
     private final String ownerCfChef;
 
     public SessioneDao(String ownerCfChef) {
@@ -36,42 +26,56 @@ public class SessioneDao {
     private static final String SQL_BASE_SELECT =
             "SELECT x.id, x.fk_id_corso, x.data, x.ora_inizio, x.ora_fine, x.tipo, " +
             "       x.piattaforma, x.via, x.num, x.cap, x.aula, x.posti_max " +
-            "  FROM ( " +
-            "        SELECT so.idsessioneonline AS id, so.fk_id_corso, so.data, so.ora_inizio, so.ora_fine, " +
-            "               'ONLINE'::varchar AS tipo, " +
-            "               so.piattaforma, " +
-            "               NULL::varchar AS via, NULL::varchar AS num, NULL::integer AS cap, " +
-            "               NULL::varchar AS aula, NULL::integer AS posti_max " +
-            "          FROM " + TBL_ONLINE + " so " +
-            "        UNION ALL " +
-            "        SELECT sp.\"idSessionePresenza\" AS id, sp.fk_id_corso, sp.data, sp.ora_inizio, sp.ora_fine, " +
-            "               'PRESENZA'::varchar AS tipo, " +
-            "               NULL::varchar AS piattaforma, " +
-            "               sp.via, sp.num, sp.cap, sp.aula, sp.posti_max " +
-            "          FROM " + TBL_PRESENZA + " sp " +
-            "  ) x " +
-            "  JOIN " + TBL_CORSO + " c ON c.id_corso = x.fk_id_corso ";
+            "FROM ( " +
+            "    SELECT so.idsessioneonline AS id, " +
+            "           so.fk_id_corso, " +
+            "           so.data, " +
+            "           so.ora_inizio, " +
+            "           so.ora_fine, " +
+            "           'ONLINE' AS tipo, " +
+            "           so.piattaforma, " +
+            "           NULL AS via, " +
+            "           NULL AS num, " +
+            "           NULL AS cap, " +
+            "           NULL AS aula, " +
+            "           NULL AS posti_max " +
+            "    FROM sessione_online so " +
+            "    UNION ALL " +
+            "    SELECT sp.\"idSessionePresenza\" AS id, " +
+            "           sp.fk_id_corso, " +
+            "           sp.data, " +
+            "           sp.ora_inizio, " +
+            "           sp.ora_fine, " +
+            "           'PRESENZA' AS tipo, " +
+            "           NULL AS piattaforma, " +
+            "           sp.via, " +
+            "           sp.num, " +
+            "           sp.cap, " +
+            "           sp.aula, " +
+            "           sp.posti_max " +
+            "    FROM sessione_presenza sp " +
+            ") x " +
+            "JOIN corso c ON c.id_corso = x.fk_id_corso ";
+
 
     private static final String SQL_FIND_RICETTE_BY_SESSP =
             "SELECT r.id_ricetta, r.nome, r.descrizione, r.difficolta, r.tempo_preparazione " +
-            "  FROM " + TBL_LINK + " spr " +
-            "  JOIN " + TBL_RICETTA + " r ON r.id_ricetta = spr." + COL_FK_RIC + " " +
-            "  JOIN " + TBL_PRESENZA + " sp ON sp.\"idSessionePresenza\" = spr." + COL_FK_SESS + " " +
-            "  JOIN " + TBL_CORSO + " c ON c.id_corso = sp.fk_id_corso " +
-            " WHERE spr." + COL_FK_SESS + " = ? AND c.fk_cf_chef = ? " +
+            "  FROM sessione_presenza_ricetta spr " +
+            "  JOIN ricetta r ON r.id_ricetta = spr.fk_id_ricetta " +
+            "  JOIN sessione_presenza sp ON sp.\"idSessionePresenza\" = spr.fk_id_sess_pr " +
+            "  JOIN corso c ON c.id_corso = sp.fk_id_corso " +
+            " WHERE spr.fk_id_sess_pr = ? AND c.fk_cf_chef = ? " +
             " ORDER BY LOWER(r.nome)";
 
     private static final String SQL_ADD_LINK =
-            "INSERT INTO " + TBL_LINK + " (" + COL_FK_SESS + "," + COL_FK_RIC + ") " +
+            "INSERT INTO sessione_presenza_ricetta (fk_id_sess_pr, fk_id_ricetta) " +
             "VALUES (?, ?) " +
-            "ON CONFLICT (" + COL_FK_SESS + "," + COL_FK_RIC + ") DO NOTHING";
+            "ON CONFLICT (fk_id_sess_pr, fk_id_ricetta) DO NOTHING";
 
     private static final String SQL_DEL_LINK =
-            "DELETE FROM " + TBL_LINK +
-            " WHERE " + COL_FK_SESS + " = ? AND " + COL_FK_RIC + " = ?";
+            "DELETE FROM sessione_presenza_ricetta " +
+            " WHERE fk_id_sess_pr = ? AND fk_id_ricetta = ?";
 
-
-    /** Tutte le sessioni (online e presenza) di un corso dell'owner, ordinate per data + ora. */
     public List<Sessione> findByCorso(long corsoId) throws Exception {
         String sql = SQL_BASE_SELECT +
                 " WHERE x.fk_id_corso = ? AND c.fk_cf_chef = ? " +
@@ -93,7 +97,6 @@ public class SessioneDao {
         return out;
     }
 
-    /** Ricette associate ad una sessione in presenza, solo se il corso è dell'owner. */
     public List<Ricetta> findRicetteBySessionePresenza(int idSessionePresenza) throws Exception {
         List<Ricetta> out = new ArrayList<>();
         try (Connection conn = Db.get();
@@ -111,7 +114,6 @@ public class SessioneDao {
         return out;
     }
 
-    /** Aggiunge un link sessione-presenza → ricetta (se la sessione appartiene all'owner). */
     public void addRicettaToSessionePresenza(int idSessionePresenza, long idRicetta) throws Exception {
         if (!existsPresenzaForOwner(idSessionePresenza)) {
             throw new SQLException("Operazione negata: sessione non dell'owner");
@@ -125,7 +127,6 @@ public class SessioneDao {
         }
     }
 
-    /** Rimuove un link sessione-presenza → ricetta (se la sessione appartiene all'owner). */
     public void removeRicettaFromSessionePresenza(int idSessionePresenza, long idRicetta) throws Exception {
         if (!existsPresenzaForOwner(idSessionePresenza)) {
             throw new SQLException("Operazione negata: sessione non dell'owner");
@@ -139,45 +140,39 @@ public class SessioneDao {
         }
     }
 
-    /**
-     * Sostituisce tutte le sessioni di un corso con una nuova lista.
-     * Cancella prima link ricette, poi sessioni online/presenza, poi inserisce le nuove.
-     */
     public void replaceForCorso(long corsoId, List<Sessione> nuove) throws Exception {
         ensureCourseOwned(corsoId);
 
         try (Connection conn = Db.get()) {
             conn.setAutoCommit(false);
             try {
-                // 1) Cancello i link sessione-presenza → ricetta
                 String delLinks =
-                        "DELETE FROM " + TBL_LINK + " " +
-                        " WHERE " + COL_FK_SESS + " IN (" +
-                        "   SELECT sp.\"idSessionePresenza\" FROM " + TBL_PRESENZA + " sp WHERE sp.fk_id_corso = ?" +
+                        "DELETE FROM sessione_presenza_ricetta " +
+                        " WHERE fk_id_sess_pr IN (" +
+                        "   SELECT sp.\"idSessionePresenza\" FROM sessione_presenza sp WHERE sp.fk_id_corso = ?" +
                         " )";
                 try (PreparedStatement ps = conn.prepareStatement(delLinks)) {
                     ps.setLong(1, corsoId);
                     ps.executeUpdate();
                 }
 
-                // 2) Cancello sessioni online
-                String delOnline = "DELETE FROM " + TBL_ONLINE + " WHERE fk_id_corso = ?";
+                String delOnline = "DELETE FROM sessione_online WHERE fk_id_corso = ?";
                 try (PreparedStatement ps = conn.prepareStatement(delOnline)) {
                     ps.setLong(1, corsoId);
                     ps.executeUpdate();
                 }
 
-                // 3) Cancello sessioni in presenza
-                String delPresenza = "DELETE FROM " + TBL_PRESENZA + " WHERE fk_id_corso = ?";
+                String delPresenza = "DELETE FROM sessione_presenza WHERE fk_id_corso = ?";
                 try (PreparedStatement ps = conn.prepareStatement(delPresenza)) {
                     ps.setLong(1, corsoId);
                     ps.executeUpdate();
                 }
 
-                // 4) Inserisco le nuove sessioni
                 if (nuove != null) {
                     for (Sessione s : nuove) {
-                        if (s == null) continue;
+                        if (s == null) {
+                            continue;
+                        }
 
                         if (s.getCorso() == null || s.getCorso().getIdCorso() != corsoId) {
                             Corso c = new Corso();
@@ -196,12 +191,12 @@ public class SessioneDao {
             } finally {
                 try {
                     conn.setAutoCommit(true);
-                } catch (Exception ignore) {}
+                } catch (Exception ignore) {
+                }
             }
         }
     }
 
-    /** Controlli comuni per una Sessione (corso, data, orari). */
     private void bindCommon(PreparedStatement ps, Sessione s) throws SQLException {
         if (s.getCorso() == null || s.getCorso().getIdCorso() <= 0) {
             throw new SQLException("corso_id mancante/inesistente");
@@ -222,7 +217,6 @@ public class SessioneDao {
         ps.setObject(4, s.getOraFine());
     }
 
-    /** Mappa una riga della query combinata ONLINE/PRESENZA in un oggetto Sessione. */
     private Sessione mapRow(ResultSet rs) throws SQLException {
         int id = rs.getInt("id");
         long corsoId = rs.getLong("fk_id_corso");
@@ -253,7 +247,6 @@ public class SessioneDao {
         }
     }
 
-    /** Verifica che il corso appartenga all'owner (cf_chef). */
     private void ensureCourseOwned(long corsoId) throws Exception {
         String sql = "SELECT 1 FROM corso WHERE id_corso=? AND fk_cf_chef=?";
         try (Connection conn = Db.get();
@@ -270,28 +263,27 @@ public class SessioneDao {
         }
     }
 
-    /** Verifica che la sessione in presenza appartenga ad un corso dell'owner. */
-    private boolean existsPresenzaForOwner(int idSessionePresenza) throws Exception {
-        String sql =
-                "SELECT 1 " +
-                "  FROM " + TBL_PRESENZA + " sp " +
-                "  JOIN " + TBL_CORSO    + " c  ON c.id_corso = sp.fk_id_corso " +
-                " WHERE sp.\"idSessionePresenza\" = ? AND c.fk_cf_chef = ? " +
-                " LIMIT 1";
+   private boolean existsPresenzaForOwner(int idSessionePresenza) throws Exception {
+    String sql =
+            "SELECT 1 " +
+            "  FROM sessione_presenza sp " +
+            "  JOIN corso c ON c.id_corso = sp.fk_id_corso " +
+            " WHERE sp.\"idSessionePresenza\" = ? AND c.fk_cf_chef = ? " +
+            " LIMIT 1";
 
-        try (Connection conn = Db.get();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+    try (Connection conn = Db.get();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, idSessionePresenza);
-            ps.setString(2, ownerCfChef);
+        ps.setInt(1, idSessionePresenza);
+        ps.setString(2, ownerCfChef);
 
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
+        try (ResultSet rs = ps.executeQuery()) {
+            return rs.next();
         }
     }
+}
 
-    /** Mappa una riga in un oggetto Ricetta. */
+
     private Ricetta mapRicetta(ResultSet rs) throws SQLException {
         Ricetta r = new Ricetta();
         r.setIdRicetta(rs.getLong("id_ricetta"));
@@ -309,14 +301,11 @@ public class SessioneDao {
         return (s == null || s.trim().isEmpty()) ? null : s.trim();
     }
 
-    /**
-     * Inserisce una sessione ONLINE o PRESENZA, usando RETURNING per ottenere l'id.
-     */
     private int insertOn(Connection conn, Sessione s) throws Exception {
         if (s instanceof SessioneOnline) {
             SessioneOnline so = (SessioneOnline) s;
             String sql =
-                    "INSERT INTO " + TBL_ONLINE +
+                    "INSERT INTO sessione_online " +
                     " (fk_id_corso, data, ora_inizio, ora_fine, piattaforma) " +
                     "VALUES (?,?,?,?,?) " +
                     "RETURNING idsessioneonline";
@@ -335,7 +324,7 @@ public class SessioneDao {
         } else if (s instanceof SessionePresenza) {
             SessionePresenza sp = (SessionePresenza) s;
             String sql =
-                    "INSERT INTO " + TBL_PRESENZA +
+                    "INSERT INTO sessione_presenza " +
                     " (fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max) " +
                     "VALUES (?,?,?,?,?,?,?,?,?) " +
                     "RETURNING \"idSessionePresenza\"";

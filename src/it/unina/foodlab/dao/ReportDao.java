@@ -2,11 +2,9 @@ package it.unina.foodlab.dao;
 
 import it.unina.foodlab.util.Db;
 import it.unina.foodlab.util.ReportMensile;
-
 import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.YearMonth;
 
 public class ReportDao {
@@ -47,31 +45,28 @@ public class ReportDao {
             throw new IllegalArgumentException("cfChef mancante o vuoto");
         }
         if (month == null) {
-            throw new IllegalArgumentException("month mancante");
+            throw new IllegalArgumentException("mese mancante");
         }
 
-        LocalDate startDate = month.atDay(1);
-        LocalDate startNext = month.plusMonths(1).atDay(1);
-        LocalDateTime from = startDate.atStartOfDay();
-        LocalDateTime to = startNext.atStartOfDay();
+        LocalDate from = month.atDay(1);
+        LocalDate to = month.plusMonths(1).atDay(1);
 
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(SQL_REPORT_MENSILE)) {
 
-            // date range per ONLINE
-            ps.setTimestamp(1, Timestamp.valueOf(from));
-            ps.setTimestamp(2, Timestamp.valueOf(to));
-            // stesso range per PRATICA
-            ps.setTimestamp(3, Timestamp.valueOf(from));
-            ps.setTimestamp(4, Timestamp.valueOf(to));
-            // chef proprietario
+            ps.setDate(1, Date.valueOf(from));
+            ps.setDate(2, Date.valueOf(to));
+
+            ps.setDate(3, Date.valueOf(from));
+            ps.setDate(4, Date.valueOf(to));
+
             ps.setString(5, cfChef.trim());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    int totaleCorsi     = rs.getInt("totale_corsi");
-                    int totaleOnline    = rs.getInt("totale_online");
-                    int totalePratiche  = rs.getInt("totale_pratiche");
+                    int totaleCorsi    = rs.getInt("totale_corsi");
+                    int totaleOnline   = rs.getInt("totale_online");
+                    int totalePratiche = rs.getInt("totale_pratiche");
 
                     BigDecimal mediaBD = rs.getBigDecimal("media_ricette");
                     Double media = (mediaBD != null) ? mediaBD.doubleValue() : null;

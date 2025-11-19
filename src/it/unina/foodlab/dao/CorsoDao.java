@@ -18,36 +18,23 @@ import java.util.List;
 
 public class CorsoDao {
 
-    private final String schema;
     private final String ownerCfChef;
     private final boolean restrictFindAllToOwner;
 
     public CorsoDao(String ownerCfChef) {
-        this(ownerCfChef, "public", false);
-    }
-
-    public CorsoDao(String ownerCfChef, String schema, boolean restrictFindAllToOwner) {
         if (ownerCfChef == null || ownerCfChef.trim().isEmpty()) {
             throw new IllegalArgumentException("CF_Chef mancante per CorsoDao");
         }
-        if (schema == null || schema.trim().isEmpty()) {
-            schema = "public";
-        }
         this.ownerCfChef = ownerCfChef.trim();
-        this.schema = schema.trim();
-        this.restrictFindAllToOwner = restrictFindAllToOwner;
-    }
-
-    private String tbl(String name) {
-        return schema + "." + name;
+        this.restrictFindAllToOwner = false;
     }
 
     private String sqlFindAll() {
         return ""
                 + "SELECT  c.id_corso, c.data_inizio, c.data_fine, c.argomento, c.frequenza, c.\"numSessioni\" AS num_sessioni, "
                 + "        ch.CF_Chef, ch.nome, ch.cognome, ch.username, ch.password "
-                + "FROM " + tbl("corso") + " c "
-                + "LEFT JOIN " + tbl("chef") + " ch ON ch.CF_Chef = c.fk_cf_chef "
+                + "FROM corso c "
+                + "LEFT JOIN chef ch ON ch.CF_Chef = c.fk_cf_chef "
                 + (restrictFindAllToOwner ? "WHERE c.fk_cf_chef = ? " : "")
                 + "ORDER BY c.data_inizio DESC";
     }
@@ -56,34 +43,34 @@ public class CorsoDao {
         return ""
                 + "SELECT  c.id_corso, c.data_inizio, c.data_fine, c.argomento, c.frequenza, c.\"numSessioni\" AS num_sessioni, "
                 + "        ch.CF_Chef, ch.nome, ch.cognome, ch.username, ch.password "
-                + "FROM " + tbl("corso") + " c "
-                + "LEFT JOIN " + tbl("chef") + " ch ON ch.CF_Chef = c.fk_cf_chef "
+                + "FROM corso c "
+                + "LEFT JOIN chef ch ON ch.CF_Chef = c.fk_cf_chef "
                 + "WHERE c.id_corso = ? "
                 + (restrictFindAllToOwner ? "AND c.fk_cf_chef = ? " : "");
     }
 
     private String sqlInsertCorso() {
         return ""
-                + "INSERT INTO " + tbl("corso")
+                + "INSERT INTO corso "
                 + " (data_inizio, data_fine, argomento, frequenza, \"numSessioni\", fk_cf_chef) "
                 + "VALUES (?, ?, ?, ?, ?, ?) "
                 + "RETURNING id_corso";
     }
 
     private String sqlDeleteCorso() {
-        return "DELETE FROM " + tbl("corso") + " WHERE id_corso = ? AND fk_cf_chef = ?";
+        return "DELETE FROM corso WHERE id_corso = ? AND fk_cf_chef = ?";
     }
 
     private String sqlInsertSesOnline() {
         return ""
-                + "INSERT INTO " + tbl("sessione_online")
+                + "INSERT INTO sessione_online "
                 + " (fk_id_corso, data, ora_inizio, ora_fine, piattaforma) "
                 + "VALUES (?, ?, ?, ?, ?)";
     }
 
     private String sqlInsertSesPresenza() {
         return ""
-                + "INSERT INTO " + tbl("sessione_presenza")
+                + "INSERT INTO sessione_presenza "
                 + " (fk_id_corso, data, ora_inizio, ora_fine, via, num, cap, aula, posti_max) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     }
@@ -92,11 +79,12 @@ public class CorsoDao {
         return ""
                 + "SELECT a FROM ( "
                 + "  SELECT DISTINCT TRIM(argomento) AS a "
-                + "  FROM " + tbl("corso") + " "
+                + "  FROM corso "
                 + "  WHERE argomento IS NOT NULL AND TRIM(argomento) <> '' "
                 + ") t "
                 + "ORDER BY LOWER(a), a";
     }
+
 
     public List<Corso> findAll() throws Exception {
         List<Corso> out = new ArrayList<>();
@@ -188,18 +176,13 @@ public class CorsoDao {
                 long id = rs.getLong(1);
                 c.setIdCorso(id);
 
-                if (c.getChef() == null) {
-                    Chef chef = new Chef();
-                    chef.setCF_Chef(ownerCfChef);
-                    c.setChef(chef);
-                } else if (c.getChef().getCF_Chef() == null || c.getChef().getCF_Chef().trim().isEmpty()) {
-                    c.getChef().setCF_Chef(ownerCfChef);
-                }
+                c.getChef().setCF_Chef(ownerCfChef);
 
                 return id;
             }
         }
     }
+
 
     private void insertSession(Connection conn, long corsoId, Sessione s) throws SQLException {
         if (s instanceof SessioneOnline) {

@@ -114,11 +114,6 @@ public class CorsiPanelController {
 		}
 	}
 
-	public void setDaos(CorsoDao corsoDao, SessioneDao sessioneDao, RicettaDao ricettaDao) {
-		this.ricettaDao = ricettaDao;
-		setDaos(corsoDao, sessioneDao);
-	}
-
 	public void setDaos(CorsoDao corsoDao, SessioneDao sessioneDao) {
 		this.corsoDao = corsoDao;
 		this.sessioneDao = sessioneDao;
@@ -204,34 +199,28 @@ public class CorsiPanelController {
 		String cf = corsoDao.getOwnerCfChef();
 
 		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/Report.fxml"));
-			loader.setControllerFactory(type -> {
-				if (type == ReportController.class) {
-					return new ReportController(cf);
-				}
-				try {
-					return type.getDeclaredConstructor().newInstance();
-				} catch (Exception e) {
-					throw new RuntimeException("Impossibile creare controller: " + type, e);
-				}
-			});
+		    FXMLLoader loader = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/Report.fxml"));
+		    ReportController ctrl = new ReportController(cf);
+		    loader.setController(ctrl);
 
-			Parent reportRoot = loader.load();
-			ReportController reportCtrl = loader.getController();
-			reportCtrl.setPreviousRoot(table.getScene().getRoot());
+		    Parent reportRoot = loader.load();
 
-			Stage stage = (Stage) table.getScene().getWindow();
-			Scene scene = stage.getScene();
-			if (scene == null) {
-				scene = new Scene(reportRoot, 1000, 600);
-				stage.setScene(scene);
-			} else {
-				scene.setRoot(reportRoot);
-			}
-			stage.setTitle("Report mensile - Chef " + cf);
+		    Stage stage = (Stage) table.getScene().getWindow();
+		    Scene scene = stage.getScene();
+
+		    if (scene == null) {
+		        scene = new Scene(reportRoot, 1000, 600);
+		        stage.setScene(scene);
+		    } else {
+		        ctrl.setPreviousRoot(scene.getRoot());
+		        scene.setRoot(reportRoot);
+		    }
+
+		    stage.setTitle("Report mensile - Chef " + cf);
+
 		} catch (Exception ex) {
-			showError("Errore apertura report: " + ex.getMessage());
-			ex.printStackTrace();
+		    showError("Errore apertura report: " + ex.getMessage());
+		    ex.printStackTrace();
 		}
 	}
 
@@ -408,10 +397,12 @@ public class CorsiPanelController {
 		}
 	}
 
-
-	@FXML
+@FXML
 private void onAssociateRecipes() {
     Corso sel = table.getSelectionModel().getSelectedItem();
+    if (sel == null) {
+        return;
+    }
 
     try {
         List<Sessione> tutte = sessioneDao.findByCorso(sel.getIdCorso());
@@ -456,39 +447,28 @@ private void onAssociateRecipes() {
             associate = Collections.emptyList();
         }
 
-        List<Ricetta> tutteFinal = tutteLeRicette;
-        List<Ricetta> associateFinal = associate;
+        FXMLLoader fx = new FXMLLoader(
+                getClass().getResource("/it/unina/foodlab/ui/AssociaRicette.fxml")
+        );
 
-        FXMLLoader fx = new FXMLLoader(getClass().getResource("/it/unina/foodlab/ui/AssociaRicette.fxml"));
-        DialogPane pane = fx.load();
-        pane.getStyleClass().add("dark-dialog");
+        AssociaRicetteController dlg = new AssociaRicetteController(
+                sessioneDao,
+                target.getId(),
+                tutteLeRicette,
+                associate
+        );
+        fx.setController(dlg);
 
-        fx.setControllerFactory(t -> {
-            if (t == AssociaRicetteController.class) {
-                return new AssociaRicetteController(
-                        sessioneDao,
-                        target.getId(),
-                        tutteFinal,
-                        associateFinal
-                );
-            }
-            try {
-                return t.getDeclaredConstructor().newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException("Errore creazione controller: " + t, e);
-            }
-        });
+        fx.load();
 
-        AssociaRicetteController dlg = fx.getController();
         Optional<List<Long>> result = dlg.showAndWait();
         dlg.salvaSeConfermato(result.orElse(null));
+
     } catch (Exception e) {
         showError("Errore associazione ricette: " + e.getMessage());
         e.printStackTrace();
     }
 }
-
-
 
 	private Optional<List<Sessione>> openSessioniWizard(Corso corso, int initialRows) {
 		try {
@@ -534,7 +514,6 @@ private void onAssociateRecipes() {
 			return Optional.empty();
 		}
 	}
-
 
 	private Optional<SessionePresenza> choosePresenza(List<SessionePresenza> presenze) {
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");

@@ -102,9 +102,11 @@ public class CorsoDao {
         List<Corso> out = new ArrayList<>();
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlFindAll())) {
+
             if (restrictFindAllToOwner) {
                 ps.setString(1, ownerCfChef);
             }
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     out.add(mapRow(rs));
@@ -117,10 +119,12 @@ public class CorsoDao {
     public Corso findById(long id) throws Exception {
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlFindById())) {
+
             ps.setLong(1, id);
             if (restrictFindAllToOwner) {
                 ps.setString(2, ownerCfChef);
             }
+
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapRow(rs);
@@ -133,8 +137,10 @@ public class CorsoDao {
     public void delete(long id) throws Exception {
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlDeleteCorso())) {
+
             ps.setLong(1, id);
             ps.setString(2, ownerCfChef);
+
             int n = ps.executeUpdate();
             if (n != 1) {
                 throw new SQLException("Delete negato o nessuna riga (id=" + id + ")");
@@ -149,12 +155,10 @@ public class CorsoDao {
         if (sessions == null || sessions.isEmpty()) {
             throw new IllegalArgumentException("Nessuna sessione");
         }
+
         try (Connection conn = Db.get()) {
-            boolean oldAuto = conn.getAutoCommit();
-            int oldIso = conn.getTransactionIsolation();
+            conn.setAutoCommit(false);
             try {
-                conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-                conn.setAutoCommit(false);
                 long idCorso = insertCorso(conn, c);
                 for (Sessione s : sessions) {
                     insertSession(conn, idCorso, s);
@@ -164,15 +168,12 @@ public class CorsoDao {
             } catch (Exception ex) {
                 try {
                     conn.rollback();
-                } catch (Exception ignore) {
-                }
+                } catch (Exception ignore) {}
                 throw ex;
             } finally {
                 try {
-                    conn.setTransactionIsolation(oldIso);
-                } catch (Exception ignore) {
-                }
-                conn.setAutoCommit(oldAuto);
+                    conn.setAutoCommit(true);
+                } catch (Exception ignore) {}
             }
         }
     }
@@ -181,17 +182,20 @@ public class CorsoDao {
         try (PreparedStatement ps = conn.prepareStatement(sqlInsertCorso())) {
             bindWithoutOwner(ps, c);
             ps.setString(6, ownerCfChef);
+
             try (ResultSet rs = ps.executeQuery()) {
                 rs.next();
                 long id = rs.getLong(1);
                 c.setIdCorso(id);
+
                 if (c.getChef() == null) {
-                    Chef s = new Chef();
-                    s.setCF_Chef(ownerCfChef);
-                    c.setChef(s);
+                    Chef chef = new Chef();
+                    chef.setCF_Chef(ownerCfChef);
+                    c.setChef(chef);
                 } else if (c.getChef().getCF_Chef() == null || c.getChef().getCF_Chef().trim().isEmpty()) {
                     c.getChef().setCF_Chef(ownerCfChef);
                 }
+
                 return id;
             }
         }
@@ -232,6 +236,7 @@ public class CorsoDao {
         try (Connection conn = Db.get();
              PreparedStatement ps = conn.prepareStatement(sqlDistinctArg());
              ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
                 out.add(rs.getString(1));
             }
@@ -242,17 +247,21 @@ public class CorsoDao {
     private Corso mapRow(ResultSet rs) throws SQLException {
         Corso c = new Corso();
         c.setIdCorso(rs.getLong("id_corso"));
+
         Date di = rs.getDate("data_inizio");
         Date df = rs.getDate("data_fine");
         c.setDataInizio(di != null ? di.toLocalDate() : null);
         c.setDataFine(df != null ? df.toLocalDate() : null);
+
         c.setArgomento(rs.getString("argomento"));
         c.setFrequenza(rs.getString("frequenza"));
+
         int ns = rs.getInt("num_sessioni");
-        if (rs.wasNull()) {
+        if (rs.wasNull() || ns < 1) {
             ns = 1;
         }
         c.setNumSessioni(ns);
+
         Chef chef = new Chef();
         chef.setCF_Chef(rs.getString("CF_Chef"));
         chef.setNome(rs.getString("nome"));
@@ -260,12 +269,14 @@ public class CorsoDao {
         chef.setUsername(rs.getString("username"));
         chef.setPassword(rs.getString("password"));
         c.setChef(chef);
+
         return c;
     }
 
     private void bindWithoutOwner(PreparedStatement ps, Corso c) throws SQLException {
         LocalDate di = c.getDataInizio();
         LocalDate df = c.getDataFine();
+
         if (di == null || df == null) {
             throw new SQLException("data_inizio e data_fine sono obbligatorie");
         }
@@ -282,6 +293,7 @@ public class CorsoDao {
         if (ns < 1) {
             throw new SQLException("\"numSessioni\" deve essere >= 1");
         }
+
         ps.setDate(1, Date.valueOf(di));
         ps.setDate(2, Date.valueOf(df));
         ps.setString(3, c.getArgomento());
@@ -292,5 +304,4 @@ public class CorsoDao {
     public String getOwnerCfChef() {
         return ownerCfChef;
     }
-
 }

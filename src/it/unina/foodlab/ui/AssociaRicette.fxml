@@ -6,7 +6,6 @@
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="it.unina.foodlab.controller.AssociaRicetteController"
       fx:id="root"
       spacing="14"
       fillWidth="true"
@@ -14,6 +13,8 @@
       style="-fx-background-color: transparent;
              -fx-font-family: 'Segoe UI', Inter, system-ui;
              -fx-font-size: 13px;">
+             
+
 
     <!-- Pulsanti selezione -->
     <HBox spacing="10" alignment="CENTER_RIGHT"

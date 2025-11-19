@@ -30,7 +30,7 @@ public class AssociaRicetteController extends Dialog<List<Long>> {
 	private final int idSessionePresenza;
 	private final List<Ricetta> tutteLeRicette;
 	private final List<Ricetta> ricetteGiaAssociate;
-
+	
 	public AssociaRicetteController(SessioneDao sessioneDao,
 			int idSessionePresenza,
 			List<Ricetta> tutteLeRicette,

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+
+
+  <Match>
+    <Class name="it.uninafoodlab.presentation.course.CourseWorkspaceController" />
+    <Method name="showRecipes" />
+    <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD" />
+  </Match>
+
+
+  <Match>
+    <Class name="it.uninafoodlab.application.bootstrap.ApplicationRuntime" />
+    <Method name="~(assignRecipeToSession|dataSource|manageCourseSchedule|managePracticalAttendance)" />
+    <Bug pattern="EI_EXPOSE_REP" />
+  </Match>
+
+  <Match>
+    <Class name="it.uninafoodlab.domain.course.CourseSchedule" />
+    <Method name="sessions" />
+    <Bug pattern="EI_EXPOSE_REP" />
+  </Match>
+
+  <Match>
+    <Class name="it.uninafoodlab.infrastructure.catalog.JdbcRecipeCatalogManagementRepository" />
+    <Method name="&lt;init&gt;" />
+    <Bug pattern="EI_EXPOSE_REP2" />
+  </Match>
+
+  <Match>
+    <Class name="it.uninafoodlab.infrastructure.planning.JdbcSessionLifecycleRepository" />
+    <Method name="&lt;init&gt;" />
+    <Bug pattern="EI_EXPOSE_REP2" />
+  </Match>
+
+  <Match>
+    <Class name="it.uninafoodlab.presentation.course.TimeSelector" />
+    <Method name="valueProperty" />
+    <Bug pattern="EI_EXPOSE_REP" />
+  </Match>
+
+
+
+  <Match>
+    <Class name="it.uninafoodlab.infrastructure.demo.InitializePresentationDemo" />
+    <Method name="requireEmptyDatabase" />
+    <Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING" />
+  </Match>
+</FindBugsFilter>

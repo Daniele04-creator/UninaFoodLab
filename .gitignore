@@ -1,0 +1,12 @@
+/target/
+/.idea/
+/.vscode/
+/.classpath
+/.project
+/.settings/
+*.iml
+*.log
+.env
+/.tools/
+/runtime/
+hs_err_pid*

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="UninaFoodLab"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.github.io/schema/ruleset_2_0_0.xsd">
+  <description>Correctness and unused code checks across production Java sources.</description>
+  <rule ref="category/java/errorprone.xml/AssignmentToNonFinalStatic" />
+  <rule ref="category/java/errorprone.xml/BrokenNullCheck" />
+  <rule ref="category/java/errorprone.xml/CloseResource" />
+  <rule ref="category/java/errorprone.xml/EmptyCatchBlock" />
+  <rule ref="category/java/errorprone.xml/EqualsNull" />
+  <rule ref="category/java/errorprone.xml/ImplicitSwitchFallThrough" />
+  <rule ref="category/java/errorprone.xml/ReturnFromFinallyBlock" />
+  <rule ref="category/java/errorprone.xml/UnusedNullCheckInEquals" />
+  <rule ref="category/java/bestpractices.xml/UnusedLocalVariable" />
+  <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod">
+    <properties>
+      <property name="ignoredAnnotations" value="java.lang.Deprecated,javafx.fxml.FXML" />
+    </properties>
+  </rule>
+  <rule ref="category/java/bestpractices.xml/UnusedPrivateField" />
+  <rule ref="category/java/codestyle.xml/UnnecessaryImport"><priority>3</priority></rule>
+  <rule ref="category/java/design.xml/CollapsibleIfStatements" />
+  <rule ref="category/java/design.xml/SimplifyBooleanReturns" />
+</ruleset>

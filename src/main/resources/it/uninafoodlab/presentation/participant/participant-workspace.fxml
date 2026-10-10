@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" minWidth="0" styleClass="workspace-page,participant-shell" accessibleText="Spazio Partecipante UninaFoodLab" stylesheets="@participant.css">
+            <HBox alignment="CENTER_LEFT" spacing="10" minWidth="0" styleClass="participant-topbar"><Label fx:id="participantLogo" /><ToggleButton fx:id="browseTab" text="Corsi disponibili" accessibleText="Apri i corsi disponibili" onAction="#showBrowse" styleClass="course-catalog-tab" />
+                <ToggleButton fx:id="mineTab" text="I miei corsi" accessibleText="Apri i miei corsi e le adesioni" onAction="#showMine" styleClass="course-catalog-tab" />
+                <ToggleButton fx:id="notificationsTab" text="Comunicazioni" accessibleText="Apri le comunicazioni" onAction="#showNotifications" styleClass="course-catalog-tab" />
+            <Region HBox.hgrow="ALWAYS" /><ProgressIndicator fx:id="progressIndicator" prefWidth="24" prefHeight="24" managed="false" visible="false" styleClass="course-progress" />
+                <MenuButton fx:id="profileMenu" text="Profilo" styleClass="profile-button" minWidth="0" maxWidth="190" /></HBox>
+            <VBox styleClass="participant-fixed-feedback">
+                <Label fx:id="feedbackLabel" wrapText="true" managed="false" visible="false" accessibleText="Esito operazione Partecipante" styleClass="course-feedback" />
+                <Button fx:id="retryButton" text="Riprova" accessibleText="Riprova il caricamento" managed="false" visible="false" onAction="#retry" styleClass="button-secondary" />
+            </VBox>
+            <ScrollPane fx:id="rootScroll" fitToWidth="true" hbarPolicy="NEVER" minWidth="0" VBox.vgrow="ALWAYS" styleClass="workspace-scroll">
+                <content><VBox fx:id="workspace" minWidth="0" spacing="16" styleClass="participant-workspace,participant-content">
+            <HBox alignment="CENTER_LEFT" spacing="18" styleClass="participant-page-heading" managed="true" visible="true">
+                <VBox spacing="6" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS">
+                    <Label fx:id="workspaceTitle" text="Corsi disponibili" wrapText="true" minWidth="0" maxWidth="Infinity" minHeight="-Infinity" styleClass="page-title,hero-title" />
+                </VBox>
+                </HBox>
+            <VBox fx:id="browsePanel" spacing="16" minWidth="0">
+                <VBox spacing="14" styleClass="surface-card,participant-filter-sheet">
+                    <VBox spacing="6" visible="false" managed="false">
+                        <Label fx:id="browseSummary" text="Corsi disponibili" wrapText="true" styleClass="surface-description" />
+                    </VBox>
+                    <FlowPane hgap="12" vgap="10" alignment="CENTER_LEFT">
+                    <VBox spacing="7"><Label text="Cerca" styleClass="form-label"/><TextField fx:id="courseSearch" promptText="Corso, categoria o Chef" accessibleText="Cerca nei corsi pubblicati" prefWidth="280" /></VBox>
+                    <VBox spacing="7"><Label text="Categoria" styleClass="form-label"/><ComboBox fx:id="categoryFilter" promptText="Tutte le categorie" accessibleText="Filtra per categoria" prefWidth="220" /></VBox>
+                    <Button fx:id="clearFiltersButton" text="Azzera filtri" accessibleText="Azzera la ricerca e la categoria" onAction="#clearFilters" styleClass="button-quiet" />
+                    </FlowPane>
+                </VBox>
+                <ListView fx:id="courseList" VBox.vgrow="ALWAYS" accessibleText="Corsi disponibili e storico personale" visible="false" managed="false" />
+                    <Label fx:id="courseCount" text="0" styleClass="form-helper" visible="false" managed="false" />
+                        <FlowPane fx:id="courseGrid" hgap="20" vgap="20" minWidth="0" styleClass="participant-card-grid" /><VBox fx:id="courseDetailPanel" spacing="16" minWidth="0" HBox.hgrow="ALWAYS" styleClass="surface-card,participant-program" visible="false" managed="false">
+                        <Button text="← Tutti i corsi" onAction="#showBrowse" styleClass="button-quiet" /><VBox fx:id="courseEmptyState" spacing="8" alignment="CENTER_LEFT">
+                            <Label text="Scegli un corso" styleClass="course-selected-title" />
+                            <Label text="Qui vedrai programma, modalità e ricette del corso selezionato." wrapText="true" styleClass="surface-description" />
+                        </VBox>
+                        <VBox fx:id="courseDetail" spacing="16" managed="false" visible="false">
+                            <HBox alignment="TOP_LEFT" spacing="14">
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="courseCategory" text="Categoria" styleClass="lab-card-kicker" />
+                                    <Label fx:id="courseTitle" visible="false" managed="false" text="Corso" wrapText="true" styleClass="course-selected-title" />
+                                    <Label fx:id="courseMeta" text="" wrapText="true" styleClass="course-selected-meta" />
+                                </VBox>
+                                <VBox spacing="8" alignment="TOP_RIGHT">
+                                    <Button fx:id="enrollButton" text="Iscriviti al corso" accessibleText="Iscriviti al corso selezionato" onAction="#enroll" styleClass="button-primary" />
+                                    <Button fx:id="withdrawButton" text="Ritira iscrizione" accessibleText="Ritirati dal corso selezionato" onAction="#withdraw" styleClass="button-danger" />
+                                </VBox>
+                            </HBox>
+                            <Label fx:id="courseDescription" text="" wrapText="true" styleClass="surface-description" />
+                            <Label fx:id="attendanceWarning" text="" wrapText="true" managed="false" visible="false" accessibleText="Avviso di sovrapposizione tra sessioni" styleClass="course-feedback-error" />
+                            <Label text="Programma e partecipazione" styleClass="section-title" />
+                            <VBox fx:id="sessionTimeline" spacing="0" accessibleText="Sessioni del corso, menu e partecipazione" />
+                            <ListView fx:id="sessionList" accessibleText="Programma del corso" visible="false" managed="false" />
+                            <ListView fx:id="menuList" accessibleText="Ricette del corso" visible="false" managed="false" />
+                        </VBox>
+                    </VBox>
+                </VBox>
+
+            <VBox fx:id="minePanel" spacing="16" minWidth="0" managed="false" visible="false">
+                <ListView fx:id="enrollmentList" VBox.vgrow="ALWAYS" accessibleText="Elenco delle mie iscrizioni" visible="false" managed="false" />
+                    <FlowPane fx:id="enrollmentGrid" hgap="20" vgap="20" minWidth="0" styleClass="participant-card-grid" /><VBox fx:id="attendancePanel" spacing="14" minWidth="0" HBox.hgrow="ALWAYS" styleClass="surface-card,participant-program" visible="false" managed="false">
+                        <Button text="← Tutti i corsi" onAction="#showMine" styleClass="button-quiet" /><VBox fx:id="attendanceEmptyState" spacing="8">
+                            <Label text="Le tue adesioni" styleClass="course-selected-title" />
+                            <Label text="Scegli un corso per vedere le pratiche e rispondere entro la scadenza." wrapText="true" styleClass="surface-description" />
+                        </VBox>
+                        <VBox fx:id="attendanceDetail" spacing="12" managed="false" visible="false">
+                            <Label fx:id="attendanceCourseTitle" text="Corso" wrapText="true" styleClass="course-selected-title" />
+                            <Label fx:id="attendanceCourseMeta" text="" wrapText="true" styleClass="surface-description" />
+                            <VBox fx:id="attendanceTimeline" spacing="0" accessibleText="Sessioni pratiche e partecipazione" />
+                            <ListView fx:id="attendanceList" accessibleText="Elenco delle sessioni pratiche" visible="false" managed="false" />
+                        </VBox>
+                    </VBox>
+                </VBox>
+
+            <VBox fx:id="notificationsPanel" spacing="16" minWidth="0" managed="false" visible="false">
+                <ListView fx:id="notificationList" VBox.vgrow="ALWAYS" accessibleText="Elenco delle comunicazioni ricevute" visible="false" managed="false" />
+                    <Label fx:id="unreadCount" text="" styleClass="form-helper" />
+                        <VBox fx:id="notificationCards" spacing="18" /><VBox fx:id="notificationDetailPanel" spacing="14" minWidth="0" HBox.hgrow="ALWAYS" styleClass="surface-card" visible="false" managed="false">
+                        <VBox fx:id="notificationEmptyState" spacing="8">
+                            <Label text="Seleziona una comunicazione" styleClass="course-selected-title" />
+                            <Label text="Il testo completo e il corso collegato appariranno qui." wrapText="true" styleClass="surface-description" />
+                        </VBox>
+                        <VBox fx:id="notificationDetail" spacing="12" managed="false" visible="false">
+                            <Label fx:id="notificationTitle" text="" wrapText="true" styleClass="course-selected-title" />
+                            <Label fx:id="notificationMeta" text="" wrapText="true" styleClass="surface-description" />
+                            <Separator />
+                            <Label fx:id="notificationMessage" text="" wrapText="true" maxWidth="Infinity" styleClass="notification-detail-message" />
+                            <FlowPane hgap="10" vgap="10" styleClass="participant-detail-actions">
+                            <Button fx:id="openNotificationCourseButton" text="Vai al corso" accessibleText="Apri il corso collegato" managed="false" visible="false" styleClass="button-secondary" />
+                            <Button fx:id="markReadButton" text="Segna come letta" accessibleText="Segna la comunicazione come letta" onAction="#markRead" styleClass="button-primary" />
+                            </FlowPane>
+                        </VBox>
+                    </VBox>
+                </VBox>
+        <Button fx:id="accountButton" text="Cambia password" accessibleText="Cambia la password del tuo account" onAction="#openAccount" styleClass="button-secondary" visible="false" managed="false" />
+                <Button fx:id="logoutButton" text="Esci" accessibleText="Termina la sessione" onAction="#logout" styleClass="button-quiet" visible="false" managed="false" />
+            </VBox>
+                </content>
+            </ScrollPane>
+</VBox>

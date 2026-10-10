@@ -1,0 +1,63 @@
+.participant-workspace { -fx-padding:0; -fx-spacing:24; -fx-background-color:-studio-background; }
+.participant-topbar { -fx-padding:0 26; -fx-min-height:76; -fx-background-color:white; -fx-border-color:transparent transparent -studio-line transparent; }
+ .participant-topbar .profile-button { -fx-padding:8; -fx-background-color:transparent; -fx-border-color:transparent; -fx-text-fill:-studio-ink; }
+.participant-topbar .profile-button:hover { -fx-background-color:#edf0e8; }
+.participant-topbar .profile-button:focus-visible { -fx-border-color:-studio-primary; -fx-border-width:2; }
+.participant-topbar .profile-button > .label { -fx-text-fill:-studio-ink; -fx-font-size:14; }
+.participant-topbar .profile-button .arrow { -fx-background-color:-studio-ink; }
+.participant-topbar .toggle-button { -fx-background-color:transparent; -fx-border-width:0 0 3 0; -fx-border-color:transparent; -fx-background-radius:0; -fx-border-radius:0; -fx-padding:26 9; -fx-text-fill:-studio-muted; }
+.participant-topbar .toggle-button:selected { -fx-background-color:#faf7f2; -fx-border-color:transparent transparent -studio-primary transparent; -fx-text-fill:-studio-primary; }
+.participant-topbar .toggle-button:focus-visible {
+    -fx-border-color:-studio-ink; -fx-border-width:2;
+    -fx-border-insets:0; -fx-border-radius:3;
+}
+#rootScroll > .viewport { -fx-background-color:-studio-background; }
+.participant-page-heading { -fx-padding:8 26 2 26; }
+.participant-page-heading .page-title { -fx-font-size:34; -fx-font-weight:bold; -fx-text-fill:-studio-ink; }
+.participant-workspace #browsePanel, .participant-workspace #minePanel, .participant-workspace #notificationsPanel { -fx-padding:0 26 30 26; }
+.participant-filter-sheet { -fx-padding:0; -fx-background-color:transparent; -fx-border-color:transparent; -fx-border-width:0; -fx-background-radius:0; -fx-border-radius:0; }
+.participant-course-card { -fx-background-color:white; -fx-border-color:-studio-line; -fx-background-radius:5; -fx-border-radius:5; -fx-min-height:260; -fx-padding:22; }
+.participant-card-title { -fx-font-size:21; -fx-font-weight:bold; -fx-text-fill:-studio-ink; }
+.participant-card-meta { -fx-font-size:13; -fx-text-fill:-studio-muted; }
+.participant-card-copy { -fx-font-size:14; -fx-text-fill:#42473f; }
+.participant-category { -fx-padding:0; -fx-background-color:transparent; -fx-font-size:12; -fx-text-fill:-studio-muted; }
+.participant-enrollment-state { -fx-padding:4 7; -fx-background-color:#DCE6ED; -fx-background-radius:3; -fx-font-size:12; -fx-text-fill:#35536A; }
+.participant-enrollment-active { -fx-background-color:#247A45; -fx-text-fill:white; }
+.participant-enrollment-planned { -fx-background-color:#176BA0; -fx-text-fill:white; }
+.participant-enrollment-concluded { -fx-background-color:#6650A4; -fx-text-fill:white; }
+.participant-enrollment-withdrawn { -fx-background-color:#f9eeea; -fx-text-fill:#a33421; }
+.participant-appointment { -fx-padding:0; -fx-background-color:transparent; -fx-border-width:0; -fx-border-color:transparent; }
+.participant-appointment-label { -fx-font-size:12; -fx-text-fill:-studio-muted; }
+.participant-appointment-date { -fx-font-size:13; -fx-font-weight:bold; -fx-text-fill:-studio-ink; }
+.participant-mode { -fx-font-size:12; -fx-text-fill:#22566D; }
+.participant-session-state { -fx-font-size:12; -fx-padding:4 7; -fx-background-color:#edf0e8; -fx-background-radius:3; -fx-text-fill:#424c3b; }
+.participant-session-completed { -fx-background-color:#6650A4; -fx-text-fill:white; }
+.participant-session-cancelled { -fx-background-color:#f9eeea; -fx-text-fill:#a33421; }
+.participant-program { -fx-padding:26; -fx-background-color:white; -fx-border-color:-studio-line; -fx-background-radius:5; -fx-border-radius:5; }
+.participant-pagination { -fx-padding:2 0; }
+#notificationCards { -fx-spacing:0; -fx-background-color:white; -fx-border-color:-studio-line; -fx-background-radius:5; -fx-border-radius:5; }
+.participant-message-row { -fx-padding:22 24; -fx-border-color:transparent transparent #e4e7df transparent; -fx-border-width:0 0 1 0; }
+.participant-message-title { -fx-font-size:20; -fx-font-weight:bold; -fx-text-fill:-studio-ink; }
+.participant-message-copy .label { -fx-min-width:0; }
+.participant-message-state { -fx-font-size:12; -fx-text-fill:#596650; }
+.participant-workspace .list-view { -fx-background-color:transparent; -fx-border-width:0; }
+.participant-workspace .list-cell { -fx-padding:12; -fx-background-color:white; -fx-border-color:transparent transparent -studio-line transparent; }
+.participant-workspace .list-cell:selected { -fx-background-color:#F8EEE6; }
+.participant-program .list-cell:filled { -fx-border-color:-studio-line; -fx-border-radius:5; -fx-background-radius:5; -fx-background-insets:4; -fx-border-insets:4; -fx-padding:16; }
+.participant-shell { -fx-spacing:0; -fx-background-color:-studio-background; -fx-padding:0; }
+.participant-workspace { -fx-spacing:16; }
+.participant-content { -fx-padding:16 0 0 0; -fx-background-color:-studio-background; }
+.participant-fixed-feedback { -fx-padding:10 26; -fx-spacing:8; }
+.participant-session-feedback { -fx-spacing:8; }
+.participant-session-feedback .label:focus-visible { -fx-border-color:-studio-ink; -fx-border-width:2; -fx-border-radius:3; }
+.participant-page-heading { -fx-padding:2 26 0 26; }
+.participant-program { -fx-padding:18 22; }
+#attendancePanel { -fx-padding:0; -fx-background-color:transparent; -fx-border-width:0; }
+.participant-session-row { -fx-padding:16 0; -fx-border-color:transparent transparent -studio-line transparent; -fx-border-width:0 0 1 0; }
+.participant-session-last { -fx-border-width:0; }
+.participant-session-row .course-list-title:focus-visible { -fx-border-color:-studio-ink; -fx-border-width:2; -fx-border-radius:3; }
+.participant-session-menu { -fx-padding:2 0; }
+.participant-session-menu .button-quiet { -fx-padding:6 0; }
+.participant-session-response { -fx-padding:10 0; -fx-background-color:transparent; }
+.participant-response-status { -fx-font-size:14; -fx-font-weight:bold; -fx-text-fill:-studio-ink; }
+.participant-response-confirmed { -fx-text-fill:#1F5737; }

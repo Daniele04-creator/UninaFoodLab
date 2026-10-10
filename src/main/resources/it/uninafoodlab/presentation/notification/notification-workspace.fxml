@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.FlowPane?>
+<VBox xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" stylesheets="@notification-workspace.css" styleClass="notification-workspace-root" accessibleText="Centro notifiche UninaFoodLab">
+<ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" minHeight="0" VBox.vgrow="ALWAYS" styleClass="workspace-scroll">
+    <content>
+        <VBox spacing="20.0" styleClass="notification-workspace,workspace-page,studio-notifications">
+            <padding>
+                <Insets top="0" right="0" bottom="0" left="0"/>
+            </padding>
+            <Button fx:id="backButton" text="Torna alle comunicazioni" managed="false" visible="false" onAction="#toggleComposer" styleClass="notification-back"/>
+            <HBox alignment="CENTER_LEFT" minHeight="48.0" styleClass="workspace-hero,lab-page-header">
+                <Label fx:id="workspaceTitleLabel" text="Comunicazioni" visible="true" managed="true" styleClass="page-title,hero-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <ProgressIndicator fx:id="progressIndicator" prefWidth="24.0" prefHeight="24.0" managed="false" visible="false" styleClass="course-progress"/>
+                <Button fx:id="composeButton" text="Nuova comunicazione" accessibleText="Apri il modulo per una nuova comunicazione" mnemonicParsing="false" onAction="#toggleComposer" styleClass="course-button,button-primary,hero-action"/>
+            </HBox>
+            <Label fx:id="feedbackLabel" wrapText="true" managed="false" visible="false" accessibleText="Esito operazione notifiche" styleClass="course-feedback"/>
+            <Button fx:id="historyRetryButton" text="Riprova" accessibleText="Riprova a caricare le comunicazioni" onAction="#retryHistoryLoad" managed="false" visible="false" styleClass="course-secondary-button"/>
+            <VBox fx:id="composeCard" spacing="14.0" minWidth="0.0" maxWidth="940" managed="false" visible="false" styleClass="notification-composer,lab-card,studio-composer">
+                <padding>
+                    <Insets top="24.0" right="24.0" bottom="24.0" left="24.0"/>
+                </padding>
+                <VBox spacing="8.0" minWidth="0.0">
+                    <Label text="Destinatari" labelFor="$courseTargetField" styleClass="field-label"/>
+                    <ComboBox fx:id="courseTargetField" promptText="Scegli un corso o tutti i tuoi corsi" maxWidth="Infinity" minWidth="0.0" accessibleText="Corso destinatario o tutti i tuoi corsi" styleClass="course-combo"/>
+                    <Label fx:id="recipientSummaryLabel" text="Seleziona i destinatari." wrapText="true" minWidth="0.0" maxWidth="Infinity" accessibleText="Numero e ambito dei destinatari" styleClass="form-helper"/>
+                    <Button fx:id="recipientRetryButton" text="Riprova" accessibleText="Riprova a caricare i destinatari" onAction="#refreshRecipientCount" managed="false" visible="false" styleClass="course-secondary-button"/>
+                </VBox>
+                <VBox spacing="8.0">
+                    <Label text="Oggetto" labelFor="$titleField" styleClass="field-label"/>
+                    <TextField fx:id="titleField" minWidth="0.0" promptText="Es. Materiali per la sessione pratica" accessibleText="Titolo della notifica" styleClass="course-field"/>
+                    <Label fx:id="titleFeedbackLabel" labelFor="$titleField" text="Da 3 a 120 caratteri. 0/120 caratteri." wrapText="true" minWidth="0.0" maxWidth="Infinity" styleClass="form-helper"/>
+                </VBox>
+                <Label text="Messaggio" labelFor="$messageField" styleClass="field-label"/>
+                <TextArea fx:id="messageField" prefRowCount="6" minHeight="160.0" wrapText="true" promptText="Scrivi un messaggio chiaro per i partecipanti" accessibleText="Messaggio della notifica" styleClass="course-field"/>
+                <Label fx:id="messageFeedbackLabel" labelFor="$messageField" text="Da 3 a 2000 caratteri. 0/2000 caratteri." wrapText="true" minWidth="0.0" maxWidth="Infinity" styleClass="form-helper"/>
+            </VBox>
+            <HBox fx:id="historyPanel" spacing="0.0" minHeight="0.0" VBox.vgrow="ALWAYS" styleClass="notification-content-row,lab-workbench">
+                <VBox fx:id="notificationArchive" spacing="0.0" minHeight="0.0" prefHeight="0.0" styleClass="notification-archive" minWidth="340.0" prefWidth="420.0">
+                    <HBox spacing="12" styleClass="notification-filters">
+                        <TextField fx:id="historySearchField" promptText="Cerca nel titolo o nel testo" accessibleText="Cerca nel titolo e nel messaggio" styleClass="course-field" HBox.hgrow="ALWAYS"/>
+                        <ComboBox fx:id="historyCourseField" prefWidth="260" maxWidth="Infinity" accessibleText="Filtra comunicazioni per corso" styleClass="course-combo"/>
+                    </HBox>
+                    <ListView fx:id="notificationList" minHeight="0.0" VBox.vgrow="ALWAYS" accessibleText="Elenco completo delle notifiche" styleClass="notification-list"/>
+                </VBox>
+                <VBox fx:id="notificationDetail" visible="false" managed="false" spacing="16" minHeight="-Infinity" minWidth="0" maxWidth="940" HBox.hgrow="ALWAYS" styleClass="notification-detail">
+                    <HBox spacing="20" alignment="TOP_LEFT">
+                        <Label fx:id="detailTitleLabel" text="Seleziona una comunicazione" wrapText="true" minWidth="0" minHeight="-Infinity" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="notification-detail-title"/>
+                        <Label fx:id="sentBadge" text="Inviata" managed="false" visible="false" minWidth="-Infinity" styleClass="notification-sent-badge"/>
+                    </HBox>
+                    <Label fx:id="detailCourseLabel" text="Comunicazioni" wrapText="true" minWidth="0" minHeight="-Infinity" maxWidth="Infinity" styleClass="surface-description,notification-detail-course"/>
+                    <FlowPane hgap="8" vgap="4" styleClass="notification-detail-metadata">
+                        <Label fx:id="detailDateLabel" text="" styleClass="surface-description"/>
+                        <Label fx:id="detailStatusLabel" text="" styleClass="surface-description"/>
+                    </FlowPane>
+                    <Label fx:id="detailMessageLabel" text="Scegli una comunicazione dallo storico." wrapText="true" minHeight="-Infinity" maxWidth="780" styleClass="notification-detail-message"/>
+                </VBox>
+            </HBox>
+        </VBox>
+    </content>
+</ScrollPane>
+    <VBox fx:id="composerActionBar" visible="false" managed="false" styleClass="notification-action-bar">
+        <FlowPane fx:id="composerActions" alignment="CENTER_RIGHT" hgap="18.0" vgap="12.0" maxWidth="940" styleClass="notification-composer-footer">
+            <Label fx:id="recipientFooterLabel" text="" minWidth="100.0" styleClass="form-helper"/>
+            <Button fx:id="sendButton" text="Invia" accessibleText="Invia la comunicazione agli iscritti nell’app" mnemonicParsing="false" onAction="#sendNotification" styleClass="course-button,button-primary"/>
+        </FlowPane>
+    </VBox>
+</VBox>

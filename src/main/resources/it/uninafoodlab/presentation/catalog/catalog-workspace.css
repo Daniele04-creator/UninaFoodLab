@@ -1,0 +1,123 @@
+
+.catalog-workspace { -fx-background-color: -studio-background; -fx-padding: 26; -fx-spacing: 20; }
+.catalog-workspace .studio-catalog-header { -fx-padding: 0 0 8 0; -fx-background-color: transparent; -fx-border-width: 0; }
+.catalog-workspace .mock-kicker { -fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #61665f; }
+.catalog-workspace .page-title { -fx-font-size: 32; -fx-font-weight: bold; }
+.catalog-workspace .page-description { -fx-font-size: 15; -fx-text-fill: #61665f; }
+.catalog-workspace .studio-recipe-browser, .catalog-workspace .studio-recipe-sheet, .catalog-workspace .catalog-ingredient-panel, .catalog-workspace .studio-recipe-empty { -fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #dde1d8; -fx-border-radius: 12; -fx-border-width: 1; -fx-padding: 22; }
+.catalog-workspace .catalog-browser-heading { -fx-padding: 0 0 8 0; }
+.catalog-workspace .catalog-recipe-title { -fx-font-size: 24; -fx-font-weight: bold; }
+.catalog-workspace .section-title { -fx-font-size: 20; -fx-font-weight: bold; }
+.catalog-workspace .catalog-recipe-meta { -fx-background-color: #edf1e7; -fx-background-radius: 6; -fx-padding: 4 8; -fx-text-fill: #44523b; -fx-font-size: 13; }
+.catalog-workspace .list-view { -fx-border-width: 0; -fx-background-color: white; -fx-padding: 0; }
+.catalog-workspace .list-view .list-cell { -fx-background-color: white; -fx-padding: 18 10; -fx-border-color: transparent transparent #e5e7e0 transparent; -fx-border-width: 0 0 1 0; }
+.catalog-workspace .list-view .list-cell:filled:selected { -fx-background-color: #F5DED1; }
+.catalog-workspace .list-view .list-cell:empty { -fx-border-width: 0; }
+.catalog-workspace .list-view .list-cell:filled:hover { -fx-background-color: #FFF4EE; }
+.catalog-workspace .list-view .list-cell:filled:selected:hover { -fx-background-color: #F5DED1; }
+.catalog-workspace .list-view:focused .list-cell:filled:focused { -fx-border-color: #9F432B; -fx-border-width: 1; }
+.catalog-workspace .list-view .list-cell .label { -fx-text-fill: #173946; }
+.catalog-workspace .catalog-preparation { -fx-font-size: 15; -fx-line-spacing: 6; }
+.catalog-workspace .catalog-dose-sheet, .catalog-workspace .studio-recipe-section { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; }
+.catalog-workspace .catalog-sheet-heading { -fx-border-width: 0; -fx-padding: 0 0 8 0; }
+.catalog-workspace .catalog-dose-row { -fx-padding: 14 4; -fx-border-color: transparent transparent #e5e7e0 transparent; -fx-border-width: 0 0 1 0; }
+.catalog-workspace .catalog-ingredient-drawer { -fx-padding: 20; -fx-background-color: #f7f8f5; -fx-background-radius: 10; }
+.catalog-workspace .catalog-segmented-tabs { -fx-background-color: transparent; -fx-padding: 0; }
+.catalog-workspace .cookbook-tab-line { -fx-border-color: transparent transparent #DDE4DE transparent; -fx-border-width: 0 0 1 0; }
+.catalog-workspace .catalog-tab { -fx-background-color: transparent; -fx-background-radius: 0; -fx-border-radius: 0; -fx-border-color: transparent; -fx-border-width: 0 0 2 0; -fx-padding: 12 2; -fx-text-fill: #63706A; }
+.catalog-workspace .catalog-tab:hover { -fx-background-color: transparent; -fx-text-fill: #9F432B; }
+.catalog-workspace .catalog-tab:selected { -fx-background-color: transparent; -fx-border-color: transparent transparent #9F432B transparent; -fx-text-fill: #9F432B; -fx-font-weight: bold; }
+.catalog-workspace .catalog-tab:focus-visible, .catalog-workspace .catalog-tab:selected:focus-visible {
+    -fx-border-color: #173946; -fx-border-width: 2;
+    -fx-border-insets: 0; -fx-border-radius: 3;
+}
+
+.catalog-workspace .catalog-dose-table-heading { -fx-background-color: #FFFFFF; -fx-padding: 12 4; }
+.catalog-workspace .catalog-dose-table-heading .label { -fx-font-size: 13; -fx-text-fill: #61665f; }
+
+.catalog-workspace .combo-box > .list-cell { -fx-padding: 8 10; -fx-border-width: 0; -fx-background-color: transparent; -fx-text-fill: #173946; }
+
+.catalog-workspace .catalog-ingredient-table-heading { -fx-background-color: #FFFFFF; -fx-padding: 12 10; }
+.catalog-workspace .catalog-ingredient-action { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #173946; }
+.catalog-workspace .catalog-ingredient-action:focus-visible { -fx-border-color: #9F432B; -fx-border-width: 2; -fx-border-insets: 0; }
+
+
+.catalog-workspace.catalog-editing { -fx-background-color: -studio-background; -fx-padding: 14 24 18 24; -fx-spacing: 8; }
+.catalog-workspace.catalog-editing .studio-recipe-sheet {
+    -fx-background-color: white; -fx-border-color: #DDE1D8;
+    -fx-background-radius: 12; -fx-border-radius: 12; -fx-padding: 12;
+}
+.catalog-workspace.catalog-editing .catalog-sheet-heading { -fx-padding: 0 0 4 0; }
+.catalog-workspace.catalog-editing .catalog-recipe-title { -fx-font-size: 25; }
+.catalog-workspace.catalog-editing .catalog-sheet-footer { -fx-padding: 12 4 0 4; }
+
+.catalog-workspace { -fx-padding: 18 26; -fx-spacing: 8; }
+.catalog-workspace .studio-catalog-header { -fx-padding: 0; }
+.catalog-workspace .page-title { -fx-font-size: 28; }
+.catalog-workspace .catalog-tab { -fx-padding: 8 2; }
+.catalog-workspace .result-pager { -fx-padding: 8 0; }
+.catalog-workspace .cookbook-search { -fx-spacing: 5; }
+.catalog-workspace .cookbook-category-scroll { -fx-background-color: transparent; -fx-padding: 0; }
+.catalog-workspace .studio-recipe-browser { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; }
+.catalog-workspace .catalog-browser-heading .section-title { -fx-font-size: 30; }
+.catalog-workspace .cookbook-categories { -fx-padding: 12 0 0 0; }
+.catalog-workspace .cookbook-category-title { -fx-font-size: 14; -fx-font-weight: bold; -fx-padding: 0 0 10 10; }
+.catalog-workspace .cookbook-category-action { -fx-background-color: transparent; -fx-border-color: transparent; -fx-background-radius: 3; -fx-border-radius: 3; -fx-padding: 10; -fx-min-height: 44; -fx-alignment: CENTER_LEFT; }
+.catalog-workspace .cookbook-category-action:hover { -fx-background-color: #EDF2EE; }
+.catalog-workspace .cookbook-category-action:selected { -fx-background-color: #F5DED1; -fx-text-fill: #9F432B; }
+.catalog-workspace .cookbook-category-action:selected .label { -fx-text-fill: #9F432B; }
+.catalog-workspace .cookbook-category-action:disabled .label { -fx-opacity: 1; -fx-text-fill: #5C6869; }
+.catalog-workspace .cookbook-category-action:focus-visible { -fx-border-color: #9F432B; -fx-border-width: 2; }
+.catalog-workspace .cookbook-chapters { -fx-border-color: transparent; -fx-border-width: 0; -fx-background-color: white; -fx-padding: 10 18; }
+.catalog-workspace .cookbook-chapters .list-cell { -fx-padding: 10 0; -fx-border-color: transparent transparent #E0E6E1 transparent; }
+.catalog-workspace .cookbook-chapters .list-cell:filled:selected { -fx-background-color: #EDF2EE; }
+.catalog-workspace .cookbook-chapters .list-cell:filled:selected:hover { -fx-background-color: #E5ECE6; }
+.catalog-workspace .cookbook-chapters .list-cell:filled:hover { -fx-background-color: #FAFCFA; }
+.catalog-workspace .cookbook-chapters .list-cell .cookbook-chapter-title { -fx-font-family: Georgia; -fx-font-size: 21; -fx-text-fill: #9F432B; }
+.catalog-workspace .cookbook-chapters .list-cell .cookbook-entry-title { -fx-font-family: Georgia; -fx-font-size: 21; -fx-text-fill: #173946; }
+.catalog-workspace .cookbook-entry-description { -fx-font-size: 14; -fx-text-fill: #586960; -fx-line-spacing: 3; }
+.catalog-workspace .cookbook-entry-count { -fx-font-size: 12; -fx-text-fill: #586960; }
+.catalog-workspace .cookbook-open-action { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #173946; -fx-padding: 10 8; }
+.catalog-workspace .cookbook-open-action:hover { -fx-background-color: #F5DED1; }
+.catalog-workspace .cookbook-open-action:focus-visible { -fx-border-color: #9F432B; -fx-border-width: 2; }
+.catalog-workspace .studio-recipe-sheet,
+.catalog-workspace.catalog-editing .studio-recipe-sheet { -fx-background-radius: 0; -fx-border-radius: 0; -fx-border-color: transparent; -fx-border-width: 0; -fx-padding: 22 26; }
+.catalog-workspace .catalog-recipe-title { -fx-font-family: Georgia; -fx-font-size: 34; -fx-font-weight: normal; }
+.catalog-workspace .catalog-preparation { -fx-font-size: 16; -fx-line-spacing: 8; }
+.catalog-workspace .catalog-recipe-meta { -fx-background-color: transparent; -fx-padding: 0; -fx-text-fill: #9F432B; }
+
+
+.catalog-workspace { -fx-padding: 14 26; -fx-spacing: 6; }
+.catalog-workspace.workbench-recipe-book .studio-recipe-browser { -fx-padding: 0; -fx-border-width: 0; }
+.catalog-workspace .cookbook-chapters { -fx-padding: 6 18; }
+.catalog-workspace .cookbook-chapters .list-cell { -fx-padding: 8 0; }
+.catalog-workspace .cookbook-entry-copy { -fx-spacing: 4; }
+.catalog-workspace .cookbook-chapters .list-cell .cookbook-entry-title { -fx-font-size: 20; }
+
+
+.catalog-workspace:compact { -fx-padding: 10 26; -fx-spacing: 4; }
+.catalog-workspace:compact .catalog-tab { -fx-padding: 6 2; }
+.catalog-workspace:compact .result-pager { -fx-padding: 4 0; }
+.catalog-workspace:compact .cookbook-chapters { -fx-padding: 4 12; }
+.catalog-workspace:compact .cookbook-chapters .list-cell { -fx-padding: 6 0; }
+.catalog-workspace:compact .cookbook-entry-copy { -fx-spacing: 3; }
+.catalog-workspace.workbench-recipe-book:compact .studio-recipe-sheet { -fx-padding: 12 16; -fx-spacing: 8; }
+.catalog-workspace:compact .catalog-sheet-heading { -fx-spacing: 4; -fx-padding: 0; }
+.catalog-workspace:compact .catalog-recipe-title { -fx-font-size: 28; }
+.catalog-workspace.workbench-recipe-book:compact .catalog-dose-sheet { -fx-padding: 0; -fx-spacing: 8; }
+.catalog-workspace:compact .catalog-dose-row { -fx-padding: 8 4; }
+.catalog-workspace:compact .catalog-dose-table-heading { -fx-padding: 8 4; }
+.catalog-workspace:compact .catalog-sheet-footer { -fx-padding: 8 0 0; }
+.catalog-workspace:compact .catalog-preparation { -fx-line-spacing: 4; }
+
+
+.catalog-workspace .catalog-ingredient-panel { -fx-padding: 16; -fx-spacing: 10; }
+.catalog-workspace .catalog-ingredient-table-heading { -fx-padding: 6 10; }
+.catalog-workspace .catalog-ingredient-table .list-cell { -fx-padding: 8 10; }
+.catalog-workspace .catalog-ingredient-drawer { -fx-padding: 14; -fx-spacing: 10; }
+.catalog-workspace .catalog-ingredient-editor-scroll,
+.catalog-workspace .catalog-ingredient-editor-scroll > .viewport { -fx-background-color: transparent; }
+.catalog-workspace .catalog-ingredient-footer { -fx-padding: 6 0 0; }
+.catalog-workspace:compact .catalog-ingredient-panel { -fx-padding: 10 14; -fx-spacing: 6; }
+.catalog-workspace:compact .catalog-ingredient-drawer { -fx-padding: 10 12; -fx-spacing: 6; }
+.catalog-workspace:compact .catalog-ingredient-table .list-cell { -fx-padding: 5 10; }

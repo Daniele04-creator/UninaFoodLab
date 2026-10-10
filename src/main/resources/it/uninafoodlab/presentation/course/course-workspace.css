@@ -1,0 +1,612 @@
+
+.course-chef-workspace {
+    -fx-background-color: -studio-background;
+    -fx-text-fill: #242823;
+}
+
+.course-chef-workspace.workspace-page {
+    -fx-padding: 0;
+}
+
+.course-chef-workspace .course-create-workspace { -fx-padding: 24px 36px; }
+.course-chef-workspace .session-detail-header { -fx-padding: 24px 38px 0 38px; }
+.course-chef-workspace .studio-course-menu { -fx-padding: 0 38px 24px 38px; }
+.course-chef-workspace #sessionPlanningHost { -fx-padding: 0 38px 24px 38px; }
+
+.course-chef-workspace .course-catalog-layout {
+    -fx-spacing: 0;
+}
+
+.course-chef-workspace .course-explorer-rail {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDE1D8;
+    -fx-border-width: 0 1px 0 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 0 20px 0 20px;
+}
+
+.course-chef-workspace .course-rail-header {
+    -fx-padding: 28px 0 20px 0;
+    -fx-spacing: 8px;
+}
+
+.course-chef-workspace .course-rail-title {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #242823;
+}
+
+.course-chef-workspace .course-count-badge {
+    -fx-background-color: #EDF1E7;
+    -fx-background-radius: 999px;
+    -fx-padding: 3px 9px 4px 9px;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #61665F;
+}
+
+.course-chef-workspace .course-new-button {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #9F432B;
+    -fx-text-fill: #9F432B;
+    -fx-padding: 9px 12px;
+    -fx-font-size: 14px;
+}
+
+.course-chef-workspace .course-explorer-rail:compact .course-rail-header { -fx-spacing: 6px; }
+.course-chef-workspace .course-explorer-rail:compact .course-rail-title { -fx-font-size: 20px; }
+.course-chef-workspace .course-explorer-rail:compact .course-new-button { -fx-font-size: 12px; -fx-padding: 9px 8px; }
+.course-chef-workspace .course-explorer-rail:compact .course-count-badge { -fx-padding: 3px 7px; -fx-font-size: 12px; }
+.course-chef-workspace .course-explorer-rail:compact .course-filter-row { -fx-spacing: 6px; }
+.course-chef-workspace .course-explorer-rail:compact .course-catalog-tab { -fx-min-width: 64px; -fx-pref-width: 64px; -fx-font-size: 13px; }
+.course-chef-workspace .course-explorer-rail:compact .course-archive-tab { -fx-min-width: 82px; -fx-pref-width: 82px; }
+.course-chef-workspace .course-explorer-rail:compact .course-category-filter { -fx-min-width: 110px; -fx-pref-width: 110px; -fx-font-size: 13px; }
+
+.course-chef-workspace .course-new-button:hover {
+    -fx-background-color: #F8ECE5;
+    -fx-border-color: #883418;
+    -fx-text-fill: #883418;
+}
+
+.course-chef-workspace .course-catalog-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #DDE1D8 transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 0 0 16px 0;
+}
+
+.course-chef-workspace .course-search {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #B9C0B7;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 10px 12px;
+    -fx-font-size: 16px;
+    -fx-min-height: 48px;
+}
+
+.course-chef-workspace .course-filter-row {
+    -fx-spacing: 8px;
+}
+
+.course-chef-workspace .course-catalog-tab {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDE1D8;
+    -fx-border-radius: 7px;
+    -fx-background-radius: 7px;
+    -fx-min-width: 72px;
+    -fx-pref-width: 78px;
+    -fx-padding: 9px 8px;
+    -fx-font-size: 15px;
+    -fx-text-fill: #242823;
+    -fx-min-height: 44px;
+}
+
+.course-chef-workspace .course-archive-tab {
+    -fx-min-width: 88px;
+    -fx-pref-width: 92px;
+}
+
+.course-chef-workspace .course-catalog-tab:selected {
+    -fx-background-color: #242823;
+    -fx-border-color: #242823;
+    -fx-text-fill: #FFFFFF;
+}
+
+.course-chef-workspace .course-category-filter {
+    -fx-min-width: 96px;
+    -fx-pref-width: 126px;
+    -fx-font-size: 15px;
+}
+
+.course-chef-workspace .course-category-filter .list-cell,
+.course-chef-workspace .course-category-filter .combo-box-base {
+    -fx-padding: 8px 9px;
+}
+
+.course-chef-workspace .course-list {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 8px 0 0 0;
+}
+
+.course-chef-workspace .course-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #E6E9E3 transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 14px 12px 13px 12px;
+    -fx-text-fill: #242823;
+}
+
+.course-chef-workspace .course-list .list-cell:hover {
+    -fx-background-color: #F8F6F2;
+}
+
+.course-chef-workspace .course-list .list-cell:empty {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+}
+
+.course-chef-workspace .course-list:focused {
+    -fx-border-color: #9F432B;
+    -fx-border-width: 2px;
+}
+
+.course-chef-workspace .course-list .list-cell:selected {
+    -fx-background-color: #F8ECE5;
+    -fx-border-color: #9F432B;
+    -fx-border-width: 0 0 1px 3px;
+}
+
+.course-chef-workspace .course-list-title {
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #242823;
+}
+
+.course-chef-workspace .course-list-meta,
+.course-chef-workspace .course-list-dates {
+    -fx-font-size: 15px;
+    -fx-text-fill: #61665F;
+}
+
+.course-chef-workspace .course-list-dates {
+    -fx-font-size: 14px;
+}
+
+.course-chef-workspace .course-list-status {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #296345;
+}
+
+.course-chef-workspace .course-list-status-terminato,
+.course-chef-workspace .course-list-status-annullato {
+    -fx-text-fill: #A1372D;
+}
+
+.course-chef-workspace .course-detail-surface {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #DDE1D8;
+    -fx-border-width: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.course-chef-workspace .course-overview {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: transparent transparent #DDE1D8 transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 40px 38px 24px 38px;
+}
+
+.course-chef-workspace .course-overview-meta {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #61665F;
+}
+
+.course-chef-workspace .course-overview-title {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 50px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #18201D;
+}
+
+.course-chef-workspace .course-selected-description {
+    -fx-font-size: 18px;
+    -fx-text-fill: #4E5852;
+    -fx-padding: 2px 0 0 0;
+}
+
+.course-chef-workspace .course-overview-facts {
+    -fx-font-size: 16px;
+    -fx-text-fill: #4E5852;
+}
+
+.course-chef-workspace .workbench-dossier-actions .course-button {
+    -fx-font-size: 15px;
+    -fx-font-weight: normal;
+}
+
+.course-chef-workspace .workbench-dossier-actions {
+    -fx-padding: 10px 0 0 0;
+    -fx-hgap: 8px;
+    -fx-vgap: 8px;
+}
+
+.course-chef-workspace .course-program-pane {
+    -fx-background-color: #FFFFFF;
+    -fx-border-width: 0;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 22px 38px 36px 38px;
+}
+
+.course-chef-workspace .course-program-pane .section-title {
+    -fx-font-size: 24px;
+    -fx-text-fill: #242823;
+}
+
+.course-chef-workspace .course-program-pane > .hbox {
+    -fx-padding: 0 0 4px 0;
+}
+
+.course-chef-workspace .course-session-track {
+    -fx-border-color: transparent transparent transparent #DDE1D8;
+    -fx-border-width: 0 0 0 1px;
+    -fx-padding: 0 0 0 17px;
+}
+
+.course-chef-workspace .course-agenda-session {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: transparent transparent #E2E6DF transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 13px 12px 13px 9px;
+    -fx-alignment: center-left;
+    -fx-min-height: 78px;
+}
+
+.course-chef-workspace .course-agenda-session:hover {
+    -fx-background-color: #FBF8F4;
+}
+
+.course-chef-workspace .course-agenda-session:selected {
+    -fx-background-color: #FCF7F2;
+    -fx-border-color: #9F432B;
+    -fx-border-width: 0 0 1px 3px;
+}
+
+.course-chef-workspace .course-agenda-session:focused {
+    -fx-border-color: #9F432B;
+    -fx-border-width: 2px;
+    -fx-border-insets: 1px;
+}
+
+.course-chef-workspace .course-session-summary {
+    -fx-padding: 0;
+}
+
+.course-chef-workspace .course-session-date-block {
+    -fx-min-width: 70px;
+    -fx-pref-width: 70px;
+    -fx-max-width: 70px;
+    -fx-padding: 0 4px 0 0;
+}
+
+.course-chef-workspace .course-session-date {
+    -fx-min-width: 58px;
+    -fx-pref-width: 58px;
+    -fx-padding: 0 0 0 0;
+}
+
+.course-chef-workspace .course-session-weekday,
+.course-chef-workspace .course-session-month {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #61665F;
+}
+
+.course-chef-workspace .course-session-day {
+    -fx-font-size: 27px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #18201D;
+}
+
+.course-chef-workspace .course-session-marker {
+    -fx-background-color: #C44D2E;
+    -fx-background-radius: 999px;
+    -fx-min-width: 9px;
+    -fx-min-height: 9px;
+    -fx-max-width: 9px;
+    -fx-max-height: 9px;
+    -fx-translate-x: -31px;
+}
+
+.course-chef-workspace .course-session-time {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #242823;
+}
+
+.course-chef-workspace .course-session-mode {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #242823;
+}
+
+.course-chef-workspace .course-session-location {
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #61665F;
+}
+
+.course-chef-workspace .course-session-state-block {
+    -fx-alignment: center-right;
+}
+
+.course-chef-workspace .course-session-state,
+.course-chef-workspace .course-session-menu-count {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #296345;
+}
+
+.course-chef-workspace .course-session-state.session-status-confirmed {
+    -fx-text-fill: #61665F;
+    -fx-background-color: #EFF1ED;
+    -fx-padding: 4px 8px;
+    -fx-background-radius: 5px;
+}
+
+.course-chef-workspace .course-session-state.session-status-pending {
+    -fx-text-fill: #296345;
+    -fx-background-color: #EAF1E8;
+    -fx-padding: 4px 8px;
+    -fx-background-radius: 5px;
+}
+
+.course-chef-workspace .course-session-state.context-hint {
+    -fx-text-fill: #61665F;
+    -fx-font-weight: normal;
+}
+
+.course-chef-workspace .course-session-menu-count {
+    -fx-font-weight: normal;
+    -fx-text-fill: #61665F;
+}
+
+.course-chef-workspace .course-session-menu-count.recipe-assignment-ready {
+    -fx-text-fill: #296345;
+}
+
+.course-chef-workspace .course-session-menu-count.recipe-assignment-missing {
+    -fx-text-fill: #9A5A11;
+    -fx-background-color: #FFF2DE;
+    -fx-padding: 4px 8px;
+    -fx-background-radius: 5px;
+    -fx-font-weight: bold;
+}
+
+.course-chef-workspace .course-session-menu-count.recipe-assignment-na {
+    -fx-text-fill: #61665F;
+}
+
+.course-chef-workspace .course-session-chevron {
+    -fx-font-size: 23px;
+    -fx-text-fill: #242823;
+    -fx-alignment: center;
+}
+
+.course-chef-workspace .course-session-expanded {
+    -fx-background-color: #FCFBF8;
+    -fx-border-color: transparent transparent #DDE1D8 transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 14px 20px 17px 20px;
+    -fx-min-height: 0;
+}
+
+.course-chef-workspace .course-session-expanded .course-selected-session-facts {
+    -fx-padding: 0 0 4px 0;
+}
+
+.course-chef-workspace .course-session-expanded-actions {
+    -fx-padding: 2px 0 0 0;
+    -fx-hgap: 24px;
+    -fx-vgap: 10px;
+}
+
+.course-chef-workspace .course-inline-menu {
+    -fx-min-width: 220px;
+    -fx-pref-width: 360px;
+    -fx-max-width: 600px;
+}
+
+.course-chef-workspace .course-session-menu-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #242823;
+    -fx-padding: 3px 0 3px 0;
+}
+
+.course-chef-workspace .course-session-recipe-name {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E6DF;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 9px 12px;
+    -fx-font-size: 15px;
+    -fx-font-weight: normal;
+    -fx-text-fill: #242823;
+}
+
+.course-chef-workspace .course-manage-session-button {
+    -fx-padding: 10px 18px;
+}
+
+.course-chef-workspace .course-add-session-button {
+    -fx-border-color: #9F432B;
+    -fx-text-fill: #9F432B;
+}
+
+.course-chef-workspace .course-add-session-button:hover {
+    -fx-background-color: #F8ECE5;
+}
+
+.course-chef-workspace .course-session-detail .course-button {
+    -fx-wrap-text: true;
+}
+
+.course-chef-workspace .workbench-menu-library {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 10px 0;
+}
+
+.course-chef-workspace .workbench-menu-sheet {
+    -fx-padding: 10px 0;
+}
+
+.course-chef-workspace .course-menu-add,
+.course-chef-workspace .course-recipe-row {
+    -fx-background-color: #FFFFFF;
+}
+
+.course-chef-workspace .course-content-scroll,
+.course-chef-workspace .workspace-scroll {
+    -fx-background-color: -studio-background;
+    -fx-border-color: transparent;
+}
+
+
+.course-chef-workspace .course-index-page { -fx-padding: 26; -fx-background-color: -studio-background; }
+.course-chef-workspace .course-eyebrow { -fx-text-fill: #61665f; -fx-font-size: 12px; -fx-font-weight: bold; }
+.course-chef-workspace .course-index-page .page-title { -fx-font-size: 32px; -fx-font-weight: bold; }
+.course-chef-workspace .course-catalog-card { -fx-background-color: white; -fx-border-color: #dde1d8; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 18; }
+.course-chef-workspace .course-card-title { -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #242823; }
+.course-chef-workspace .course-card-facts { -fx-font-size: 14px; -fx-text-fill: #61665f; }
+.course-chef-workspace .course-card-badge { -fx-background-color: #e7eddf; -fx-background-radius: 20; -fx-padding: 5 10; -fx-text-fill: #48513f; -fx-font-size: 12px; }
+.course-chef-workspace .course-catalog-tabs { -fx-background-color: #e8ebe4; -fx-background-radius: 9; -fx-padding: 4; }
+.course-chef-workspace .course-catalog-tab { -fx-background-color: transparent; -fx-border-color: transparent; -fx-background-radius: 6; -fx-padding: 8 15; -fx-text-fill: #61665f; }
+.course-chef-workspace .course-catalog-tab:selected { -fx-background-color: white; -fx-text-fill: #242823; -fx-border-color: transparent; }
+.course-chef-workspace #courseDetailView { -fx-padding: 26; }
+.course-chef-workspace .course-detail-surface { -fx-background-color: transparent; -fx-border-width: 0; }
+.course-chef-workspace .course-overview { -fx-padding: 0 0 24 0; -fx-background-color: transparent; -fx-border-width: 0; }
+.course-chef-workspace .course-overview-title { -fx-font-size: 32px; -fx-text-fill: #242823; }
+.course-chef-workspace .course-overview-facts { -fx-background-color: white; -fx-padding: 18; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #dde1d8; -fx-font-size: 16px; }
+.course-chef-workspace .course-program-pane, .course-chef-workspace .studio-course-menu { -fx-background-color: white; -fx-border-color: #dde1d8; -fx-background-radius: 12; -fx-border-radius: 12; -fx-padding: 24; }
+.course-chef-workspace .session-detail-header { -fx-padding: 0 0 6 0; -fx-spacing: 5; }
+.course-chef-workspace .session-detail-title { -fx-font-size: 25px; -fx-font-weight: bold; }
+.course-chef-workspace .course-agenda-session { -fx-background-color: transparent; -fx-border-color: transparent transparent #e3e6df transparent; -fx-border-width: 0 0 1 0; -fx-padding: 14 0; }
+.course-chef-workspace .course-agenda-session:selected { -fx-background-color: #f5f6f2; }
+.course-chef-workspace .course-session-date { -fx-background-color: transparent; -fx-border-width: 0; }
+.course-chef-workspace .course-session-marker { -fx-background-color: transparent; }
+.course-chef-workspace .course-session-expanded { -fx-background-color: #f5f6f2; -fx-padding: 18; }
+.course-chef-workspace .course-create-workspace { -fx-padding: 26; }
+.course-chef-workspace .course-overview-title, .course-chef-workspace .session-detail-title { -fx-font-family: "Segoe UI"; }
+.course-chef-workspace .course-create-form-column, .course-chef-workspace .course-create-preview-column { -fx-background-color: white; -fx-border-color: #dde1d8; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 24; }
+.course-chef-workspace .course-create-card { -fx-background-color: transparent; -fx-border-color: transparent; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 0; }
+.course-chef-workspace .course-create-content { -fx-spacing: 18px; }
+.course-chef-workspace .course-create-preview-column { -fx-padding: 24; }
+.course-chef-workspace .course-create-summary { -fx-padding: 16px 0 0 0; -fx-border-color: #dde1d8 transparent transparent transparent; -fx-border-width: 1px 0 0 0; }
+.course-chef-workspace .session-mode-row { -fx-background-color: transparent; -fx-border-color: transparent transparent #dde1d8 transparent; -fx-border-width: 0 0 1px 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 16px 0; }
+.course-chef-workspace .course-catalog-card .button-secondary,
+.course-chef-workspace .course-add-session-button { -fx-background-color: #ffffff; -fx-border-color: -studio-control-line; -fx-text-fill: #173946; }
+.course-chef-workspace .course-catalog-card .button-secondary:hover,
+.course-chef-workspace .course-add-session-button:hover { -fx-background-color: #f8ece5; }
+.course-chef-workspace .course-catalog-card .button-secondary:disabled,
+.course-chef-workspace .course-add-session-button:disabled { -fx-background-color: #e4e8e5; -fx-border-color: #cdd5d0; -fx-text-fill: #5c6869; }
+.course-chef-workspace .course-create-action.button-secondary { -fx-background-color: #ffffff; -fx-border-color: -studio-control-line; -fx-text-fill: #173946; }
+.course-chef-workspace .course-create-action.button-secondary:hover { -fx-background-color: #F8EEE6; }
+.course-chef-workspace .course-session-chevron { -fx-font-size: 15px; -fx-font-weight: normal; -fx-text-fill: #9F432B; -fx-min-width: 78px; }
+
+.course-chef-workspace .course-catalog-tabs { -fx-background-color: transparent; -fx-background-radius: 0; -fx-padding: 0; -fx-border-color: transparent transparent #dde1d8 transparent; -fx-border-width: 0 0 1 0; }
+.course-chef-workspace .course-catalog-tab { -fx-background-color: transparent; -fx-background-radius: 0; -fx-border-radius: 0; -fx-border-width: 0 0 2 0; -fx-border-color: transparent; -fx-padding: 12 16; -fx-min-width: 100px; -fx-pref-width: 100px; }
+.course-chef-workspace .course-catalog-tab:selected { -fx-background-color: transparent; -fx-border-color: transparent transparent #9F432B transparent; -fx-text-fill: #9F432B; }
+.course-chef-workspace .workspace-scroll, .course-chef-workspace .workspace-scroll > .viewport { -fx-background-color: transparent; }
+.course-chef-workspace .session-detail-header { -fx-background-color: transparent; -fx-background-radius: 0; }
+.course-chef-workspace .course-program-pane { -fx-border-width: 1; }
+.course-chef-workspace .course-overview { -fx-padding: 0 0 24 0; }
+.course-chef-workspace .course-session-track { -fx-border-width: 0; -fx-background-color: transparent; }
+.course-chef-workspace .course-agenda-session:selected { -fx-background-color: #F8EEE6; -fx-border-color: transparent transparent #9F432B transparent; -fx-border-width: 0 0 2 0; }
+.course-chef-workspace .course-agenda-session:hover { -fx-background-color: #f5f6f2; }
+.course-chef-workspace .course-agenda-session:selected:hover { -fx-background-color: #F8EEE6; }
+.course-chef-workspace .course-section-tab { -fx-background-color: transparent; -fx-background-radius: 0; -fx-border-radius: 0; -fx-border-color: transparent; -fx-border-width: 0 0 2 0; -fx-padding: 12 16; -fx-text-fill: #61665f; }
+.course-chef-workspace .course-section-tab:selected { -fx-background-color: transparent; -fx-border-color: transparent transparent #9F432B transparent; -fx-text-fill: #9F432B; }
+
+
+.course-chef-workspace .course-catalog-tab:focus-visible,
+.course-chef-workspace .course-section-tab:focus-visible,
+.course-chef-workspace .course-catalog-card .button-secondary:focus-visible,
+.course-chef-workspace .course-add-session-button:focus-visible,
+.course-chef-workspace .course-create-action.button-secondary:focus-visible {
+    -fx-border-color: #173946; -fx-border-width: 2;
+    -fx-border-insets: 0; -fx-border-radius: 3;
+}
+
+
+.course-chef-workspace, .course-chef-workspace .course-rail-title, .course-chef-workspace .course-overview-title, .course-chef-workspace .session-detail-title { -fx-font-family: "Manrope"; }
+.course-chef-workspace .course-catalog-card { -fx-background-color: #ffffff; -fx-border-color: #D6DED7; -fx-background-radius: 5; -fx-border-radius: 5; -fx-padding: 18 20 12; }
+.course-chef-workspace .course-card-title { -fx-font-family: "Manrope"; -fx-font-size: 21px; -fx-font-weight: bold; -fx-text-fill: #173946; }
+.course-chef-workspace .course-card-category { -fx-font-size: 13px; -fx-text-fill: #627B6B; }
+.course-chef-workspace .course-card-facts { -fx-font-size: 14px; -fx-text-fill: #56625C; }
+.course-chef-workspace .course-card-appointment { -fx-background-color: transparent; -fx-background-radius: 0; -fx-padding: 0; }
+.course-chef-workspace .course-card-appointment-caption { -fx-font-size: 12px; -fx-text-fill: #56625C; }
+.course-chef-workspace .course-card-appointment-date { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #173946; }
+.course-chef-workspace .course-card-mode { -fx-font-size: 13px; -fx-text-fill: #22566D; }
+.course-chef-workspace .course-session-mode { -fx-text-fill: #22566D; }
+.course-chef-workspace .course-session-state.session-status-cancelled { -fx-background-color: #FBECEA; -fx-text-fill: #A43C32; -fx-background-radius: 5; -fx-padding: 4 8; }
+.course-chef-workspace .course-card-badge { -fx-background-color: #6650A4; -fx-background-radius: 3; -fx-padding: 5 9; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: white; }
+.course-chef-workspace .course-card-badge.course-card-active { -fx-background-color: #247A45; -fx-text-fill: white; }
+.course-chef-workspace .course-card-badge.course-card-planned { -fx-background-color: #176BA0; -fx-text-fill: white; }
+
+.course-chef-workspace .course-create-form-column,
+.course-chef-workspace .course-create-calendar-column {
+    -fx-background-color: white;
+    -fx-border-color: #D6DED7;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 24;
+    -fx-spacing: 16;
+}
+.course-chef-workspace .session-mode-row {
+    -fx-background-color: white;
+    -fx-border-color: #D6DED7;
+    -fx-border-width: 0 0 1 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-padding: 14 0;
+}
+.course-chef-workspace .course-common-settings {
+    -fx-background-color: #F2F6F2; -fx-background-radius: 5;
+    -fx-border-color: #D6DED7; -fx-border-radius: 5; -fx-padding: 16;
+}
+.course-chef-workspace .session-mode-row .session-draft-title { -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #173946; }
+.course-chef-workspace .session-mode-row .session-date { -fx-font-size: 14px; -fx-font-weight: normal; -fx-text-fill: #56625C; }
+.course-chef-workspace .course-card-badge.course-card-cancelled { -fx-background-color: #A6382E; -fx-text-fill: white; }
+.course-chef-workspace .course-card-open { -fx-font-size: 14px; -fx-padding: 9 0; -fx-text-fill: #173946; }
+
+
+.course-chef-workspace #courseDetailView { -fx-padding: 18 26; -fx-spacing: 6; }
+.course-chef-workspace .session-detail-header { -fx-padding: 0; -fx-spacing: 4; }
+.course-chef-workspace .workbench-session-tools { -fx-padding: 0; }
+.course-chef-workspace .session-detail-nav { -fx-padding: 0; }
+.course-chef-workspace .session-detail-nav .course-section-tab { -fx-padding: 8 16; }
+.course-chef-workspace .studio-course-menu {
+    -fx-background-color: white; -fx-border-width: 0;
+    -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 12 16; -fx-spacing: 8;
+}
+.course-chef-workspace .recipe-assignment-panel { -fx-spacing: 8; }
+.course-chef-workspace .workbench-menu-sheet { -fx-padding: 0; -fx-spacing: 10; }
+.course-chef-workspace .workbench-menu-library { -fx-padding: 0 0 0 16; }
+.course-chef-workspace .course-assigned-recipe { -fx-padding: 8 0; -fx-border-width: 0; }
+.course-chef-workspace .course-recipe-actions { -fx-alignment: CENTER_RIGHT; }
+.course-chef-workspace .course-create-action.button-secondary:disabled {
+    -fx-background-color: #E4E8E5; -fx-border-color: #CDD5D0; -fx-text-fill: #5C6869;
+}
+.course-chef-workspace #createCourseReturnButton:disabled { -fx-text-fill: #5C6869; -fx-opacity: 0.7; }
+.course-chef-workspace #courseCatalogView > .course-feedback-row { -fx-padding: 12 26 0; }

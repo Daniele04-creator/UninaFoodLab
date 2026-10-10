@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:id="workspace" spacing="14"
+stylesheets="@catalog-workspace.css" styleClass="workspace-page,catalog-workspace,workbench-recipe-book" minHeight="0">
+<padding>
+    <Insets top="24" right="24" bottom="24" left="24"/>
+</padding>
+<Button fx:id="backFromIngredientsButton" text="Torna al ricettario" onAction="#showRecipes" visible="false" managed="false" styleClass="button-secondary"/>
+<HBox fx:id="catalogHeader" alignment="CENTER_LEFT" spacing="20" styleClass="lab-page-header,studio-catalog-header">
+    <VBox spacing="5" minWidth="0" HBox.hgrow="ALWAYS">
+        <Label fx:id="catalogTitle" text="Ricettario" wrapText="true" minWidth="0" styleClass="page-title"/>
+    </VBox>
+    <Button fx:id="newRecipeButton" minWidth="-Infinity" text="Nuova ricetta" onAction="#newRecipe" styleClass="course-button,button-primary"/>
+</HBox>
+<HBox fx:id="catalogToolbar" spacing="12" alignment="CENTER_LEFT" styleClass="cookbook-tab-line">
+    <HBox alignment="CENTER_LEFT" spacing="22" styleClass="catalog-segmented-tabs">
+        <ToggleButton fx:id="recipesTab" text="Ricette" selected="true" onAction="#showRecipes" styleClass="course-button,button-secondary,catalog-tab"/>
+        <ToggleButton fx:id="ingredientsTab" text="Ingredienti" onAction="#showIngredients" styleClass="course-button,button-secondary,catalog-tab"/>
+    </HBox>
+</HBox>
+<ComboBox fx:id="recipeCategoryFilter" promptText="Tutte le categorie" visible="false" managed="false" focusTraversable="false"/>
+<Label fx:id="feedback" wrapText="true" styleClass="course-feedback"/>
+<Button fx:id="retryButton" text="Riprova" onAction="#retryRead" visible="false" managed="false" styleClass="course-button,button-secondary"/>
+<HBox fx:id="recipesPane" spacing="16" minHeight="0" VBox.vgrow="ALWAYS">
+    <VBox fx:id="recipeBrowser" spacing="14" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="catalog-recipe-browser,studio-recipe-browser">
+        <HBox fx:id="cookbookIndex" spacing="28" minHeight="0" VBox.vgrow="ALWAYS">
+            <ScrollPane fx:id="recipeCategoryScroll" fitToWidth="true" hbarPolicy="NEVER" minHeight="0" prefWidth="190" minWidth="190" maxWidth="190" styleClass="cookbook-category-scroll" accessibleText="Categorie del ricettario">
+                <content><VBox fx:id="recipeCategories" spacing="4" minWidth="0" styleClass="cookbook-categories"/></content>
+            </ScrollPane>
+            <VBox spacing="8" minWidth="0" HBox.hgrow="ALWAYS">
+                <HBox spacing="10" alignment="CENTER_LEFT" minWidth="0" styleClass="cookbook-search">
+                    <Label text="Cerca ricette" labelFor="$recipeSearch" minWidth="-Infinity" styleClass="field-label"/>
+                    <TextField fx:id="recipeSearch" promptText="Nome, categoria o preparazione" accessibleText="Cerca ricette per nome, categoria o preparazione" styleClass="course-field" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="recipeCount" minWidth="-Infinity" styleClass="surface-description"/>
+                </HBox>
+                <ListView fx:id="recipeList" minHeight="160" VBox.vgrow="ALWAYS" accessibleText="Ricette per categoria. Usa Apri ricetta per vedere dosi e preparazione." styleClass="cookbook-chapters"/>
+                <HBox fx:id="recipePagerBottom" alignment="CENTER_RIGHT" spacing="10" visible="false" managed="false"/>
+            </VBox>
+        </HBox>
+    </VBox>
+    <VBox fx:id="recipeDetails" visible="false" managed="false" spacing="18" minWidth="0" HBox.hgrow="ALWAYS" styleClass="catalog-editor-panel,studio-recipe-sheet">
+        <HBox spacing="14" alignment="CENTER_LEFT" minWidth="0" styleClass="catalog-sheet-navigation">
+            <Button fx:id="backToRecipesButton" text="Torna al ricettario" accessibleText="Torna al ricettario" onAction="#backToRecipes" visible="false" managed="false" minWidth="-Infinity" styleClass="course-button,button-secondary"/>
+            <Label fx:id="categoryReadOnly" wrapText="true" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="catalog-recipe-meta"/>
+        </HBox>
+        <VBox spacing="12" minWidth="0" minHeight="-Infinity" styleClass="catalog-sheet-heading">
+            <HBox alignment="TOP_LEFT" spacing="12" minWidth="0">
+                <Label fx:id="recipeEditorTitle" text="Seleziona una ricetta" styleClass="catalog-recipe-title"
+                    wrapText="true" minWidth="0" maxWidth="Infinity" minHeight="-Infinity" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="editRecipeButton" text="Modifica" accessibleText="Modifica ricetta" onAction="#editRecipe" minWidth="-Infinity" styleClass="course-button,button-secondary"/>
+            </HBox>
+            <Label fx:id="recipeState" text="" styleClass="form-helper"
+                wrapText="true" minWidth="0" maxWidth="Infinity" minHeight="-Infinity"/>
+        </VBox>
+        <ScrollPane fx:id="recipeScroll" fitToWidth="true" hbarPolicy="NEVER" minHeight="0" VBox.vgrow="ALWAYS" styleClass="workspace-scroll">
+            <content>
+                <VBox spacing="10" minWidth="0">
+                    <padding><Insets top="4" right="4" bottom="4" left="4"/></padding>
+                    <GridPane fx:id="recipeColumns" hgap="28" vgap="24" minWidth="0" styleClass="studio-recipe-columns">
+                        <VBox fx:id="recipeReadView" spacing="20" visible="false" managed="false" minWidth="0" styleClass="studio-recipe-section,catalog-preparation-section">
+                            <FlowPane visible="false" managed="false" hgap="8" vgap="8" styleClass="studio-recipe-metadata">
+                                <Label fx:id="servingsReadOnly" styleClass="catalog-recipe-meta"/>
+                            </FlowPane>
+                            <VBox spacing="12">
+                                <Label text="Preparazione" styleClass="section-title"/>
+                                <Label fx:id="descriptionReadOnly" wrapText="true" maxWidth="Infinity" minHeight="-Infinity" styleClass="catalog-preparation"/>
+                            </VBox>
+                        </VBox>
+                        <VBox fx:id="recipeEditView" spacing="10" minWidth="0" styleClass="studio-recipe-section">
+                            <Label text="La preparazione" styleClass="section-title"/>
+                            <Label text="Nome ricetta" styleClass="field-label" labelFor="$recipeName"/>
+                            <TextField fx:id="recipeName" promptText="Es. Risotto agli agrumi" styleClass="course-field"/>
+                            <Label fx:id="recipeNameError" wrapText="true" minHeight="-Infinity" styleClass="course-feedback,course-feedback-error"/>
+                            <HBox spacing="12">
+                                <VBox spacing="6" HBox.hgrow="ALWAYS" minWidth="0">
+                                    <Label text="Categoria" styleClass="field-label" labelFor="$categoryChoice"/>
+                                    <HBox spacing="8" alignment="CENTER_LEFT">
+                                        <ComboBox fx:id="categoryChoice" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="course-combo"/>
+                                        <Button fx:id="newCategoryButton" text="Nuova categoria" minWidth="-Infinity" onAction="#newCategory" styleClass="button-secondary"/>
+                                    </HBox>
+                            <Label fx:id="recipeCategoryError" wrapText="true" minHeight="-Infinity" styleClass="course-feedback,course-feedback-error"/>
+                                </VBox>
+
+                            </HBox>
+                            <Label text="Descrizione e preparazione" styleClass="field-label" labelFor="$recipeDescription"/>
+                            <TextArea fx:id="recipeDescription" wrapText="true" prefRowCount="6" minHeight="140" prefHeight="180" styleClass="course-field"/>
+                            <Label fx:id="recipeDescriptionError" wrapText="true" minHeight="-Infinity" styleClass="course-feedback,course-feedback-error"/>
+                        </VBox>
+                        <VBox fx:id="recipeIngredientsPanel" spacing="14" minWidth="0" styleClass="studio-recipe-section,catalog-dose-sheet">
+                            <Label text="Dosi per una persona" styleClass="section-title"/>
+                            <Label fx:id="recipeQuantitiesHint" wrapText="true" styleClass="surface-description"/>
+                            <VBox fx:id="addIngredientRow" spacing="8">
+                                <Label text="Aggiungi un ingrediente" labelFor="$lineIngredientSearch" styleClass="field-label"/>
+                                <TextField fx:id="lineIngredientSearch" promptText="Cerca per nome o unità" accessibleText="Cerca un ingrediente per nome o unità. Freccia giù apre i risultati; Invio seleziona l’unico risultato; Escape cancella la ricerca." styleClass="course-field"/>
+                                <ComboBox fx:id="lineIngredient" minWidth="0" promptText="Scegli ingrediente e unità" accessibleText="Scegli un ingrediente tra i risultati della ricerca" maxWidth="Infinity" styleClass="course-combo"/>
+                                <Button text="Gestisci ingredienti" onAction="#showIngredients" styleClass="course-button,button-secondary"/>
+                                <FlowPane hgap="10" vgap="8" alignment="CENTER_LEFT">
+                                    <TextField fx:id="quantity" promptText="Quantità" accessibleText="Quantità per una persona, fino a 3 decimali, nell’unità dell’ingrediente selezionato" prefWidth="115" minWidth="105" styleClass="course-field"/>
+                                    <Button text="Aggiungi" minWidth="-Infinity" onAction="#addLine" styleClass="course-button,button-secondary"/>
+                                </FlowPane>
+                            </VBox>
+
+                            <Label fx:id="recipeIngredientError" wrapText="true" minHeight="-Infinity" styleClass="course-feedback,course-feedback-error"/>
+                            <Label fx:id="inlineQuantityHint" text="Modifica la quantità direttamente nella riga." wrapText="true" styleClass="form-helper"/>
+                            <VBox fx:id="ingredientReadLines" spacing="0" minWidth="0"/>
+                            <VBox fx:id="ingredientLines" spacing="8" minWidth="0" accessibleText="Ingredienti e quantità della ricetta"/>
+
+                        </VBox>
+                    </GridPane>
+                </VBox>
+            </content>
+        </ScrollPane>
+        <HBox fx:id="recipeFooter" spacing="12" alignment="CENTER_RIGHT" styleClass="catalog-sheet-footer">
+            <Button text="Annulla" onAction="#cancelRecipe" styleClass="course-button,button-secondary"/>
+            <Button fx:id="saveRecipeButton" text="Salva ricetta" onAction="#saveRecipe" styleClass="course-button,button-primary"/>
+        </HBox>
+    </VBox>
+</HBox>
+<VBox fx:id="ingredientsPane" visible="false" managed="false" spacing="12" minHeight="0" VBox.vgrow="ALWAYS" styleClass="lab-card,catalog-ingredient-panel">
+    <HBox alignment="CENTER_LEFT" spacing="12" styleClass="catalog-ingredient-toolbar">
+        <Label text="Cerca ingrediente" labelFor="$ingredientSearch" minWidth="-Infinity" styleClass="field-label"/>
+        <TextField fx:id="ingredientSearch" promptText="Nome dell’ingrediente" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="course-field"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="newIngredientButton" text="Nuovo ingrediente" minWidth="-Infinity" onAction="#newIngredient" styleClass="course-button,button-secondary"/>
+    </HBox>
+    <HBox spacing="24" minHeight="0" VBox.vgrow="ALWAYS">
+        <VBox spacing="6" minWidth="280" minHeight="0" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="catalog-ingredient-table">
+            <GridPane hgap="16" styleClass="catalog-ingredient-table-heading">
+                <columnConstraints><ColumnConstraints percentWidth="45"/><ColumnConstraints percentWidth="35"/><ColumnConstraints percentWidth="20"/></columnConstraints>
+                <Label text="Ingrediente" GridPane.columnIndex="0"/><Label text="Unità di misura" GridPane.columnIndex="1"/>
+            </GridPane>
+            <ListView fx:id="ingredientList" minHeight="0" VBox.vgrow="ALWAYS"/>
+            <ComboBox visible="false" managed="false" fx:id="ingredientChoice" maxWidth="Infinity" promptText="Scegli un ingrediente" styleClass="course-combo"/>
+        </VBox>
+        <VBox fx:id="ingredientEditor" spacing="10" minHeight="0" minWidth="280" prefWidth="390" maxWidth="390" styleClass="catalog-ingredient-drawer">
+            <Label fx:id="ingredientEditorTitle" text="Dettagli ingrediente" styleClass="section-title"/>
+            <ScrollPane fx:id="ingredientEditorScroll" fitToWidth="true" hbarPolicy="NEVER" minHeight="0" VBox.vgrow="ALWAYS" styleClass="workspace-scroll,catalog-ingredient-editor-scroll" accessibleText="Campi dell’ingrediente">
+                <content><VBox spacing="10" minWidth="0">
+                    <padding><Insets top="2" right="4" bottom="4" left="4"/></padding>
+                    <Label fx:id="ingredientState" text="Nuovo ingrediente" wrapText="true" minHeight="-Infinity" styleClass="form-helper"/>
+                    <Label text="Nome ingrediente" styleClass="field-label" labelFor="$ingredientName"/>
+                    <TextField fx:id="ingredientName" styleClass="course-field"/>
+                    <Label fx:id="ingredientNameReadOnly" visible="false" managed="false" wrapText="true" minHeight="-Infinity" styleClass="catalog-preparation"/>
+                    <Label text="Unità di misura" styleClass="field-label" labelFor="$ingredientUnit"/>
+                    <ComboBox fx:id="ingredientUnit" maxWidth="Infinity" styleClass="course-combo"/>
+                    <Label fx:id="ingredientUnitReadOnly" visible="false" managed="false" styleClass="catalog-readonly"/>
+                </VBox></content>
+            </ScrollPane>
+            <HBox spacing="12" alignment="CENTER_RIGHT" minHeight="-Infinity" styleClass="catalog-ingredient-footer">
+                <Button fx:id="cancelIngredientButton" text="Annulla" onAction="#cancelIngredient" styleClass="course-button,button-secondary"/>
+                <Button fx:id="saveIngredientButton" text="Salva ingrediente" onAction="#saveIngredient" styleClass="course-button,button-primary"/>
+            </HBox>
+        </VBox>
+    </HBox>    </VBox>
+</VBox>

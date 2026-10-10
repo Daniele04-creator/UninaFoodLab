@@ -1,0 +1,57 @@
+.mock-planning, .mock-planning > .viewport { -fx-background-color: -studio-background; }
+.mock-planning .workspace-page { -fx-padding: 36 42 56 42; -fx-spacing: 24; -fx-background-color: -studio-background; }
+.mock-planning .lab-page-header { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0 0 4 0; -fx-min-height: 0; }
+.mock-planning .page-title { -fx-font-family: 'Manrope'; -fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: -studio-ink; }
+.mock-planning .page-description { -fx-font-size: 16px; -fx-text-fill: -studio-muted; }
+.mock-eyebrow { -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: -studio-muted; -fx-padding: 0 0 6 0; }
+.mock-planning .planning-filter-toolbar { -fx-background-color: white; -fx-background-radius: 12; -fx-border-color: -studio-line; -fx-border-radius: 12; -fx-padding: 26; }
+.mock-planning .ops-scope-tab:selected, .mock-planning .ops-segment:selected {
+    -fx-background-color: -studio-primary; -fx-border-color: -studio-primary; -fx-text-fill: white;
+}
+.mock-planning .ops-scope-tab:selected:focus-visible, .mock-planning .ops-segment:selected:focus-visible {
+    -fx-border-color: -studio-ink, white; -fx-border-width: 2, 2;
+    -fx-border-insets: 0, 3; -fx-border-radius: 8, 5;
+}
+.mock-planning .workbench-preparation-sheet, .mock-planning .ops-chart-panel { -fx-background-color: white; -fx-border-color: -studio-line; -fx-border-width: 1; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 26; -fx-effect: null; }
+.mock-planning .workbench-report-sheet { -fx-padding: 0; -fx-background-color: transparent; -fx-border-width: 0; }
+.mock-planning .report-results-sheet { -fx-background-color: white; -fx-padding: 0; }
+.mock-planning .workbench-report-period { -fx-padding: 0; -fx-background-color: transparent; -fx-border-width: 0; }
+.mock-planning .workbench-report-sheet .ops-chart-panel { -fx-padding: 24; -fx-border-width: 0; -fx-background-radius: 0; -fx-border-radius: 0; }
+.mock-planning .workbench-report-sheet .report-recipe-panel { -fx-border-color: -studio-line; -fx-border-width: 0 0 0 1; }
+.mock-planning .report-charts:stacked .report-recipe-panel { -fx-border-width: 1 0 0 0; }
+.mock-planning .report-detail-sheet { -fx-padding: 0; -fx-background-color: transparent; -fx-border-width: 0; }
+.mock-planning .report-session-row { -fx-background-color: white; -fx-border-color: -studio-line; -fx-border-width: 1; -fx-background-radius: 5; -fx-border-radius: 5; -fx-padding: 18; }
+.mock-planning .report-session-title { -fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: -studio-ink; }
+.mock-planning .report-session-mode { -fx-font-size: 14; -fx-text-fill: #315f85; }
+.mock-planning .report-session-state { -fx-font-size: 12; -fx-padding: 4 8; -fx-background-radius: 3; }
+.mock-planning .report-session-neutral { -fx-background-color: #eaf0ee; -fx-text-fill: #425b52; }
+.mock-planning .report-session-cancelled { -fx-background-color: #fff0ec; -fx-text-fill: #983e30; }
+.mock-planning .report-month-arrow { -fx-min-width: 40px; -fx-min-height: 40px; -fx-padding: 5 8; -fx-font-size: 19px; }
+.mock-planning .report-month-arrow:focus-visible { -fx-border-color: -studio-primary; -fx-border-width: 2px; -fx-border-insets: 0; }
+.mock-planning .mock-report-metrics { -fx-padding: 0; -fx-border-color: -studio-line; -fx-border-width: 0 0 1 0; -fx-border-insets: 0; }
+.mock-planning .workbench-report-measure { -fx-background-color: white; -fx-background-radius: 0; -fx-border-color: -studio-line; -fx-border-width: 0 0 0 1; -fx-padding: 22 20; }
+.mock-planning .workbench-report-measure:first-column { -fx-border-width: 0; }
+.mock-planning .report-summary-value { -fx-font-family: 'Manrope'; -fx-font-size: 40px; -fx-font-weight: bold; -fx-text-fill: -studio-ink; }
+.mock-planning .ops-section-title, .mock-planning .ops-chart-title { -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: -studio-ink; }
+.mock-planning .ops-muted { -fx-text-fill: -studio-muted; -fx-font-size: 14px; }
+.mock-planning .workbench-report-measure .ops-muted { -fx-min-height: 40px; }
+.mock-planning .ops-table { -fx-background-color: white; -fx-border-width: 0; }
+.mock-planning .ops-table .column-header, .mock-planning .ops-table .filler { -fx-background-color: #f0f2ed; -fx-border-width: 0; -fx-padding: 10 8; }
+.mock-planning .ops-table .column-header .label { -fx-text-fill: -studio-muted; -fx-font-size: 12px; -fx-font-weight: bold; -fx-alignment: CENTER_LEFT; }
+.mock-planning .ops-table .table-cell { -fx-border-color: #e6e9e1; -fx-border-width: 0 0 1 0; -fx-padding: 12 14; -fx-font-size: 14px; }
+.mock-planning .ops-table .table-row-cell { -fx-background-color: white; }
+.mock-planning .ops-table .table-row-cell:selected { -fx-background-color: #f8eee6; }
+.mock-planning .chart { -fx-padding: 10 0 0 0; -fx-background-color: transparent; }
+.mock-planning .chart-plot-background { -fx-background-color: white; }
+.mock-planning .chart-horizontal-grid-lines, .mock-planning .chart-vertical-grid-lines { -fx-stroke: transparent; }
+.mock-planning .chart-bar { -fx-bar-fill: -studio-primary; -fx-background-color: -studio-primary; -fx-background-radius: 4 4 0 0; }
+.mock-planning .chart-bar.report-recipe-bar { -fx-bar-fill: -studio-primary; -fx-background-color: -studio-primary; -fx-background-radius: 4; }
+.mock-planning .chart-bar.report-practical-bar { -fx-bar-fill: -studio-primary; -fx-background-color: -studio-primary; -fx-background-radius: 4; }
+.mock-planning .chart-bar.report-online-bar { -fx-bar-fill: -studio-primary; -fx-background-color: -studio-primary; -fx-background-radius: 4; }
+.mock-planning .ops-bar-value { -fx-text-fill: -studio-ink; -fx-font-weight: bold; -fx-font-size: 14px; }
+.mock-planning .mock-report-details { -fx-background-color: white; -fx-border-color: -studio-line; -fx-border-radius: 12; -fx-background-radius: 12; }
+.mock-planning .mock-report-details > .title { -fx-background-color: transparent; -fx-padding: 22 26; }
+.mock-planning .mock-report-details > .content { -fx-background-color: white; -fx-border-width: 0; -fx-padding: 0 26 26 26; }
+.mock-completion .dialog-status { -fx-background-color: #edf2e7; -fx-border-width: 0; -fx-padding: 13 16; -fx-font-size: 14px; -fx-text-fill: -studio-ink; }
+.mock-completion .completion-recipe { -fx-padding: 16 0; -fx-border-color: -studio-line; -fx-border-width: 0 0 1 0; -fx-font-size: 15px; }
+.mock-completion .dialog-section-title { -fx-font-size: 18px; -fx-font-weight: bold; }

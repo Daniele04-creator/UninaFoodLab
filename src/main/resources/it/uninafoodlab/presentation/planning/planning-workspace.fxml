@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:id="workspaceScroll" stylesheets="@planning-workspace.css" fitToWidth="true" hbarPolicy="NEVER" accessibleText="Pianificazione Chef" styleClass="workspace-scroll,editorial-operations,mock-planning">
+    <content>
+        <VBox fx:id="workspaceContent" spacing="20" styleClass="operations-workspace,workspace-page,studio-planning">
+            <padding>
+                <Insets top="28" right="28" bottom="28" left="28"/>
+            </padding>
+            <Button fx:id="courseReturnButton" text="Torna al corso" visible="false" managed="false" onAction="#returnToCourse" styleClass="course-secondary-button"/>
+            <HBox fx:id="pageHeader" alignment="CENTER_LEFT" styleClass="workspace-hero,lab-page-header">
+                <VBox spacing="8" minWidth="0" HBox.hgrow="ALWAYS">
+                    <Label wrapText="true" maxWidth="Infinity" fx:id="pageTitle" text="Lista della spesa" styleClass="page-title"/>
+                    <Label fx:id="pageDescription" managed="false" visible="false" wrapText="true" styleClass="page-description"/>
+                </VBox>
+                <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="planning-period-actions">
+                    <Button fx:id="printShoppingButton" text="Stampa lista" onAction="#printRequirements" styleClass="button-primary"/>
+                    <ProgressIndicator fx:id="progressIndicator" prefWidth="24" prefHeight="24" managed="false" visible="false"/>
+                    <Label text="Caricamento…" visible="${progressIndicator.visible}" managed="${progressIndicator.visible}" styleClass="ops-muted"/>
+                </HBox>
+            </HBox>
+            <HBox fx:id="feedbackPanel" alignment="CENTER_LEFT" spacing="16" managed="false" visible="false">
+                <Label fx:id="feedbackLabel" wrapText="true" managed="false" visible="false" accessibleText="Esito pianificazione" styleClass="course-feedback" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                <Button fx:id="retryButton" text="Riprova" onAction="#retryFailedLoad" visible="false" managed="false" styleClass="course-secondary-button"/>
+            </HBox>
+            <VBox fx:id="sessionFilters" spacing="18" styleClass="course-filter-toolbar,planning-filter-toolbar,ops-filters,studio-filter-bar,workbench-planning-context">
+                <HBox alignment="CENTER_LEFT" spacing="12" styleClass="ops-scope-tabs">
+                    <ToggleButton fx:id="openScopeButton" text="Attivi" selected="true" onAction="#showOpenCourses" styleClass="ops-scope-tab"/>
+                    <ToggleButton fx:id="archiveScopeButton" text="Passati" onAction="#showArchivedCourses" styleClass="ops-scope-tab"/>
+                    <ComboBox fx:id="scopeField" managed="false" visible="false" onAction="#changeCourseScope"/>
+                    <Label fx:id="courseScopeDescription" wrapText="true" minWidth="0" HBox.hgrow="ALWAYS" styleClass="ops-muted"/>
+                </HBox>
+                <FlowPane fx:id="planningFilterFields" alignment="BOTTOM_LEFT" hgap="20" vgap="16" prefWrapLength="1100">
+                    <VBox spacing="8" minWidth="0" HBox.hgrow="ALWAYS" prefWidth="340" styleClass="course-filter-group,workbench-context-field">
+                        <Label text="Corso" labelFor="$courseField" styleClass="ops-field-label"/>
+                        <ComboBox fx:id="courseField" promptText="Scegli un corso" minWidth="0" maxWidth="Infinity" accessibleText="Corso per la pianificazione" onAction="#loadSelectedCourseSessions" styleClass="course-combo"/>
+                    </VBox>
+                    <VBox fx:id="calculationScope" spacing="8" minWidth="0" HBox.hgrow="ALWAYS" prefWidth="310" styleClass="workbench-context-field">
+                        <Label text="Fabbisogni per" styleClass="ops-field-label"/>
+                        <HBox spacing="0">
+                            <ToggleButton minWidth="-Infinity" fx:id="singleScopeButton" text="Sessione" selected="true" onAction="#showSingleRequirements" styleClass="ops-segment"/>
+                            <ToggleButton minWidth="-Infinity" fx:id="futureScopeButton" text="Totale pratiche future" onAction="#showFutureRequirements" styleClass="ops-segment"/>
+                        </HBox>
+                    </VBox>
+                    <VBox spacing="8" minWidth="0" HBox.hgrow="ALWAYS" prefWidth="340" styleClass="course-filter-group,workbench-context-field">
+                        <Label text="Sessione pratica" labelFor="$sessionField" styleClass="ops-field-label"/>
+                        <ComboBox fx:id="sessionField" promptText="Prima scegli un corso" minWidth="0" maxWidth="Infinity" accessibleText="Sessione pratica per la pianificazione" onAction="#loadSessionPlanning" styleClass="course-combo"/>
+                    </VBox>
+                </FlowPane>
+                <Label fx:id="sessionContextLabel" wrapText="true" styleClass="ops-muted"/>
+            </VBox>
+            <VBox fx:id="requirementPanel" spacing="20" styleClass="planning-table-surface,lab-card,ops-workbench,workbench-preparation-sheet">
+                <Button fx:id="embeddedPrintButton" text="Stampa lista" onAction="#printRequirements" visible="false" managed="false" styleClass="button-secondary"/>
+                <VBox spacing="8" styleClass="workbench-sheet-heading">
+                    <Label text="Ingredienti da preparare" styleClass="ops-section-title"/>
+                    <Label fx:id="requirementSummaryLabel" wrapText="true" styleClass="ops-confirmed" maxWidth="Infinity"/>
+                </VBox>
+                <VBox fx:id="missingMenusBox" spacing="8" visible="false" managed="false"/>
+                <TableView fx:id="requirementTable" maxWidth="Infinity" prefHeight="280" fixedCellSize="48" accessibleText="Fabbisogni ingredienti della sessione" styleClass="course-table,ops-table,studio-requirements-table">
+                    <placeholder>
+                        <Label text="Seleziona un corso e una sessione pratica." styleClass="ops-muted"/>
+                    </placeholder>
+                    <columns>
+                        <TableColumn fx:id="ingredientColumn" text="Ingrediente" minWidth="180" prefWidth="390"/>
+                        <TableColumn fx:id="confirmedParticipantsColumn" text="Confermati" minWidth="120" prefWidth="150"/>
+                        <TableColumn fx:id="quantityColumn" text="Quantità necessaria" minWidth="220" maxWidth="240" prefWidth="230" styleClass="studio-quantity-column"/>
+                    </columns>
+                </TableView>
+                <HBox alignment="CENTER_LEFT" spacing="20" styleClass="ops-footer">
+                    <Label fx:id="requirementNoteLabel" text="Seleziona un corso e una sessione pratica." wrapText="true" styleClass="ops-muted" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+
+                </HBox>
+            </VBox>
+            <VBox fx:id="participantPanel" spacing="18" managed="false" visible="false" styleClass="planning-table-surface,lab-card,ops-workbench">
+
+                <Label fx:id="participantSummaryLabel" text="Seleziona una sessione pratica" wrapText="true" styleClass="ops-muted"/>
+                <FlowPane fx:id="participantMetrics" hgap="24" vgap="12" managed="false" visible="false" styleClass="ops-participant-metrics"/>
+
+                <TableView fx:id="participantTable" prefHeight="285" fixedCellSize="54" accessibleText="Partecipanti e adesioni alla sessione" styleClass="course-table,participant-table,ops-table">
+                    <placeholder>
+                        <VBox alignment="CENTER" spacing="14">
+                            <ImageView fitWidth="48" fitHeight="48" opacity="0.45" preserveRatio="true">
+                                <image>
+                                    <Image url="@../assets/feather/users-dark.png"/>
+                                </image>
+                            </ImageView>
+                            <Label fx:id="participantEmptyLabel" text="Seleziona un corso e una sessione pratica." styleClass="ops-empty-title"/>
+
+                        </VBox>
+                    </placeholder>
+                    <columns>
+                        <TableColumn fx:id="participantColumn" text="Partecipante" prefWidth="500"/>
+                        <TableColumn fx:id="enrollmentColumn" text="Iscrizione al corso" prefWidth="240"/>
+                        <TableColumn fx:id="attendanceColumn" text="Adesione alla sessione" prefWidth="310"/>
+                    </columns>
+                </TableView>
+                <HBox fx:id="participantFooter" alignment="CENTER_LEFT" spacing="20" styleClass="ops-footer">
+                    <Button fx:id="requirementsLink" text="Vedi fabbisogni" onAction="#openRequirements" mnemonicParsing="false" styleClass="ops-text-link"/>
+                </HBox>
+            </VBox>
+            <VBox fx:id="reportPanel" spacing="24" managed="false" visible="false" styleClass="planning-report-surface,workbench-report-sheet">
+                <VBox spacing="14" styleClass="report-period-compact,workbench-report-period">
+                    <Label fx:id="reportScopeLabel" text="Tutti i tuoi corsi" wrapText="true" styleClass="ops-field-label"/>
+                    <FlowPane alignment="CENTER_LEFT" hgap="12" vgap="12">
+                        <Button fx:id="previousMonthButton" text="←" accessibleText="Mese precedente" onAction="#showPreviousMonth" styleClass="lab-text-action,report-month-arrow"><tooltip><Tooltip text="Mese precedente"/></tooltip></Button>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Label text="Mese" labelFor="$periodField" styleClass="ops-field-label"/>
+                            <ComboBox fx:id="periodField" editable="false" prefWidth="190" accessibleText="Mese del report" styleClass="course-combo"/>
+                        </HBox>
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Label text="Anno" labelFor="$reportYearField" styleClass="ops-field-label"/>
+                            <ComboBox fx:id="reportYearField" editable="false" prefWidth="120" styleClass="course-combo" accessibleText="Anno del report"/>
+                        </HBox>
+                        <Button fx:id="nextMonthButton" text="→" accessibleText="Mese successivo" onAction="#showNextMonth" styleClass="lab-text-action,report-month-arrow"><tooltip><Tooltip text="Mese successivo"/></tooltip></Button>
+                        <Button text="Mese corrente" onAction="#showCurrentMonth" styleClass="course-secondary-button"/>
+                    </FlowPane>
+                </VBox>
+                <VBox fx:id="reportResults" spacing="0" styleClass="report-results-sheet">
+                <FlowPane fx:id="reportMetrics" hgap="0" vgap="16" styleClass="studio-report-summary,workbench-report-summary,mock-report-metrics">
+                    <VBox spacing="4" minWidth="140" styleClass="workbench-report-measure">
+                        <Label fx:id="totalCoursesLabel" text="0" styleClass="report-summary-value"/>
+                        <Label text="corsi tenuti" wrapText="true" styleClass="ops-muted"/>
+                    </VBox>
+                    <VBox spacing="4" minWidth="170" styleClass="workbench-report-measure">
+                        <Label fx:id="practicalSessionsLabel" text="0" styleClass="report-summary-value"/>
+                        <Label text="Sessioni pratiche" wrapText="true" styleClass="ops-muted"/>
+                    </VBox>
+                    <VBox spacing="4" minWidth="140" styleClass="workbench-report-measure">
+                        <Label fx:id="onlineSessionsLabel" text="0" styleClass="report-summary-value"/>
+                        <Label text="Sessioni online" wrapText="true" styleClass="ops-muted"/>
+                    </VBox>
+                </FlowPane>
+                <FlowPane fx:id="reportCharts" hgap="0" vgap="0" styleClass="report-charts">
+                    <VBox spacing="8" minWidth="0" prefWidth="500" HBox.hgrow="ALWAYS" styleClass="lab-card,ops-chart-panel">
+                        <Label text="Modalità delle sessioni" styleClass="ops-chart-title"/>
+                        <Label fx:id="reportEmptyLabel" text="Nessuna sessione che soddisfa i criteri del report nel mese selezionato." wrapText="true" managed="false" visible="false" styleClass="ops-muted"/>
+                        <BarChart fx:id="sessionChart" legendVisible="false" animated="false" categoryGap="52" barGap="0" prefHeight="205" maxHeight="205" minWidth="0" accessibleText="Grafico a barre delle sessioni online e in presenza" styleClass="planning-chart,ops-session-chart">
+                            <xAxis>
+                                <NumberAxis animated="false" forceZeroInRange="true"/>
+                            </xAxis>
+                            <yAxis>
+                                <CategoryAxis/>
+                            </yAxis>
+                        </BarChart>
+                    </VBox>
+                    <VBox spacing="8" minWidth="0" prefWidth="500" HBox.hgrow="ALWAYS" styleClass="lab-card,ops-chart-panel,report-recipe-panel">
+                        <Label text="Ricette per sessione pratica" styleClass="ops-chart-title"/>
+                        <Label fx:id="recipeStatisticsLabel" text="Statistiche non disponibili" managed="false" visible="false" styleClass="ops-muted"/>
+                        <Label fx:id="recipeRangeLabel" managed="false" visible="false"/>
+                        <Label fx:id="recipeEmptyLabel" text="Nessuna sessione pratica conclusa: media, minimo e massimo non disponibili." wrapText="true" managed="false" visible="false" styleClass="ops-muted"/>
+                        <BarChart fx:id="recipeChart" legendVisible="false" animated="false" categoryGap="32" barGap="0" prefHeight="205" maxHeight="205" minWidth="0" accessibleText="Grafico statistiche ricette" styleClass="planning-chart-small,ops-recipe-chart">
+                            <xAxis>
+                                <NumberAxis animated="false" forceZeroInRange="true"/>
+                            </xAxis>
+                            <yAxis>
+                                <CategoryAxis/>
+                            </yAxis>
+                        </BarChart>
+                    </VBox>
+                </FlowPane>
+                </VBox>
+                <Button fx:id="reportDetailsButton" text="Vedi le sessioni del mese" onAction="#showReportDetails" styleClass="course-secondary-button"/>
+            </VBox>
+            <VBox fx:id="reportDetailsPanel" spacing="24" managed="false" visible="false" styleClass="report-detail-page">
+                <Button fx:id="reportDetailsBack" text="Torna al report mensile" onAction="#returnToReport" styleClass="lab-text-action"/>
+                <Label fx:id="reportDetailsTitle" text="Sessioni del mese" wrapText="true" styleClass="page-title"/>
+                <VBox fx:id="reportDetailsContent" spacing="16" styleClass="report-detail-sheet"/>
+            </VBox>
+        </VBox>
+    </content>
+</ScrollPane>

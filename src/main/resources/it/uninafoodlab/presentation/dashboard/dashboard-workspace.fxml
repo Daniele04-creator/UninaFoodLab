@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<ScrollPane xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1"
+            fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER"
+            styleClass="workspace-scroll,agenda-scroll" stylesheets="@dashboard.css" accessibleText="Agenda dello chef">
+ <content><VBox spacing="26" minHeight="-Infinity" styleClass="workspace-page,dashboard-workspace">
+  <padding><Insets top="26" right="36" bottom="32" left="36"/></padding>
+  <HBox alignment="CENTER_LEFT" spacing="12" styleClass="agenda-page-heading">
+   <Label text="Agenda" styleClass="page-title"/>
+   <Region HBox.hgrow="ALWAYS"/>
+   <ProgressIndicator fx:id="progressIndicator" prefWidth="20" prefHeight="20" visible="false" managed="false"/>
+   <Button fx:id="refreshButton" text="Riprova" onAction="#refresh" visible="false" managed="false" styleClass="course-button,button-secondary"/>
+   <Button fx:id="createCourseButton" text="Nuovo corso" onAction="#createCourse" styleClass="course-button,button-primary"/>
+  </HBox>
+  <Label fx:id="feedbackLabel" visible="false" managed="false" wrapText="true" styleClass="course-feedback,course-feedback-error"/>
+  <VBox spacing="24" minWidth="0" styleClass="agenda-surface">
+   <GridPane fx:id="calendarHeader" hgap="12" vgap="10" minWidth="0" alignment="CENTER_LEFT">
+    <Label fx:id="monthLabel" minWidth="0" styleClass="agenda-month-title"/>
+    <HBox fx:id="weekSchedule" minWidth="0" styleClass="agenda-week"/>
+    <HBox fx:id="weekControls" alignment="CENTER_RIGHT" spacing="5">
+     <Button fx:id="previousWeekButton" onAction="#previousWeek" accessibleText="Settimana precedente" styleClass="button-secondary,agenda-week-arrow"><tooltip><Tooltip text="Settimana precedente"/></tooltip></Button>
+     <Button text="Oggi" onAction="#goToToday" styleClass="course-button,button-secondary,agenda-today"/>
+     <Button fx:id="nextWeekButton" onAction="#nextWeek" accessibleText="Settimana successiva" styleClass="button-secondary,agenda-week-arrow"><tooltip><Tooltip text="Settimana successiva"/></tooltip></Button>
+    </HBox>
+   </GridPane>
+   <VBox spacing="12" minWidth="0">
+    <Label fx:id="selectedDayLabel" wrapText="true" styleClass="agenda-section-title"/>
+    <VBox fx:id="daySessions" spacing="0" minWidth="0"/>
+    <VBox fx:id="emptyDayPanel" alignment="CENTER" spacing="14" minHeight="140" visible="false" managed="false" styleClass="agenda-empty">
+     <Label fx:id="emptyDayLabel" wrapText="true" styleClass="agenda-muted"/>
+     <Button fx:id="nextAvailableButton" onAction="#goToNextAvailable" styleClass="course-button,button-secondary"/>
+    </VBox>
+   </VBox>
+  </VBox>
+  <VBox spacing="0" styleClass="agenda-tasks">
+   <ToggleButton fx:id="preparationToggle" onAction="#togglePreparation" visible="false" managed="false"
+                 wrapText="true" maxWidth="Infinity" styleClass="agenda-task-toggle"/>
+   <VBox fx:id="preparationSection" spacing="0" visible="false" managed="false"/>
+   <VBox fx:id="taskRows" spacing="0"/>
+  </VBox>
+ </VBox></content>
+</ScrollPane>

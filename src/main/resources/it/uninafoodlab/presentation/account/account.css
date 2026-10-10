@@ -1,0 +1,6 @@
+.account-dialog { -fx-background-color:white; -fx-padding:24 28; }
+.account-dialog .scroll-pane, .account-dialog .viewport { -fx-background-color:transparent; }
+.account-dialog .account-heading { -fx-font-size:28; -fx-font-weight:bold; -fx-text-fill:#173946; }
+.account-dialog .account-introduction { -fx-text-fill:#56625c; -fx-font-size:14; }
+.account-dialog .text-field, .account-dialog .combo-box { -fx-min-height:42; -fx-background-color:white; -fx-border-color:#889180; -fx-border-radius:6; -fx-background-radius:6; }
+.account-dialog .text-field:focused, .account-dialog .combo-box:focused { -fx-border-color:-studio-primary; }

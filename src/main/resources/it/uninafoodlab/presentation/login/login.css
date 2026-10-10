@@ -1,0 +1,26 @@
+.access-login, .access-scroll, .access-scroll > .viewport {
+    -fx-background-color: #FAFAF8;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.access-container { -fx-padding: 32; }
+.access-login .login-card {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 6;
+    -fx-border-color: #D6DED7;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 32 36;
+    -fx-spacing: 14;
+    -fx-effect: null;
+}
+.access-login .login-brand-title { -fx-alignment: center; -fx-padding: 0 0 20 0; }
+.access-title { -fx-font-size: 32; -fx-font-weight: bold; -fx-text-fill: -studio-ink; }
+.access-description { -fx-font-size: 14; -fx-text-fill: -studio-muted; }
+.access-login .field-label { -fx-font-weight: normal; }
+.access-login .access-heading { -fx-padding: 0 0 6 0; }
+.access-login .login-card > .password-row { -fx-padding: 0 0 10 0; }
+.access-login #accountActions { -fx-padding: 8 0 0 0; }
+.access-login .text-field { -fx-min-height: 44; -fx-background-radius: 6; -fx-border-radius: 6; }
+.access-login .login-submit { -fx-min-height: 44; -fx-background-radius: 6; }
+.access-login #accountActions { -fx-spacing: 12; -fx-fill-width: true; }

@@ -1,0 +1,42 @@
+
+.studio-dialog { -fx-background-color: #FFFFFF; -fx-padding: 26px; }
+.studio-dialog > .header-panel { -fx-background-color: transparent; -fx-padding: 0 0 20px 0; }
+.studio-dialog > .header-panel .label { -fx-font-size: 23px; -fx-font-weight: bold; -fx-wrap-text: true; }
+.studio-dialog > .button-bar { -fx-padding: 20px 0 0 0; }
+.studio-dialog .dialog-section { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 12px 0; -fx-spacing: 12px; }
+.studio-dialog .dialog-section-title { -fx-font-size: 16px; -fx-font-weight: bold; }
+.studio-dialog .dialog-copy { -fx-text-fill: #56625C; -fx-wrap-text: true; }
+.studio-dialog .dialog-status { -fx-background-color: #FFF4EE; -fx-background-radius: 8px; -fx-padding: 12px; -fx-font-weight: bold; -fx-wrap-text: true; }
+.studio-dialog .account-dialog-validation { -fx-background-color: #FBE9E4; -fx-background-radius: 8px; -fx-text-fill: #923F36; -fx-padding: 12px; -fx-font-weight: bold; }
+.studio-dialog .account-form { -fx-background-color: white; -fx-background-radius: 12px; -fx-padding: 20px; -fx-hgap: 18px; -fx-vgap: 16px; }
+.studio-dialog .account-form .label { -fx-font-weight: bold; }
+.studio-dialog .text-field, .studio-dialog .text-area { -fx-font-size: 14px; }
+.studio-dialog .check-box { -fx-padding: 6px 0; -fx-wrap-text: true; }
+.studio-dialog .dialog-document { -fx-padding: 0 12px 0 0; -fx-spacing: 14px; }
+.studio-dialog .button-danger {
+    -fx-background-color: #A6382E;
+    -fx-border-color: #A6382E;
+    -fx-text-fill: white;
+}
+.studio-dialog .button-danger:hover { -fx-background-color: #8E2D25; -fx-border-color: #8E2D25; }
+.studio-dialog .button-danger:focus-visible {
+    -fx-border-color: -studio-ink, white;
+    -fx-border-width: 2px, 2px;
+    -fx-border-insets: 0, 3px;
+    -fx-border-radius: 5px, 3px;
+}
+.studio-dialog .button-danger:disabled {
+    -fx-background-color: #EBD0CD;
+    -fx-border-color: #D4ABA5;
+    -fx-text-fill: #75433B;
+}
+
+
+.studio-dialog.recipe-reading-dialog { -fx-padding: 20px; }
+.studio-dialog.recipe-reading-dialog > .header-panel { -fx-padding: 0 0 14px; }
+.studio-dialog.recipe-reading-dialog > .button-bar { -fx-padding: 14px 0 0; }
+.studio-dialog .recipe-dialog-content { -fx-spacing: 16px; -fx-padding: 0 10px 0 0; }
+.studio-dialog .recipe-dialog-content .label { -fx-text-fill: -studio-ink; }
+.studio-dialog .recipe-dialog-heading { -fx-font-size: 18px; -fx-font-weight: bold; }
+.studio-dialog .recipe-dialog-ingredient { -fx-padding: 7px 0; -fx-border-color: transparent transparent -studio-line transparent; -fx-border-width: 0 0 1px; }
+.studio-dialog .recipe-dialog-preparation { -fx-font-size: 16px; -fx-line-spacing: 6px; -fx-text-fill: -studio-ink; }

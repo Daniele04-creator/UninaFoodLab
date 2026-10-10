@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane fx:id="loginRoot" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" accessibleText="Accesso a UninaFoodLab" styleClass="login-root,access-login" stylesheets="@login.css">
+ <center>
+  <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" styleClass="access-scroll"><content><StackPane styleClass="access-container">
+   <VBox alignment="CENTER" spacing="24" prefWidth="470" maxWidth="470" maxHeight="-Infinity" styleClass="access-stack">
+    <Label fx:id="brandTitle" text="UninaFoodLab" alignment="CENTER" maxWidth="Infinity" styleClass="login-brand-title"/>
+    <VBox alignment="CENTER" spacing="10" styleClass="access-heading"><Label text="Accedi" styleClass="access-title"/><Label text="Inserisci le credenziali del tuo account." wrapText="true" styleClass="access-description"/></VBox>
+    <VBox alignment="CENTER_LEFT" spacing="14" maxWidth="Infinity" styleClass="login-card">
+    <Label text="Username" labelFor="$usernameField" styleClass="field-label"/>
+    <TextField fx:id="usernameField" promptText="Il tuo username" accessibleText="Username" styleClass="login-field"/>
+    <Label fx:id="passwordLabel" text="Password" labelFor="$passwordField" styleClass="field-label"/>
+    <StackPane styleClass="password-row" maxWidth="Infinity">
+     <PasswordField fx:id="passwordField" promptText="La tua password" accessibleText="Password" onAction="#submit" styleClass="login-field,password-input"/>
+     <TextField fx:id="visiblePasswordField" promptText="La tua password" accessibleText="Password visibile" onAction="#submit" visible="false" managed="false" styleClass="login-field,password-input"/>
+     <ToggleButton fx:id="revealPasswordButton" accessibleText="Mostra password" onAction="#togglePassword" maxWidth="44" maxHeight="40" StackPane.alignment="CENTER_RIGHT" styleClass="password-reveal">
+      <StackPane.margin><Insets right="4"/></StackPane.margin><tooltip><Tooltip text="Mostra password"/></tooltip>
+     </ToggleButton>
+    </StackPane>
+    <Label fx:id="errorLabel" visible="false" managed="false" wrapText="true" accessibleText="Errore di autenticazione" styleClass="login-error"/>
+    <HBox alignment="CENTER" spacing="10"><Button fx:id="submitButton" text="Accedi" defaultButton="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" accessibleText="Accedi" onAction="#submit" styleClass="login-submit"/><ProgressIndicator fx:id="progressIndicator" maxWidth="24" maxHeight="24" visible="false" managed="false" accessibleText="Accesso in corso" styleClass="login-progress"/></HBox>
+    <VBox fx:id="accountActions" alignment="CENTER" spacing="2" visible="false" managed="false">
+     <HBox alignment="CENTER" spacing="6"><Label text="Non hai un account?" styleClass="access-description"/><Button fx:id="registerButton" text="Crea un account" onAction="#registerAccount" styleClass="button-quiet"/></HBox>
+    </VBox>
+    </VBox>
+   </VBox>
+  </StackPane></content></ScrollPane>
+ </center>
+</BorderPane>

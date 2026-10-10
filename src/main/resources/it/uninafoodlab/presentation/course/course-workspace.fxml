@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import it.uninafoodlab.presentation.course.TimeSelector?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.TilePane?>
+<VBox xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" spacing="0.0" accessibleText="Gestione dei corsi dello Chef" styleClass="course-chef-workspace,workspace-page,editorial-course-workspace">
+    <stylesheets>
+        <String fx:value="/it/uninafoodlab/presentation/course/course-workspace.css"/>
+    </stylesheets>
+    <padding>
+        <Insets top="0" right="0" bottom="0" left="0"/>
+    </padding>
+    <VBox fx:id="courseCatalogView" spacing="0.0" VBox.vgrow="ALWAYS">
+        <HBox alignment="CENTER_LEFT" spacing="12" managed="${feedbackLabel.visible}" visible="${feedbackLabel.visible}" styleClass="course-feedback-row">
+            <Label fx:id="feedbackLabel" wrapText="true" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS" managed="false" visible="false" accessibleText="Esito operazione corsi" styleClass="course-feedback"/>
+            <Button fx:id="courseRetryButton" text="Riprova" onAction="#retryCourseRead" visible="false" managed="false" accessibleText="Riprova il caricamento senza ripetere modifiche" styleClass="button-secondary"/>
+        </HBox>
+        <HBox fx:id="courseCatalogLayout" spacing="0.0" VBox.vgrow="ALWAYS" styleClass="course-catalog-layout">
+            <VBox fx:id="courseSelectorRail" spacing="14" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="course-index-page">
+                <HBox fx:id="coursePageHeader" alignment="CENTER_LEFT" spacing="16">
+                    <Label text="I miei corsi" styleClass="page-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <ProgressIndicator fx:id="progressIndicator" prefWidth="22" prefHeight="22" visible="false" managed="false"/>
+                    <Button fx:id="openCreateCourseButton" text="Nuovo corso" onAction="#toggleCourseForm" styleClass="button-primary"/>
+                </HBox>
+                <HBox spacing="4" styleClass="course-catalog-tabs">
+                        <ToggleButton fx:id="activeCoursesTab" minWidth="100" prefWidth="100" text="Attivi" selected="true" onAction="#showActiveCourses" accessibleText="Mostra i corsi attivi" styleClass="course-catalog-tab"/>
+                        <ToggleButton fx:id="archiveCoursesTab" minWidth="100" prefWidth="100" text="Passati" onAction="#showArchivedCourses" accessibleText="Mostra i corsi passati e annullati" styleClass="course-catalog-tab"/>
+                        <ToggleButton fx:id="allCoursesTab" minWidth="100" prefWidth="100" text="Tutti" onAction="#showAllCourses" styleClass="course-catalog-tab"/>
+                </HBox>
+                <VBox spacing="16">
+
+                    <FlowPane hgap="12" vgap="12" alignment="CENTER_LEFT">
+                        <VBox spacing="6">
+                            <Label text="Cerca un corso" labelFor="$courseSearchField" styleClass="field-label"/>
+                            <TextField fx:id="courseSearchField" promptText="Titolo o categoria" prefWidth="260" accessibleText="Cerca corsi"/>
+                        </VBox>
+                        <VBox spacing="6">
+                            <Label text="Categoria" labelFor="$categoryFilter" styleClass="field-label"/>
+                            <ComboBox fx:id="categoryFilter" prefWidth="230" promptText="Tutte le categorie" onAction="#filterCourses" accessibleText="Filtra i corsi per categoria"/>
+                        </VBox>
+                    </FlowPane>
+                </VBox>
+                <Label fx:id="courseCountLabel" text="0 corsi" styleClass="context-hint"/>
+                <ListView fx:id="courseList" visible="false" managed="false"/>
+                <ScrollPane fx:id="courseCatalogScroll" fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS" styleClass="workspace-scroll">
+                    <VBox spacing="20" minWidth="0">
+                        <GridPane fx:id="courseCards" hgap="20" vgap="20" alignment="TOP_LEFT" minWidth="0"/>
+                        <HBox fx:id="coursePaginationBottom" minWidth="0"/>
+                    </VBox>
+                </ScrollPane>
+            </VBox>
+            <VBox fx:id="courseDetailView" minWidth="0" HBox.hgrow="ALWAYS" spacing="12" visible="false" managed="false">
+                <VBox fx:id="sessionDetailHeader" spacing="8" visible="false" managed="false" styleClass="session-detail-header,workbench-session-heading">
+                    <FlowPane alignment="CENTER_LEFT" hgap="8" vgap="8" styleClass="workbench-session-tools">
+                        <Button fx:id="sessionReturnButton" text="Torna al programma" onAction="#returnFromSession" styleClass="button-quiet,course-button"/>
+                        <Button fx:id="rescheduleButton" text="Modifica calendario" onAction="#openRescheduleSessionDialog" styleClass="course-button,button-quiet"/>
+                        <Button fx:id="cancelSessionButton" text="Cancella sessione" onAction="#cancelSession" styleClass="course-button,button-danger,workbench-danger-quiet"/>
+                    </FlowPane>
+                    <Label fx:id="sessionDetailTitle" wrapText="true" styleClass="section-title,session-detail-title"/>
+                    <FlowPane hgap="16" vgap="6" alignment="CENTER_LEFT">
+                        <Label fx:id="sessionDetailContext" wrapText="true" styleClass="context-hint"/>
+                        <FlowPane fx:id="sessionDetailMetadata" hgap="12" vgap="6" alignment="CENTER_LEFT" visible="false" managed="false">
+                            <Label fx:id="sessionDetailMode" wrapText="true" styleClass="course-session-mode,session-detail-mode"/>
+                            <Label fx:id="sessionDetailStatus" styleClass="course-session-state,session-detail-status"/>
+                        </FlowPane>
+                    </FlowPane>
+                    <Label fx:id="sessionDetailLocation" wrapText="true" minWidth="0" maxWidth="Infinity" visible="false" managed="false" styleClass="context-hint,session-detail-location"/>
+                    <HBox fx:id="detailLessonActions" spacing="8" visible="false" managed="false">
+                        <Button fx:id="openDetailLessonButton" text="Apri lezione" onAction="#openLesson" accessibleText="Apri la lezione online nel browser" styleClass="course-button,button-secondary"/>
+                        <Button fx:id="copyDetailLessonButton" text="Copia link" onAction="#copyLessonLink" accessibleText="Copia il link della lezione online" styleClass="course-button,button-quiet"/>
+                    </HBox>
+                    <FlowPane hgap="6" vgap="6" styleClass="session-detail-nav,course-section-nav">
+                        <ToggleButton fx:id="sessionMenuTab" text="Menu" onAction="#showRecipes" styleClass="course-section-tab"/>
+                        <ToggleButton fx:id="sessionParticipantsTab" text="Adesioni" onAction="#showSessionParticipants" styleClass="course-section-tab"/>
+                        <ToggleButton fx:id="recipeRequirementsButton" text="Fabbisogni" onAction="#openRecipeRequirements" styleClass="course-section-tab"/>
+                    </FlowPane>
+                </VBox>
+                <StackPane fx:id="sessionPlanningHost" visible="false" managed="false" minHeight="0" VBox.vgrow="ALWAYS"/>
+            <ScrollPane fx:id="courseContentScroll" fitToWidth="true" hbarPolicy="NEVER" minWidth="0.0" VBox.vgrow="ALWAYS" styleClass="workspace-scroll" accessibleText="Dettagli e operazioni del corso">
+                <content>
+                    <VBox spacing="0.0" minWidth="0.0" accessibleText="Dettagli del corso selezionato" styleClass="course-detail-panel,lab-workbench,course-detail-surface">
+                        <padding>
+                            <Insets top="0" right="0" bottom="0" left="0"/>
+                        </padding>
+                        <VBox fx:id="courseOverview" spacing="12.0" styleClass="course-dossier,workbench-course-dossier,course-overview">
+                            <padding>
+                                <Insets top="24" right="24" bottom="20" left="24"/>
+                            </padding>
+                            <Button fx:id="courseReturnButton" text="Tutti i corsi" onAction="#showCourseIndex" styleClass="button-quiet"/>
+                            <Label fx:id="selectedCourseMetaLabel" wrapText="true" text="Seleziona un elemento dal catalogo." styleClass="course-selected-meta,course-overview-meta"/>
+                            <Label fx:id="selectedCourseLabel" text="Seleziona un corso" wrapText="true" styleClass="course-selected-title,course-overview-title"/>
+                            <Label fx:id="selectedCourseDescriptionLabel" text="Consulta qui calendario e ricette." wrapText="true" styleClass="page-description,course-selected-description"/>
+                            <Label fx:id="selectedCourseFactsLabel" wrapText="true" styleClass="course-overview-facts"/>
+                            <FlowPane hgap="8" vgap="8" styleClass="studio-course-actions,workbench-dossier-actions">
+                                <Button fx:id="shoppingListButton" text="Lista della spesa" onAction="#openShoppingList" styleClass="course-button,button-secondary"/>
+                                <Button fx:id="courseParticipantsButton" text="Iscritti al corso" onAction="#showCourseParticipants" styleClass="course-button,button-secondary"/>
+                                <Button fx:id="communicateCourseButton" text="Scrivi agli iscritti" onAction="#communicateToSelectedCourse" mnemonicParsing="false" accessibleText="Registra una comunicazione per gli iscritti del corso selezionato" styleClass="course-button,button-secondary"/>
+                            </FlowPane>
+                        </VBox>
+                        <HBox alignment="CENTER_LEFT" spacing="6.0" visible="false" managed="false" styleClass="course-section-nav,lab-toolbar">
+                            <ToggleButton fx:id="programTab" text="Calendario" selected="true" onAction="#showProgram" mnemonicParsing="false" accessibleText="Mostra il calendario del corso" styleClass="course-section-tab"/>
+                            <ToggleButton fx:id="recipeTab" text="Ricette" onAction="#showRecipes" mnemonicParsing="false" accessibleText="Mostra l'assegnazione delle ricette" styleClass="course-section-tab"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                        <StackPane fx:id="courseSectionStack" VBox.vgrow="ALWAYS" styleClass="course-section-stack">
+                            <VBox fx:id="programPane" spacing="20.0" styleClass="studio-course-program,workbench-program-sheet,course-program-pane">
+                                <padding>
+                                    <Insets top="18" right="18" bottom="18" left="18"/>
+                                </padding>
+                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                    <VBox spacing="3.0" minWidth="0.0" HBox.hgrow="ALWAYS">
+                                        <Label text="Il percorso" styleClass="section-title"/>
+                                    </VBox>
+                                    <Button fx:id="addSessionButton" text="Aggiungi sessione" accessibleText="Apri la finestra per aggiungere una sessione" mnemonicParsing="false" onAction="#openAddSessionDialog" styleClass="course-button,button-secondary,course-add-session-button"/>
+                                </HBox>
+                                <TableView fx:id="sessionTable" visible="false" managed="false" fixedCellSize="52.0" minHeight="96.0" prefHeight="200.0" VBox.vgrow="ALWAYS" accessibleText="Tutte le sessioni del corso selezionato" styleClass="course-table">
+                                    <placeholder>
+                                        <Label text="Nessuna sessione disponibile"/>
+                                    </placeholder>
+                                    <columns>
+                                        <TableColumn fx:id="sequenceColumn" visible="false" text="Sessione" minWidth="90.0" prefWidth="110.0"/>
+                                        <TableColumn fx:id="dateColumn" text="Data e ora" minWidth="108.0" prefWidth="120.0"/>
+                                        <TableColumn fx:id="modeColumn" text="Modalità" minWidth="130.0" prefWidth="145.0"/>
+                                        <TableColumn fx:id="detailsColumn" text="Stato sessione" minWidth="145.0" prefWidth="160.0"/>
+                                        <TableColumn fx:id="recipeCountColumn" text="Menu" minWidth="110.0" prefWidth="120.0"/>
+                                    </columns>
+                                </TableView>
+                                <VBox fx:id="sessionAgenda" spacing="0" accessibleText="Programma cronologico: seleziona una sessione per espandere i dettagli" styleClass="workbench-program-timeline"/>
+                                <Label fx:id="archiveReadOnlyLabel" text="Corso passato, calendario e ricette in sola lettura" wrapText="true" visible="false" managed="false" styleClass="context-hint"/>
+                                <VBox fx:id="sessionCommandBar" spacing="8.0" styleClass="session-command-bar,course-session-detail,course-session-expanded">
+                                    <Label fx:id="selectedSessionContext" text="Seleziona una sessione." wrapText="true" styleClass="context-hint"/>
+                                    <Label fx:id="sessionLocationCaption" text="Sede" visible="false" managed="false"/>
+                                    <Label fx:id="sessionLocationValue" visible="false" managed="false"/>
+                                    <FlowPane hgap="24" vgap="6" styleClass="course-selected-session-facts">
+                                        <HBox spacing="6" alignment="CENTER_LEFT">
+                                            <Label text="Capienza" styleClass="field-label"/>
+                                            <Label fx:id="sessionCapacityValue" styleClass="context-hint"/>
+                                        </HBox>
+                                        <HBox spacing="6" alignment="CENTER_LEFT">
+                                            <Label text="Chiusura adesioni" styleClass="field-label"/>
+                                            <Label fx:id="sessionCutoffValue" styleClass="context-hint"/>
+                                        </HBox>
+                                    </FlowPane>
+                                    <HBox fx:id="programLessonActions" spacing="8" visible="false" managed="false">
+                                        <Button fx:id="openProgramLessonButton" text="Apri lezione" onAction="#openLesson" accessibleText="Apri la lezione online nel browser" styleClass="course-button,button-secondary"/>
+                                        <Button fx:id="copyProgramLessonButton" text="Copia link" onAction="#copyLessonLink" accessibleText="Copia il link della lezione online" styleClass="course-button,button-quiet"/>
+                                    </HBox>
+                                    <FlowPane alignment="TOP_LEFT" hgap="24.0" vgap="10.0" styleClass="course-session-expanded-actions">
+                                        <VBox fx:id="sessionRecipeLinks" spacing="4" accessibleText="Ricette della sessione selezionata" styleClass="course-inline-menu"/>
+                                        <FlowPane alignment="CENTER_LEFT" hgap="8.0" vgap="8.0">
+                                            <Button fx:id="sessionMenuButton" text="Gestisci sessione" onAction="#showRecipes" styleClass="course-button,button-primary,course-manage-session-button"/>
+                                        </FlowPane>
+                                    </FlowPane>
+                                </VBox>
+                            </VBox>
+                            <VBox fx:id="recipePane" spacing="16.0" managed="false" visible="false" styleClass="studio-course-menu">
+                                <padding>
+                                    <Insets top="18" right="18" bottom="18" left="18"/>
+                                </padding>
+                                <VBox spacing="4.0">
+                                    <Button fx:id="refreshSessionRecipesButton" text="Aggiorna dal ricettario" onAction="#refreshSessionRecipes" styleClass="course-button,button-quiet"/>
+                                    <Label fx:id="recipeTaskDescription" text="Consulta le ricette della sessione." wrapText="true" styleClass="page-description"/>
+                                </VBox>
+                                <VBox spacing="12.0" styleClass="recipe-assignment-panel">
+                                    <GridPane hgap="24.0" styleClass="workbench-menu-layout">
+                                        <columnConstraints>
+                                            <ColumnConstraints fx:id="menuReadColumn" percentWidth="58" hgrow="ALWAYS"/>
+                                            <ColumnConstraints fx:id="menuEditColumn" percentWidth="42" hgrow="ALWAYS"/>
+                                        </columnConstraints>
+                                        <VBox spacing="16" minWidth="0" GridPane.columnIndex="0" styleClass="workbench-menu-sheet">
+                                    <Label fx:id="recipeCourseContext" visible="false" managed="false" wrapText="true" styleClass="section-title"/>
+                                    <ComboBox fx:id="recipeSessionField" visible="false" managed="false" maxWidth="Infinity" promptText="Seleziona una sessione pratica" accessibleText="Sessione pratica a cui assegnare la ricetta" styleClass="course-combo"/>
+                                    <Label fx:id="assignedRecipesLabel" wrapText="true" styleClass="section-title"/>
+                                    <Label fx:id="recipeSessionContext" visible="false" managed="false" wrapText="true" styleClass="context-hint"/>
+                                            <VBox fx:id="assignedRecipeRows" spacing="0.0" accessibleText="Ricette nel menu della sessione"/>
+                                            <Label fx:id="recipeAvailabilityLabel" text="Seleziona una sessione pratica." wrapText="true" styleClass="context-hint,recipe-availability"/>
+                                        </VBox>
+                                        <VBox fx:id="recipeAddPanel" spacing="12.0" minWidth="0" GridPane.columnIndex="1" styleClass="course-menu-add,workbench-menu-library">
+                                            <Label text="Aggiungi dal ricettario" wrapText="true" styleClass="section-title"/>
+                                            <Label text="Cerca per nome o categoria" labelFor="$recipeSearchField" styleClass="field-label"/>
+                                            <TextField fx:id="recipeSearchField" promptText="Cerca ricetta" accessibleText="Cerca ricetta per nome o categoria" styleClass="course-field"/>
+                                            <Label fx:id="recipeResultsLabel" wrapText="true" styleClass="context-hint"/>
+                                            <Button fx:id="recipeRetryButton" text="Riprova" onAction="#refreshCatalog" visible="false" managed="false" accessibleText="Riprova il caricamento del ricettario" styleClass="course-button,button-secondary"/>
+                                            <VBox fx:id="recipeCatalogRows" spacing="12" minWidth="0" accessibleText="Ricette disponibili: ricerca e aggiunta al menu"/>
+                                            <HBox fx:id="recipePaginationBottom" minWidth="0"/>
+                                        </VBox>
+                                    </GridPane>
+
+                                </VBox>
+                            </VBox>
+                        </StackPane>
+                    </VBox>
+                </content>
+            </ScrollPane>
+            </VBox>
+        </HBox>
+    </VBox>
+    <ScrollPane fx:id="createCourseView" fitToWidth="true" hbarPolicy="NEVER" minHeight="0.0" VBox.vgrow="ALWAYS" managed="false" visible="false" accessibleText="Modulo per creare un nuovo corso" styleClass="course-create-workspace-scroll">
+        <content>
+            <VBox fx:id="createCoursePanel" spacing="18.0" styleClass="course-create-workspace">
+                <HBox alignment="CENTER_LEFT" minHeight="76.0" styleClass="course-create-hero,lab-page-header">
+                    <VBox spacing="7.0" HBox.hgrow="ALWAYS">
+                        <Button fx:id="createCourseReturnButton" text="Torna ai corsi e conserva bozza" accessibleText="Torna al catalogo dei corsi conservando la bozza" mnemonicParsing="false" onAction="#toggleCourseForm" styleClass="course-create-back,button-quiet">
+
+                        </Button>
+                        <Label text="Nuovo corso" styleClass="page-title,hero-title,course-create-title"/>
+                    </VBox>
+                </HBox>
+                <VBox spacing="20.0" VBox.vgrow="ALWAYS" styleClass="course-create-card">
+                    <VBox spacing="24" styleClass="course-create-content">
+                        <GridPane fx:id="courseCreationOverview" hgap="24" vgap="24" minWidth="0">
+                        <VBox spacing="10.0" minWidth="0.0" GridPane.columnIndex="0" styleClass="course-create-form-column">
+                            <Label text="Il corso" styleClass="course-create-section-title"/>
+                            <Label text="Categoria" labelFor="$categoryField" styleClass="field-label"/>
+                            <HBox spacing="12.0" alignment="CENTER_LEFT">
+                                <ComboBox fx:id="categoryField" minWidth="0" maxWidth="Infinity" promptText="Seleziona" accessibleText="Categoria del nuovo corso" styleClass="course-combo,course-create-control" HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="createCategoryButton" text="Nuova categoria" minWidth="-Infinity" accessibleText="Nuova categoria globale" mnemonicParsing="false" onAction="#createCategory" styleClass="course-button,button-quiet"/>
+                            </HBox>
+                            <Label text="Titolo" labelFor="$titleField" styleClass="field-label"/>
+                            <TextField fx:id="titleField" promptText="Es. Pizza contemporanea" accessibleText="Titolo del nuovo corso" accessibleHelp="Da 3 a 30 caratteri, su una sola riga." styleClass="course-field,course-create-control"/>
+                            <Label text="Da 3 a 30 caratteri, su una sola riga." wrapText="true" styleClass="form-helper"/>
+                            <Label text="Descrizione" labelFor="$descriptionField" styleClass="field-label"/>
+                            <TextArea fx:id="descriptionField" prefRowCount="4" prefHeight="108.0" wrapText="true" promptText="Obiettivi e contenuti del corso" accessibleText="Descrizione del nuovo corso" styleClass="course-field,course-create-description"/>
+                        </VBox>
+                        <VBox spacing="10.0" minWidth="0.0" GridPane.columnIndex="1" styleClass="course-create-calendar-column">
+                            <Label text="Il calendario" styleClass="course-create-section-title,course-create-program-title"/>
+                            <GridPane hgap="22.0" vgap="7.0">
+                                <columnConstraints>
+                                    <ColumnConstraints percentWidth="50.0" hgrow="ALWAYS"/>
+                                    <ColumnConstraints percentWidth="50.0" hgrow="ALWAYS"/>
+                                </columnConstraints>
+                                <children>
+                                    <Label text="Data di inizio" labelFor="$startDateField" styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                    <Label text="Ora" labelFor="$startTimeField" styleClass="field-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                    <DatePicker fx:id="startDateField" maxWidth="Infinity" accessibleText="Data di inizio del corso" styleClass="course-field,course-create-control" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                    <TimeSelector fx:id="startTimeField" accessibleText="Ora di inizio: seleziona ore e minuti" styleClass="course-time-selector" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                    <Label text="Frequenza in giorni" labelFor="$recurrenceField" styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                    <Label text="Sessioni" labelFor="$sessionCountField" styleClass="field-label" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                    <Spinner fx:id="recurrenceField" editable="true" maxWidth="Infinity" accessibleText="Frequenza delle sessioni in giorni" styleClass="course-field,course-create-control" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                                    <Spinner fx:id="sessionCountField" editable="true" maxWidth="Infinity" accessibleText="Numero di sessioni del corso" styleClass="course-field,course-create-control" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                                    <Label text="Durata in minuti" labelFor="$durationField" styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                                    <Spinner fx:id="durationField" editable="true" maxWidth="Infinity" accessibleText="Durata di ogni sessione in minuti" styleClass="course-field,course-create-control" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                                </children>
+                            </GridPane>
+                        </VBox>
+                        </GridPane>
+                        <VBox spacing="18.0" minWidth="0.0" styleClass="course-create-session-section">
+                            <Label text="Modalità delle sessioni" styleClass="course-create-section-title"/>
+                            <VBox fx:id="commonSessionSettings" spacing="12" minWidth="0" styleClass="course-common-settings"/>
+                            <TilePane fx:id="sessionModeEditor" hgap="0" vgap="0" prefColumns="1" minWidth="0" maxWidth="Infinity" accessibleText="Modalità e date delle sessioni"/>
+                            <HBox alignment="CENTER_LEFT" spacing="14.0" visible="false" managed="false" styleClass="course-create-summary">
+                                <Label fx:id="courseSummaryLabel" text="2 sessioni, ogni 7 giorni, 120 min" accessibleText="Riepilogo della programmazione" styleClass="course-create-summary-text"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+                </VBox>
+            </VBox>
+        </content>
+    </ScrollPane>
+    <HBox alignment="CENTER_RIGHT" spacing="16.0" visible="${createCourseView.visible}" managed="${createCourseView.visible}" styleClass="course-create-actions">
+        <Label fx:id="createFeedbackLabel" wrapText="true" minWidth="0.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" managed="false" visible="false" accessibleText="Esito creazione corso" styleClass="course-feedback,course-create-feedback"/>
+        <ProgressIndicator fx:id="createProgressIndicator" prefWidth="22" prefHeight="22" minWidth="22" maxWidth="22" maxHeight="22" visible="false" managed="false"/>
+        <Label fx:id="createProgressLabel" text="Creazione in corso…" wrapText="true" visible="false" managed="false" accessibleText="Creazione del corso in corso" styleClass="context-hint"/>
+        <Button fx:id="cancelCreateCourseButton" text="Scarta bozza" minWidth="110.0" minHeight="44.0" accessibleText="Scarta la bozza del corso e torna ai corsi" mnemonicParsing="false" onAction="#discardCourseDraft" styleClass="course-button,button-secondary,course-create-action"/>
+        <Button fx:id="createButton" text="Crea corso" minWidth="150.0" minHeight="44.0" accessibleText="Crea il corso e genera le sessioni" mnemonicParsing="false" onAction="#createCourse" styleClass="course-button,button-primary,course-create-action"/>
+    </HBox>
+</VBox>

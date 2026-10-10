@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane fx:id="shellRoot" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" accessibleText="Applicazione UninaFoodLab" styleClass="app-root">
+ <top>
+  <GridPane fx:id="shellHeader" hgap="20" alignment="CENTER_LEFT" styleClass="workbench-chrome,shell-header">
+    <Label fx:id="brandTitle" text="UninaFoodLab" accessibleText="UninaFoodLab" styleClass="lab-brand-title" GridPane.valignment="CENTER"/>
+   <HBox fx:id="profileActions" alignment="CENTER_RIGHT" spacing="16" GridPane.columnIndex="1" styleClass="shell-profile-actions">
+    <Button fx:id="profileButton" onAction="#openProfile" accessibleText="Account e uscita" styleClass="profile-button"><graphic><HBox alignment="CENTER_LEFT" spacing="10" styleClass="lab-profile">
+     <Label fx:id="profileName" text="Utente" styleClass="profile-name"/>
+     <Label fx:id="profileChevron" styleClass="profile-chevron" mouseTransparent="true"/>
+    </HBox></graphic></Button>
+   </HBox>
+   <HBox fx:id="navigationBar" spacing="0" alignment="CENTER_LEFT" GridPane.rowIndex="1" GridPane.columnSpan="2" styleClass="workbench-navigation,lab-navigation" accessibleText="Sezioni del laboratorio">
+    <Button fx:id="dashboardButton" text="Agenda" accessibleText="Apri la tua agenda" onAction="#showDashboard" styleClass="navigation-button"/>
+    <Button fx:id="coursesButton" text="Corsi" accessibleText="Apri Corsi" onAction="#showCourses" styleClass="navigation-button"/>
+    <Button fx:id="catalogButton" text="Ricettario" accessibleText="Gestisci ricette e ingredienti" onAction="#showCatalog" styleClass="navigation-button"/>
+    <Button fx:id="notificationsButton" text="Comunicazioni" accessibleText="Apri Comunicazioni" onAction="#showNotifications" styleClass="navigation-button"/>
+    <Button fx:id="monthlyReportButton" text="Report" accessibleText="Consulta il report mensile" onAction="#showMonthlyReport" styleClass="navigation-button"/>
+   </HBox>
+  </GridPane>
+ </top>
+ <center><StackPane fx:id="contentHost" styleClass="workspace"/></center>
+</BorderPane>

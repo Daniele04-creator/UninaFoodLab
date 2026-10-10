@@ -1,0 +1,29 @@
+
+.notification-workspace { -fx-background-color: -studio-background; -fx-padding: 24 32 24 32; }
+.notification-workspace-root { -fx-background-color: -studio-background; }
+.notification-workspace .workspace-hero { -fx-padding: 0 0 8 0; -fx-background-color: transparent; -fx-border-width: 0; }
+.notification-workspace .hero-title { -fx-font-size: 34px; }
+.notification-workspace .notification-content-row, .notification-workspace .notification-archive { -fx-background-color: transparent; -fx-padding: 0; -fx-border-width: 0; }
+.notification-workspace .notification-filters { -fx-padding: 0 0 20 0; }
+.notification-workspace .notification-list { -fx-background-color: transparent; -fx-background-radius: 0; -fx-padding: 0; -fx-border-color: -studio-line; -fx-border-radius: 0; -fx-border-width: 1 0 0 0; }
+.notification-workspace .notification-list .virtual-flow, .notification-workspace .notification-list .clipped-container { -fx-background-color: transparent; }
+.notification-workspace .notification-list .list-cell { -fx-background-color: white; -fx-padding: 24; -fx-border-color: -studio-line; -fx-border-width: 0 0 1 0; }
+.notification-workspace .notification-list .list-cell:empty { -fx-background-color: transparent; -fx-border-width: 0; }
+.notification-workspace .notification-list .list-cell:filled:selected { -fx-background-color: white; }
+.notification-workspace .notification-list:focus-visible .list-cell:filled:focused { -fx-border-color: -studio-primary; -fx-border-width: 2; -fx-border-insets: 1; }
+.notification-workspace .notification-row-title { -fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: -studio-ink; }
+.notification-workspace .notification-row-course { -fx-font-size: 14; -fx-text-fill: #596657; }
+.notification-workspace .notification-row-date { -fx-font-size: 14; -fx-text-fill: -studio-muted; }
+.notification-workspace .notification-card-message { -fx-font-size: 14; -fx-line-spacing: 3; -fx-text-fill: -studio-muted; }
+.notification-workspace .notification-open { -fx-font-size: 14; -fx-padding: 8 0; -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -studio-ink; }
+.notification-workspace .notification-open:focus-visible { -fx-border-color: -studio-primary; -fx-border-width: 2; -fx-border-insets: 0; }
+.notification-workspace .notification-composer { -fx-background-color: white; -fx-border-color: -studio-line; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 26; }
+.notification-workspace .notification-detail { -fx-background-color: white; -fx-border-width: 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 28 32; }
+.notification-workspace .notification-detail-title { -fx-font-size: 23; -fx-font-weight: bold; -fx-text-fill: -studio-ink; }
+.notification-workspace .notification-detail-message { -fx-font-size: 15; -fx-line-spacing: 6; -fx-text-fill: -studio-ink; }
+.notification-workspace-root .notification-action-bar { -fx-background-color: white; -fx-border-color: -studio-line; -fx-border-width: 1 0 0 0; -fx-padding: 16 32 20 32; }
+.notification-workspace-root .notification-composer-footer { -fx-padding: 0; }
+.notification-workspace .notification-back { -fx-padding: 8 0; -fx-background-color: transparent; -fx-text-fill: -studio-muted; }
+.notification-workspace .notification-back:focus-visible { -fx-border-color: -studio-primary; -fx-border-width: 2; -fx-border-insets: 0; }
+.notification-workspace .notification-composer .text-area { -fx-min-height: 160px; }
+.notification-workspace .notification-field-error { -fx-text-fill: #A52B2B; }

@@ -1,0 +1,475 @@
+@font-face { src: url('../assets/fonts/manrope-400.ttf'); }
+@font-face { src: url('../assets/fonts/manrope-600.ttf'); }
+@font-face { src: url('../assets/fonts/manrope-700.ttf'); }
+
+
+.root {
+    -studio-background: #FAFAF8;
+    -studio-surface: #FFFFFF;
+    -studio-ink: #173946;
+    -studio-muted: #56625C;
+    -studio-line: #D6DED7;
+    -studio-control-line: #889180;
+    -studio-primary: #9F432B;
+    -studio-subtle: #FFF4EE;
+    -fx-font-family: "Manrope";
+    -fx-font-size: 15px;
+    -fx-base: -studio-surface;
+    -fx-background: -studio-background;
+    -fx-control-inner-background: -studio-surface;
+    -fx-accent: -studio-primary;
+    -fx-focus-color: -studio-primary;
+    -fx-faint-focus-color: transparent;
+    -fx-text-background-color: -studio-ink;
+}
+.label { -fx-text-fill: -studio-ink; }
+.text { -fx-font-smoothing-type: gray; }
+.app-root, .workspace, .workspace-page, .login-root { -fx-background-color: -studio-background; }
+.workspace-scroll, .workspace-scroll > .viewport, .scroll-pane > .viewport,
+.course-create-workspace-scroll, .course-create-preview-scroll { -fx-background-color: transparent; }
+.scroll-pane { -fx-background-color: transparent; -fx-padding: 0; -fx-border-width: 0; }
+.workspace-page { -fx-padding: 24px 32px 32px; }
+.atelier-masthead { -fx-padding: 8px 32px; -fx-min-height: 64px; -fx-pref-height: 64px; -fx-background-color: -studio-surface; }
+.lab-navigation { -fx-padding: 0 32px; }
+.workbench-navigation { -fx-background-color: white; -fx-border-color: transparent transparent -studio-line transparent; -fx-min-height: 52px; -fx-alignment: center-left; }
+.navigation-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-background-radius: 0; -fx-border-radius: 0; -fx-text-fill: -studio-muted; -fx-alignment: center-left; -fx-padding: 12px 18px; -fx-min-height: 50px; -fx-graphic-text-gap: 8px; -fx-font-size: 14px; -fx-font-weight: normal; }
+.navigation-button:hover { -fx-background-color: #E8ECE3; }
+.navigation-button-selected { -fx-background-color: #F8EEE6; -fx-border-color: transparent transparent -studio-primary transparent; -fx-border-width: 0 0 3px 0; -fx-text-fill: -studio-ink; -fx-font-weight: bold; }
+.lab-avatar { -fx-background-color: -studio-subtle; -fx-background-radius: 30px; }
+.lab-avatar .label, .profile-name { -fx-font-weight: bold; }
+.lab-profile .profile-role { -fx-text-fill: #56625C; -fx-font-size: 12px; }
+.page-title, .hero-title, .login-title { -fx-font-family: "Manrope"; -fx-font-weight: bold; -fx-font-size: 28px; -fx-text-fill: -studio-ink; }
+.course-selected-title, .lab-session-title, .catalog-recipe-title, .notification-detail-title { -fx-font-family: "Manrope"; -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: -studio-ink; }
+.course-section-title, .section-title, .course-create-section-title, .ops-section-title { -fx-font-size: 18px; -fx-font-weight: bold; }
+.page-description, .hero-description, .surface-description, .context-hint, .form-helper,
+.course-selected-meta, .course-meta, .lab-small-copy, .lab-session-meta, .ops-muted,
+.notification-detail-metadata, .catalog-recipe-meta { -fx-font-size: 14px; -fx-text-fill: -studio-muted; }
+.lab-card-kicker, .section-kicker, .course-kicker, .editorial-section-label,
+.ops-field-label, .course-filter-label { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -studio-muted; }
+.field-label, .course-field-label, .lab-menu-title, .lab-status-title { -fx-font-weight: bold; -fx-font-size: 14px; }
+.lab-page-header, .workspace-hero { -fx-padding: 0 0 12px 0; }
+.surface-card, .lab-card, .course-create-card { -fx-background-color: -studio-surface; -fx-border-color: -studio-line; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 26px; }
+.surface-divider, .separator .line { -fx-background-color: -studio-line; -fx-border-color: -studio-line; }
+.button, .toggle-button, .hyperlink { -fx-cursor: hand; }
+.button, .toggle-button { -fx-background-color: -studio-surface; -fx-border-color: -studio-control-line; -fx-background-radius: 5px; -fx-border-radius: 5px; -fx-padding: 10px 14px; -fx-min-height: 44px; -fx-text-fill: -studio-ink; -fx-font-weight: bold; -fx-effect: null; }
+.button:hover, .toggle-button:hover { -fx-background-color: -studio-subtle; }
+.button:pressed, .toggle-button:pressed { -fx-background-color: #DFE5D8; }
+.button-primary, .course-button-primary, .login-submit { -fx-background-color: -studio-primary; -fx-border-color: -studio-primary; -fx-text-fill: #FFFFFF; }
+.button-primary:hover, .course-button-primary:hover, .login-submit:hover { -fx-background-color: #883418; -fx-border-color: #883418; }
+.button-primary:pressed, .login-submit:pressed { -fx-background-color: #702B15; }
+.button-secondary, .course-button-secondary { -fx-background-color: -studio-surface; -fx-border-color: -studio-control-line; -fx-text-fill: -studio-ink; }
+.button-quiet, .lab-text-action, .ops-text-link, .logout-button, .notification-back, .course-create-back { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -studio-ink; }
+.button-danger { -fx-background-color: #FFF1F0; -fx-border-color: #BC6F69; -fx-text-fill: #923F36; }
+.button-danger:hover { -fx-background-color: #FBE2DF; }
+.button:focus-visible, .toggle-button:focus-visible, .navigation-button:focus-visible, .logout-button:focus-visible,
+.login-submit:focus-visible, .login-field:focused, .text-field:focused, .text-area:focused,
+.combo-box:focused, .date-picker:focused, .spinner:focused, .hyperlink:focus-visible {
+    -fx-border-color: -studio-primary; -fx-border-width: 2px; -fx-border-insets: 0;
+}
+.button-primary:focus-visible, .course-button-primary:focus-visible, .login-submit:focus-visible {
+    -fx-border-color: -studio-ink, white;
+    -fx-border-width: 2px, 2px; -fx-border-insets: 0, 3px;
+    -fx-border-radius: 5px, 5px;
+}
+.button:disabled, .toggle-button:disabled { -fx-opacity: 1; -fx-background-color: #E4E8E5; -fx-border-color: #CDD5D0; -fx-text-fill: #5C6869; -fx-cursor: default; }
+.button-primary:disabled, .course-button-primary:disabled, .login-submit:disabled {
+    -fx-background-color: #F1DED5; -fx-border-color: #D9B8A8; -fx-text-fill: #735348;
+}
+.text-field, .text-area, .combo-box, .date-picker, .spinner {
+    -fx-background-color: -studio-surface; -fx-border-color: -studio-control-line; -fx-border-radius: 5px; -fx-background-radius: 5px; -fx-min-height: 44px; -fx-text-fill: -studio-ink; -fx-prompt-text-fill: -studio-muted;
+}
+.text-field { -fx-padding: 9px 12px; }
+.text-area .content { -fx-background-color: -studio-surface; -fx-padding: 12px; -fx-background-radius: 5px; }
+.combo-box .list-cell { -fx-padding: 8px 10px; }
+.date-picker .text-field, .spinner .text-field {
+    -fx-background-color: transparent; -fx-background-insets: 0;
+    -fx-border-color: transparent; -fx-border-width: 0;
+}
+.combo-box > .list-cell {
+    -fx-background-color: transparent; -fx-background-insets: 0;
+    -fx-border-color: transparent; -fx-border-width: 0;
+}
+.combo-box-popup .list-view { -fx-background-color: -studio-surface; -fx-border-color: -studio-line; }
+.combo-box-popup .list-cell:filled:hover { -fx-background-color: -studio-subtle; }
+.list-view, .table-view { -fx-background-color: -studio-surface; -fx-border-color: -studio-line; -fx-border-radius: 5px; -fx-background-radius: 5px; -fx-padding: 1px; }
+.list-cell { -fx-background-color: -studio-surface; -fx-text-fill: -studio-ink; -fx-padding: 12px; -fx-border-color: transparent transparent -studio-line transparent; }
+.list-cell:filled:hover { -fx-background-color: #F1F4EB; }
+.list-cell:filled:selected { -fx-background-color: #F5E9DF; -fx-text-fill: -studio-ink; -fx-border-color: transparent transparent -studio-line transparent; -fx-border-width: 0 0 1px 0; }
+.list-cell:selected .label { -fx-text-fill: -studio-ink; }
+.list-cell:empty { -fx-background-color: transparent; -fx-border-color: transparent; }
+.table-view .column-header-background, .table-view .column-header, .table-view .filler { -fx-background-color: #E9EDE4; -fx-border-color: transparent; }
+.table-view .column-header .label { -fx-text-fill: -studio-ink; -fx-font-size: 14px; -fx-font-weight: bold; -fx-alignment: center-left; -fx-padding: 10px 8px; }
+.table-row-cell { -fx-background-color: -studio-surface; -fx-border-color: transparent transparent -studio-line transparent; -fx-cell-size: 42px; }
+.table-row-cell:odd { -fx-background-color: #FAFBF7; }
+.table-row-cell:filled:selected { -fx-background-color: #F5E9DF; }
+.table-row-cell:filled:hover { -fx-background-color: #F1F4EB; }
+.table-row-cell:filled:selected:hover { -fx-background-color: #EBD8C9; }
+.table-cell { -fx-border-color: transparent; -fx-padding: 9px 10px; -fx-text-fill: -studio-ink; -fx-font-size: 14px; }
+.table-row-cell:selected .table-cell, .table-row-cell:selected .label { -fx-text-fill: -studio-ink; }
+.table-view:focused, .list-view:focused { -fx-border-color: -studio-primary; }
+.table-row-cell:empty, .table-row-cell:empty .table-cell { -fx-border-color: transparent; -fx-background-color: transparent; }
+.scroll-bar { -fx-background-color: transparent; -fx-pref-width: 10px; -fx-pref-height: 10px; }
+.scroll-bar .thumb { -fx-background-color: #A6AE9E; -fx-background-radius: 5px; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 2px; -fx-background-color: transparent; }
+.tooltip { -fx-background-color: -studio-ink; -fx-text-fill: white; -fx-font-size: 14px; }
+.progress-indicator, .login-progress, .course-progress { -fx-progress-color: -studio-primary; }
+.course-feedback, .course-feedback-info { -fx-text-fill: -studio-muted; -fx-font-size: 14px; }
+.course-feedback-success { -fx-text-fill: #296345; -fx-font-size: 14px; }
+.course-feedback-error, .login-error { -fx-text-fill: #A1372D; -fx-font-size: 14px; }
+.course-feedback:empty { -fx-padding: 0; }
+
+.lab-calendar-strip { -fx-padding: 6px; -fx-spacing: 6px; -fx-background-color: -studio-surface; -fx-border-color: -studio-line; -fx-background-radius: 6px; -fx-border-radius: 6px; }
+.lab-week-day-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 5px 3px; -fx-min-height: 66px; -fx-background-radius: 5px; }
+.lab-week-day-button:hover { -fx-background-color: #DFE7D6; }
+.lab-week-name, .lab-week-month, .dashboard-day-count { -fx-font-size: 12px; -fx-text-fill: -studio-muted; }
+.lab-week-number { -fx-font-size: 22px; -fx-font-weight: bold; }
+.lab-week-day-today { -fx-border-color: transparent transparent -studio-primary transparent; -fx-border-width: 0 0 2px 0; }
+.lab-week-day-selected { -fx-background-color: -studio-ink; -fx-border-color: -studio-ink; }
+.lab-week-day-selected:hover { -fx-background-color: #3B4435; }
+.lab-week-day-selected .label { -fx-text-fill: white; }
+.lab-calendar-arrow { -fx-background-color: transparent; -fx-border-color: transparent; -fx-font-size: 24px; -fx-padding: 8px 10px; }
+.dashboard-chef-body { -fx-padding: 0; -fx-background-color: transparent; -fx-border-color: transparent; }
+.dashboard-day-sessions { -fx-padding: 16px 0; }
+.dashboard-day-heading { -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 10px 10px 10px; }
+.lab-session-choice { -fx-wrap-text: true; -fx-alignment: center-left; -fx-background-color: white; -fx-border-color: -studio-line; -fx-padding: 12px 16px; -fx-font-size: 14px; -fx-font-weight: normal; }
+.lab-session-choice-selected { -fx-background-color: #F8EEE6; -fx-border-color: -studio-primary; -fx-border-width: 1px; }
+.dashboard-selected-session { -fx-background-color: -studio-surface; -fx-padding: 22px; -fx-background-radius: 6px; }
+.dashboard-participation { -fx-background-color: transparent; -fx-padding: 16px 0; }
+.dashboard-confirmed-total { -fx-font-family: "Manrope"; -fx-font-size: 28px; }
+.dashboard-attendance-progress { -fx-pref-height: 4px; -fx-max-height: 4px; }
+.progress-bar .bar { -fx-background-color: #346C50; -fx-background-insets: 0; -fx-background-radius: 6px; }
+.progress-bar .track { -fx-background-color: #DEE7E1; -fx-background-radius: 6px; }
+.dashboard-session-status, .ops-confirmed { -fx-text-fill: #296345; -fx-font-weight: bold; }
+.dashboard-preparation { -fx-padding: 16px 0; -fx-background-color: transparent; }
+.attention-row { -fx-background-color: transparent; -fx-alignment: center-left; -fx-padding: 10px; -fx-border-color: transparent; }
+.dashboard-preparation-action { -fx-text-fill: -studio-primary; -fx-font-weight: bold; }
+.dashboard-empty { -fx-padding: 36px; -fx-background-color: -studio-surface; }
+.dashboard-ingredient-chip { -fx-background-color: -studio-subtle; -fx-padding: 6px 10px; -fx-background-radius: 3px; }
+.lab-quantity { -fx-font-weight: bold; }
+.lab-menu-row { -fx-padding: 10px 0; -fx-border-color: transparent transparent -studio-line transparent; }
+
+.course-list-panel, .course-index { -fx-padding: 16px; }
+.course-list { -fx-border-width: 0; }
+.course-list-title { -fx-font-size: 15px; -fx-font-weight: bold; }
+.course-list-meta, .course-list-description { -fx-font-size: 14px; -fx-text-fill: -studio-muted; }
+.course-dossier, .course-detail-panel { -fx-padding: 0; }
+.course-catalog-header { -fx-padding: 0 0 14px 0; }
+.course-catalog-tabs, .course-section-nav, .editorial-section-navigation { -fx-spacing: 6px; -fx-padding: 0 0 12px 0; }
+.course-catalog-tab, .course-section-tab, .catalog-tab, .ops-scope-tab, .ops-segment { -fx-background-color: transparent; -fx-border-color: -studio-line; -fx-font-size: 14px; -fx-padding: 8px 12px; }
+.course-catalog-tab:selected, .course-section-tab:selected, .catalog-tab:selected, .ops-scope-tab:selected, .ops-segment:selected,
+.course-catalog-tab-active, .course-section-tab-active, .catalog-tab-active { -fx-background-color: -studio-ink; -fx-text-fill: white; -fx-border-color: -studio-ink; }
+.course-session-detail { -fx-padding: 18px; -fx-border-color: -studio-line; -fx-background-color: -studio-surface; }
+.course-selected-session-facts { -fx-padding: 10px 0; }
+.course-menu-add { -fx-padding: 12px 0; }
+.course-create-workspace { -fx-background-color: -studio-background; }
+.course-create-hero { -fx-padding: 0 0 16px 0; }
+.course-create-card { -fx-padding: 20px; }
+.course-create-preview-column { -fx-background-color: transparent; -fx-padding: 0 0 0 20px; }
+.course-create-summary { -fx-padding: 12px; -fx-border-color: -studio-line; }
+.course-create-summary-text { -fx-font-size: 14px; }
+.course-create-actions { -fx-padding: 14px 0; }
+.course-create-back { -fx-padding: 8px 0; }
+.session-mode-row, .course-session-card { -fx-padding: 14px; -fx-background-color: -studio-surface; -fx-border-color: -studio-line; -fx-background-radius: 5px; -fx-border-radius: 5px; }
+.session-date, .course-session-title { -fx-font-weight: bold; }
+.course-program-step { -fx-background-color: -studio-subtle; -fx-padding: 8px; -fx-background-radius: 5px; }
+
+.catalog-recipe-browser, .catalog-editor-panel, .catalog-ingredient-panel { -fx-padding: 20px; }
+.catalog-readonly, .catalog-preparation { -fx-font-size: 14px; -fx-line-spacing: 5px; }
+.catalog-ingredient-drawer { -fx-padding: 18px 0; -fx-background-color: transparent; }
+.catalog-tab-selected { -fx-background-color: -studio-ink; -fx-text-fill: white; }
+.notification-list { -fx-border-width: 0; }
+.notification-list-title, .notification-subject { -fx-font-weight: bold; -fx-font-size: 15px; }
+.notification-list-meta, .notification-preview { -fx-text-fill: -studio-muted; -fx-font-size: 14px; }
+.notification-detail-message { -fx-font-size: 15px; -fx-line-spacing: 6px; }
+.notification-composer, .editorial-letter { -fx-padding: 24px; }
+.notification-sent-badge { -fx-background-color: -studio-subtle; -fx-text-fill: #296345; -fx-padding: 6px 12px; -fx-background-radius: 20px; }
+.notification-archive-header { -fx-padding: 0 0 12px 0; }
+.ops-filters { -fx-padding: 16px; }
+.ops-metric { -fx-padding: 18px; }
+.ops-metric-value { -fx-font-family: "Manrope"; -fx-font-size: 32px; }
+.ops-empty-title { -fx-font-family: "Manrope"; -fx-font-size: 24px; }
+.ops-chart-panel { -fx-padding: 18px; }
+.ops-chart-title { -fx-font-size: 16px; -fx-font-weight: bold; }
+.ops-period { -fx-font-size: 14px; -fx-text-fill: -studio-muted; }
+.ops-footer { -fx-padding: 14px 0; }
+.chart { -fx-padding: 10px 0; }
+.chart-plot-background, .chart-legend { -fx-background-color: transparent; }
+.chart-title { -fx-font-size: 16px; }
+.axis { -fx-tick-label-fill: -studio-ink; -fx-tick-label-font-size: 14px; }
+.chart-horizontal-grid-lines, .chart-vertical-grid-lines { -fx-stroke: -studio-line; }
+.default-color0.chart-bar, .report-practical-bar { -fx-bar-fill: -studio-primary; }
+.default-color1.chart-bar, .report-online-bar { -fx-bar-fill: -studio-primary; }
+.default-color0.chart-pie { -fx-pie-color: -studio-primary; }
+.default-color1.chart-pie { -fx-pie-color: #C27657; }
+.default-color2.chart-pie { -fx-pie-color: #F3D8C6; }
+.default-color3.chart-pie { -fx-pie-color: #ABB59E; }
+
+.login-root { -fx-background-color: white; }
+.lab-login-main { -fx-padding: 24px; }
+.login-card { -fx-padding: 20px; -fx-background-color: white; }
+.login-title { -fx-font-size: 32px; }
+.login-subtitle { -fx-font-size: 14px; -fx-text-fill: -studio-muted; }
+.login-field { -fx-min-height: 46px; -fx-font-size: 15px; }
+.login-submit { -fx-min-height: 48px; -fx-font-size: 15px; }
+.login-help { -fx-padding: 16px 0 0 0; -fx-font-size: 12px; -fx-text-fill: -studio-muted; }
+.password-input { -fx-padding: 10px 50px 10px 12px; }
+.password-reveal,
+.password-reveal:hover, .password-reveal:pressed,
+.password-reveal:disabled,
+.password-reveal:selected, .password-reveal:selected:hover,
+.password-reveal:focus-visible, .password-reveal:selected:focus-visible {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-padding: 8px;
+    -fx-effect: null;
+}
+.password-reveal:focus-visible, .password-reveal:selected:focus-visible {
+    -fx-border-color: -studio-primary;
+    -fx-border-width: 1;
+    -fx-border-insets: 3;
+    -fx-border-radius: 5;
+}
+.dialog-pane { -fx-background-color: -studio-background; -fx-padding: 22px; }
+.dialog-pane .header-panel { -fx-background-color: -studio-background; }
+.dialog-pane .header-panel .label { -fx-font-family: "Manrope"; -fx-font-size: 23px; }
+.dialog-pane .content.label { -fx-font-size: 14px; -fx-wrap-text: true; }
+.dialog-pane .button-bar { -fx-padding: 16px 0 0 0; }
+
+.agenda-preparation { -fx-padding: 8px 16px; }
+.agenda-preparation-row { -fx-padding: 8px 0; }
+.agenda-session-list { -fx-padding: 0; }
+.agenda-participation { -fx-background-color: transparent; -fx-padding: 10px 0; }
+.agenda-community { -fx-padding: 18px; }
+.course-index { -fx-background-color: -studio-surface; -fx-background-radius: 6px; -fx-border-color: -studio-line; -fx-border-radius: 6px; }
+.course-index .course-catalog-header { -fx-padding: 0 0 14px 0; }
+.combo-box > .list-cell:filled:selected { -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 0; -fx-text-fill: -studio-ink; }
+.catalog-ingredient-row { -fx-padding: 4px 0; }
+.catalog-dose-row { -fx-padding: 8px 0; -fx-border-color: transparent transparent -studio-line transparent; }
+.catalog-dose-quantity { -fx-font-weight: bold; }
+.session-detail-header { -fx-padding: 0 0 12px 0; -fx-spacing: 8px; }
+.session-detail-title { -fx-font-family: "Manrope"; -fx-font-size: 24px; -fx-text-fill: -studio-ink; }
+.session-detail-nav { -fx-spacing: 8px; -fx-padding: 4px 0; }
+.report-period-compact { -fx-padding: 10px 14px; }
+.report-summary-strip { -fx-padding: 8px 0 12px 0; -fx-border-color: transparent transparent -studio-line transparent; }
+.report-summary-item { -fx-padding: 4px 16px 4px 0; }
+.report-summary-value { -fx-font-family: "Manrope"; -fx-font-size: 32px; -fx-font-weight: bold; }
+.planning-embedded { -fx-padding: 0; }
+.course-agenda-headings { -fx-padding: 0 12px 6px 12px; }
+.course-agenda-session { -fx-padding: 10px 11px; -fx-alignment: center-left; }
+.recipe-disclosure { -fx-text-fill: -studio-ink; -fx-background-color: transparent; }
+.recipe-disclosure > .title {
+    -fx-background-color: -studio-surface;
+    -fx-border-color: transparent transparent -studio-line transparent;
+    -fx-padding: 12px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+.recipe-disclosure > .title:hover { -fx-background-color: -studio-subtle; }
+.recipe-disclosure:focused > .title { -fx-border-color: -studio-primary; }
+.recipe-disclosure > .title > .arrow-button > .arrow { -fx-background-color: -studio-ink; }
+.recipe-disclosure > .content {
+    -fx-background-color: -studio-surface;
+    -fx-border-color: transparent transparent -studio-line transparent;
+    -fx-padding: 12px 16px;
+}
+.recipe-ingredient-list { -fx-spacing: 6px; }
+.quantity-row { -fx-padding: 4px 0; }
+.course-recipe-row {
+    -fx-padding: 10px 0;
+    -fx-border-color: transparent transparent -studio-line transparent;
+}
+
+
+.text-field:disabled, .text-area:disabled, .combo-box:disabled, .date-picker:disabled, .spinner:disabled { -fx-opacity: 1; -fx-background-color: #EBEEEA; -fx-border-color: #CDD5D0; -fx-text-fill: #5C6869; }
+.combo-box:disabled > .list-cell { -fx-opacity: 1; -fx-text-fill: #5C6869; }
+.text-field:readonly { -fx-background-color: #F3F5F1; }
+.text-field:error, .text-area:error, .combo-box:error, .date-picker:error, .field-error { -fx-border-color: #A1372D; -fx-border-width: 2px; }
+.hyperlink { -fx-text-fill: -studio-primary; -fx-underline: true; }
+.hyperlink:hover { -fx-text-fill: #883418; }
+.check-box, .radio-button { -fx-text-fill: -studio-ink; -fx-font-size: 14px; }
+.check-box .box, .radio-button .radio { -fx-background-color: white; -fx-border-color: -studio-control-line; }
+.check-box:selected .mark, .radio-button:selected .dot { -fx-background-color: -studio-primary; }
+.check-box:focused .box, .radio-button:focused .radio { -fx-border-color: -studio-primary; -fx-border-width: 2px; }
+.check-box:disabled, .radio-button:disabled { -fx-opacity: 0.7; }
+.combo-box-popup .list-cell:filled:selected { -fx-background-color: #F5E9DF; -fx-text-fill: -studio-ink; }
+.date-picker-popup { -fx-background-color: white; -fx-border-color: -studio-line; }
+.date-picker-popup .month-year-pane { -fx-background-color: -studio-subtle; }
+.date-picker-popup .day-cell { -fx-text-fill: -studio-ink; }
+.date-picker-popup .day-cell:selected { -fx-background-color: #F3D8C6; }
+.date-picker-popup .day-cell:focused { -fx-border-color: -studio-primary; -fx-border-width: 2px; }
+.table-view:focused, .list-view:focused { -fx-border-width: 2px; -fx-border-insets: 0; }
+.table-view .placeholder .label { -fx-text-fill: -studio-muted; -fx-font-size: 14px; }
+.agenda-session-header { -fx-padding: 0 0 8px; }
+.agenda-session-detail #practicalSeparator .line { -fx-background-color: transparent; -fx-border-color: -studio-line; -fx-border-width: 1px 0 0; -fx-border-insets: 0; }
+.agenda-counts-strip { -fx-padding: 0 0 0 20px; -fx-spacing: 8px; -fx-border-color: transparent transparent transparent -studio-line; }
+.agenda-counts-strip #nextSessionPeopleLabel { -fx-text-fill: -studio-ink; }
+.agenda-menu-column, .agenda-ingredients-column { -fx-padding: 8px 0; -fx-background-color: transparent; }
+.agenda-calculation-disclosure { -fx-text-fill: -studio-ink; }
+.agenda-calculation-disclosure > .title { -fx-background-color: transparent; -fx-padding: 12px 0; -fx-border-color: transparent transparent -studio-line transparent; -fx-cursor: hand; }
+.agenda-calculation-disclosure > .title:hover { -fx-background-color: -studio-subtle; }
+.agenda-calculation-disclosure:focused > .title { -fx-border-color: -studio-primary; -fx-border-width: 2px; }
+.agenda-calculation-disclosure > .content { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; }
+.agenda-calculation-disclosure > .title > .arrow-button > .arrow { -fx-background-color: -studio-primary; }
+.agenda-calculation-body { -fx-padding: 12px 0; -fx-spacing: 10px; }
+.agenda-calculation-item { -fx-padding: 8px 0; -fx-border-color: transparent transparent -studio-line transparent; }
+
+
+.studio-catalog-header { -fx-padding: 0 0 16px; }
+.studio-recipe-browser { -fx-padding: 20px; -fx-background-color: -studio-surface; -fx-background-radius: 6px; -fx-border-color: -studio-line; -fx-border-radius: 6px; }
+.studio-recipe-sheet { -fx-padding: 28px; -fx-background-color: -studio-surface; -fx-background-radius: 16px; -fx-border-color: -studio-line; -fx-border-radius: 16px; }
+.studio-recipe-columns { -fx-hgap: 24px; -fx-vgap: 20px; }
+.studio-recipe-section, .studio-course-program, .studio-course-menu { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 16px 0; -fx-effect: null; }
+.studio-recipe-metadata { -fx-padding: 10px 0 18px; -fx-text-fill: -studio-muted; }
+.studio-planning, .studio-notifications { -fx-padding: 24px 36px; }
+.studio-filter-bar { -fx-padding: 12px 0 16px; -fx-background-color: transparent; -fx-border-color: transparent; }
+.studio-requirements-table { -fx-fixed-cell-size: 42px; }
+.studio-report-summary { -fx-background-color: transparent; -fx-border-color: transparent transparent -studio-line transparent; -fx-padding: 12px 0 18px; }
+.studio-composer { -fx-padding: 24px; }
+.studio-course-actions { -fx-hgap: 8px; -fx-vgap: 8px; -fx-padding: 12px 0; }
+.studio-session-editor { -fx-padding: 16px 0; -fx-background-color: transparent; -fx-border-color: transparent transparent -studio-line transparent; -fx-border-width: 0 0 1px 0; }
+.studio-agenda-columns { -fx-hgap: 20px; -fx-vgap: 16px; }
+
+
+.agenda-session-detail { -fx-padding: 24px 28px; }
+.agenda-session-heading { -fx-font-size: 12px; -fx-text-fill: -studio-muted; -fx-font-weight: bold; }
+.lab-menu-title { -fx-font-size: 17px; }
+.studio-recipe-browser .list-view { -fx-background-color: transparent; -fx-border-color: transparent; }
+.studio-recipe-browser .list-cell { -fx-background-color: transparent; }
+.studio-recipe-browser .list-cell:filled:selected { -fx-background-color: #F5E9DF; -fx-background-radius: 5px; -fx-border-color: transparent; }
+
+
+.workbench-navigation .navigation-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-border-width: 0 0 3px 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-text-fill: -studio-muted; -fx-font-weight: normal; -fx-padding: 12px 16px; }
+.workbench-navigation .navigation-button:hover { -fx-background-color: #F8EEE6; }
+.workbench-navigation .navigation-button-selected { -fx-background-color: #F8EEE6; -fx-border-color: transparent transparent -studio-primary transparent; -fx-text-fill: -studio-ink; -fx-font-weight: bold; }
+.workbench-navigation .navigation-button:focus-visible { -fx-border-color: -studio-primary; -fx-border-width: 2px; -fx-border-insets: 2px; }
+.shell-header { -fx-padding: 0 28px; -fx-background-color: -studio-surface; -fx-border-color: transparent transparent -studio-line transparent; }
+.shell-header .lab-brand-title, .shell-header .shell-profile-actions { -fx-min-height: 64px; }
+.shell-header .profile-name { -fx-max-width: 132px; }
+.shell-header .workbench-navigation { -fx-padding: 0; -fx-border-color: transparent; -fx-min-height: 64px; }
+.shell-header .navigation-button { -fx-padding: 12px 14px; -fx-min-height: 64px; -fx-font-size: 14px; -fx-font-weight: normal; }
+.shell-header .navigation-button-selected { -fx-text-fill: -studio-primary; }
+.shell-header:stacked .lab-brand-title, .shell-header:stacked .shell-profile-actions { -fx-min-height: 56px; }
+.shell-header:stacked .workbench-navigation { -fx-min-height: 48px; }
+.shell-header:stacked .navigation-button { -fx-min-height: 48px; }
+.catalog-segmented-tabs { -fx-background-color: -studio-surface; -fx-background-radius: 10px; -fx-padding: 4px; }
+.catalog-sheet-heading { -fx-padding: 0 0 16px; -fx-border-color: transparent transparent -studio-line transparent; }
+.catalog-dose-sheet { -fx-background-color: -studio-surface; -fx-background-radius: 6px; -fx-padding: 20px; }
+.workbench-recipe-book { -fx-background-color: white; }
+.workbench-recipe-book .studio-recipe-browser { -fx-background-radius: 0; -fx-border-radius: 0; -fx-border-color: transparent -studio-line transparent transparent; -fx-padding: 20px 24px 20px 0; }
+.workbench-recipe-book .studio-recipe-sheet { -fx-background-radius: 0; -fx-border-color: transparent; -fx-padding: 20px 12px 20px 20px; }
+.workbench-recipe-book .catalog-dose-sheet { -fx-background-color: transparent; -fx-background-radius: 0; -fx-padding: 16px 0; }
+.workbench-recipe-book .studio-recipe-browser .field-label { -fx-font-size: 17px; }
+.workbench-recipe-book .studio-recipe-browser .form-helper { -fx-font-size: 14px; }
+.workbench-recipe-book .studio-recipe-browser .list-cell:empty { -fx-border-color: transparent; }
+.catalog-sheet-footer { -fx-padding: 14px 0 0; -fx-border-color: -studio-line transparent transparent transparent; }
+.catalog-empty-title { -fx-font-size: 28px; -fx-font-weight: bold; }
+.workbench-eyebrow { -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: -studio-muted; }
+
+
+.workbench-course-dossier { -fx-padding: 8px 0 20px; -fx-border-color: transparent transparent -studio-line transparent; }
+.workbench-dossier-actions { -fx-padding: 0; }
+.workbench-program-sheet { -fx-padding: 22px; -fx-background-color: white; -fx-border-color: -studio-line; -fx-background-radius: 6px; -fx-border-radius: 6px; }
+.workbench-program-timeline { -fx-padding: 4px 0; }
+.workbench-session-heading { -fx-padding: 0 0 8px; -fx-spacing: 5px; -fx-background-color: transparent; }
+.workbench-session-tools { -fx-padding: 8px 0 0; }
+.workbench-danger-quiet { -fx-background-color: transparent; -fx-border-color: transparent; }
+.workbench-danger-quiet:hover { -fx-background-color: #FFF1F0; }
+.workbench-menu-sheet { -fx-padding: 16px 0; }
+.workbench-menu-library { -fx-padding: 20px; -fx-background-color: -studio-surface; -fx-background-radius: 6px; }
+.workbench-planning-context { -fx-padding: 20px; -fx-background-color: white; -fx-background-radius: 6px; -fx-border-color: -studio-line; -fx-border-radius: 6px; }
+.workbench-sheet-heading { -fx-padding: 0 0 8px; }
+.workbench-preparation-sheet { -fx-padding: 24px; }
+.workbench-report-period { -fx-padding: 14px 0; }
+.workbench-report-summary { -fx-padding: 20px 24px; -fx-background-color: -studio-surface; -fx-background-radius: 6px; -fx-border-color: transparent; }
+.workbench-report-measure { -fx-padding: 0 24px 0 0; }
+
+
+.combo-box .arrow-button, .date-picker > .arrow-button {
+    -fx-background-color: transparent; -fx-background-insets: 0; -fx-background-radius: 0 8px 8px 0;
+    -fx-padding: 10px 12px; -fx-border-color: transparent;
+}
+.combo-box .arrow-button:hover, .date-picker > .arrow-button:hover { -fx-background-color: -studio-subtle; }
+.combo-box .arrow { -fx-background-color: -studio-muted; }
+.date-picker > .arrow-button > .arrow { -fx-background-color: -studio-primary; }
+.spinner > .increment-arrow-button, .spinner > .decrement-arrow-button {
+    -fx-background-color: transparent; -fx-background-insets: 0;
+    -fx-border-color: transparent; -fx-padding: 6px 12px;
+}
+.spinner > .increment-arrow-button:hover, .spinner > .decrement-arrow-button:hover { -fx-background-color: #F5DED1; }
+.spinner .increment-arrow, .spinner .decrement-arrow { -fx-background-color: -studio-ink; }
+.context-menu { -fx-background-color: white; -fx-background-radius: 10px; -fx-border-radius: 10px; -fx-border-color: -studio-line; -fx-padding: 6px; }
+.menu-item { -fx-padding: 10px 16px; -fx-background-radius: 6px; }
+.menu-item:focused { -fx-background-color: -studio-subtle; }
+.menu-item:focused .label { -fx-text-fill: -studio-ink; }
+.check-box { -fx-label-padding: 0 0 0 10px; -fx-padding: 6px 0; }
+.check-box > .box { -fx-background-color: white; -fx-background-radius: 5px; -fx-border-color: -studio-control-line; -fx-border-radius: 5px; -fx-padding: 5px; }
+.check-box:selected > .box { -fx-background-color: -studio-primary; -fx-border-color: -studio-primary; }
+.check-box:selected > .box > .mark { -fx-background-color: white; }
+.check-box:focused > .box { -fx-border-width: 2px; -fx-border-insets: 0; -fx-border-color: -studio-primary; }
+.check-box:disabled { -fx-opacity: 0.65; }
+.date-picker-popup { -fx-padding: 8px; -fx-background-radius: 6px; -fx-border-radius: 6px; }
+.date-picker-popup .month-year-pane { -fx-padding: 8px; -fx-background-radius: 5px; }
+.date-picker-popup .calendar-grid { -fx-background-color: white; -fx-background-insets: 0; }
+.date-picker-popup .day-name-cell { -fx-background-color: #F1F3ED; -fx-text-fill: -studio-ink; }
+.date-picker-popup .week-number-cell { -fx-background-color: white; -fx-text-fill: -studio-muted; }
+.date-picker-popup .month-year-pane .spinner { -fx-background-color: transparent; -fx-border-color: transparent; }
+.date-picker-popup .month-year-pane .button {
+    -fx-background-color: transparent; -fx-background-insets: 0;
+    -fx-border-color: transparent; -fx-padding: 5px;
+}
+.date-picker-popup .month-year-pane .button:hover { -fx-background-color: #E8ECE3; }
+.date-picker-popup .month-year-pane .button:focus-visible {
+    -fx-border-color: -studio-primary; -fx-border-width: 2px; -fx-border-insets: 0;
+}
+.date-picker-popup .day-cell {
+    -fx-background-color: transparent; -fx-background-insets: 0;
+    -fx-padding: 8px; -fx-background-radius: 5px; -fx-border-color: transparent;
+}
+.date-picker-popup .day-cell:hover { -fx-background-color: -studio-subtle; }
+.date-picker-popup .selected, .date-picker-popup .selected:hover { -fx-background-color: -studio-primary; -fx-text-fill: white; }
+.date-picker-popup .today { -fx-border-color: #A9B4A2; -fx-border-radius: 5px; }
+.date-picker-popup .today.selected { -fx-border-color: transparent; }
+.date-picker-popup .selected:focused, .date-picker-popup .today.selected:focused {
+    -fx-border-color: -studio-ink, white;
+    -fx-border-width: 2px, 2px; -fx-border-insets: 0, 3px;
+    -fx-border-radius: 5px, 3px;
+}
+
+
+.participant-workspace .course-catalog-tabs { -fx-padding: 5px; -fx-background-color: -studio-surface; -fx-background-radius: 6px; }
+.participant-workspace .course-catalog-tab { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 11px 22px; }
+.participant-workspace .course-catalog-tab:selected { -fx-background-color: white; -fx-border-color: -studio-line; -fx-text-fill: -studio-primary; }
+.participant-workspace .course-catalog-tab:focus-visible { -fx-border-color: -studio-primary; }
+.participant-workspace .surface-card { -fx-background-radius: 6px; -fx-border-radius: 6px; }
+.participant-workspace .list-view { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; }
+.participant-workspace .list-view:focused { -fx-border-color: -studio-primary; -fx-border-insets: 0; }
+.participant-workspace .list-cell { -fx-padding: 14px 12px; -fx-background-radius: 5px; -fx-border-color: transparent transparent -studio-line transparent; }
+.participant-workspace .list-cell:filled:selected { -fx-background-color: #F5E9DF; }
+.participant-workspace .list-cell:empty { -fx-border-color: transparent; -fx-background-color: transparent; }
+.participant-workspace .combo-box > .list-cell { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 8px 10px; }
+.participant-workspace .combo-box > .list-cell:filled:selected { -fx-background-color: transparent; }
+.participant-workspace .course-list-title, .participant-workspace .notification-list-title { -fx-font-size: 16px; -fx-font-weight: bold; }
+.participant-workspace .course-list-meta, .participant-workspace .notification-list-meta { -fx-font-size: 13px; -fx-text-fill: -studio-muted; }
+.participant-workspace .participant-detail-actions { -fx-padding: 18px 0 0; -fx-border-color: -studio-line transparent transparent transparent; }
+
+
+.profile-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-effect: null; }
+.profile-button:hover { -fx-background-color: #E8ECE3; }
+.profile-button { -fx-padding: 8px; -fx-background-radius: 5px; }
+.shell-header .navigation-button-selected { -fx-background-color: #FAF5EF; -fx-border-color: transparent transparent -studio-primary transparent; -fx-border-width: 0 0 3px 0; }
+
+
+.page-title, .hero-title { -fx-font-size: 32px; }
+.workspace-page { -fx-padding: 32px 40px; }
+.shell-header { -fx-padding: 0 40px; }
+.shell-header .lab-brand-title, .shell-header .shell-profile-actions,
+.shell-header .workbench-navigation, .shell-header .navigation-button { -fx-min-height: 72px; }
+.shell-header .profile-name { -fx-font-weight: normal; }
+.shell-header .navigation-button-selected { -fx-background-color: #F4F6F1; }
+.result-pager { -fx-padding: 12px 0; -fx-border-color: -studio-line transparent transparent transparent; }
+.result-page-range { -fx-font-size: 13px; -fx-text-fill: -studio-muted; }
+.result-page-position { -fx-font-size: 13px; -fx-text-fill: -studio-ink; -fx-min-width: 98px; -fx-alignment: center; }
+.result-pager .button { -fx-font-weight: normal; -fx-min-width: 44px; }
+.spinner:invalid, .spinner:invalid:focused { -fx-border-color: #A6382E; -fx-border-width: 2px; }
+.button-primary:focus-visible, .course-button-primary:focus-visible, .login-submit:focus-visible { -fx-border-radius: 5px, 3px; }
